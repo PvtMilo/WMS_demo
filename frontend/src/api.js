@@ -1,44 +1,142 @@
-const API_BASE = 'http://127.0.0.1:5510'
+// frontend/src/api.js
 
-export function saveToken(token){ localStorage.setItem('token', token) }
-export function getToken(){ return localStorage.getItem('token') }
-export function clearToken(){ localStorage.removeItem('token') }
+// Base URL backend (bisa override via .env Vite: VITE_API_BASE)
+const API_BASE = (import.meta?.env?.VITE_API_BASE) || 'http://127.0.0.1:5510'
 
-async function request(method, path, body){
-  const res = await fetch(API_BASE + path, {
-    method,
-    headers: {
-      'Content-Type':'application/json',
-      'Authorization': 'Token ' + (getToken() || '')
-    },
-    body: body ? JSON.stringify(body) : undefined
-  })
-  const data = await res.json().catch(()=> ({}))
-  if(!res.ok) throw new Error(data.message || 'Request gagal')
+// ===== Token helpers =====
+export function saveToken(token) { localStorage.setItem('token', token) }
+export function getToken() { return localStorage.getItem('token') }
+export function clearToken() { localStorage.removeItem('token') }
+
+// ===== Core request wrapper (JSON) =====
+async function request(method, path, body) {
+  const headers = { 'Content-Type': 'application/json' }
+  const tok = getToken()
+  if (tok) headers['Authorization'] = 'Token ' + tok
+
+  let res
+  try {
+    res = await fetch(API_BASE + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  } catch (err) {
+    throw new Error('Tidak bisa terhubung ke server')
+  }
+
+  // 204 No Content
+  if (res.status === 204) return {}
+
+  // Coba parse JSON response
+  let data = null
+  try { data = await res.json() } catch { data = {} }
+
+  if (!res.ok) {
+    const msg = data?.message || `Request gagal (${res.status})`
+    throw new Error(msg)
+  }
   return data
 }
 
+// ===== Public API surface =====
 export const api = {
-  login: async (email, password) => {
-    const res = await fetch(API_BASE + '/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email,password})
-    })
-    const data = await res.json().catch(()=> ({}))
-    if(!res.ok) throw new Error(data.message || 'Login gagal')
-    saveToken(data.token); return data
+  // ---------- AUTH ----------
+  async login(email, password) {
+    let res
+    try {
+      res = await fetch(API_BASE + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+    } catch {
+      throw new Error('Tidak bisa terhubung ke server')
+    }
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.message || 'Login gagal')
+    if (data?.token) saveToken(data.token)
+    return data // { token, user }
   },
-  me: () => request('GET', '/auth/me'),
-  logout: async () => { await request('POST','/auth/logout',{}); clearToken() },
 
-  // ITEMS
-  batchCreateItems: (payload) => request('POST','/items/batch_create', payload),
-  listItems: (params={}) => {
+  me() {
+    return request('GET', '/auth/me')
+  },
+
+  async logout() {
+    try { await request('POST', '/auth/logout', {}) } finally { clearToken() }
+    return { ok: true }
+  },
+
+  // ---------- ITEMS / INVENTORY ----------
+  // payload: {prefix, name, category, model, rack, qty}
+  batchCreateItems(payload) {
+    return request('POST', '/items/batch_create', payload)
+  },
+
+  listItems(params = {}) {
     const qs = new URLSearchParams(params).toString()
     return request('GET', '/items' + (qs ? `?${qs}` : ''))
   },
-  getItem: (id_code) => request('GET', `/items/${encodeURIComponent(id_code)}`),
-  updateItem: (id_code, payload) => request('PUT', `/items/${encodeURIComponent(id_code)}`, payload),
-  deleteItem: (id_code) => request('DELETE', `/items/${encodeURIComponent(id_code)}`),
-  qrUrl: (id_code) => `${API_BASE}/items/${encodeURIComponent(id_code)}/qr`
+
+  getItem(id_code) {
+    return request('GET', `/items/${encodeURIComponent(id_code)}`)
+  },
+
+  updateItem(id_code, payload) {
+    return request('PUT', `/items/${encodeURIComponent(id_code)}`, payload)
+  },
+
+  deleteItem(id_code) {
+    return request('DELETE', `/items/${encodeURIComponent(id_code)}`)
+  },
+
+  // URL langsung (gambar PNG/SVG QR di-backend)
+  qrUrl(id_code) {
+    return `${API_BASE}/items/${encodeURIComponent(id_code)}/qr`
+  },
+
+  // ---------- CONTAINERS / CHECKOUT (Phase 4) ----------
+  // payload: {event_name, pic, crew?, location?, start_date?, end_date?}
+  createContainer(payload) {
+    return request('POST', '/containers', payload)
+  },
+
+  listContainers(params = {}) {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/containers' + (qs ? `?${qs}` : ''))
+  },
+
+  getContainer(cid) {
+    return request('GET', `/containers/${encodeURIComponent(cid)}`)
+  },
+
+  // payload: { ids: string[], amend?: boolean, override_heavy?: boolean, override_reason?: string }
+  addItemsToContainer(cid, payload) {
+    return request('POST', `/containers/${encodeURIComponent(cid)}/add_items`, payload)
+  },
+
+  // Batalkan (void) item salah input / mis-scan
+  // payload: { id_code: string, reason?: string }
+  voidContainerItem(cid, payload) {
+    return request('POST', `/containers/${encodeURIComponent(cid)}/void_item`, payload)
+  },
+
+  // Submit DN → buat snapshot versi (V1, V2, ...)
+  submitDN(cid) {
+    return request('POST', `/containers/${encodeURIComponent(cid)}/submit_dn`)
+  },
+
+  // Ambil DN snapshot terbaru (untuk print)
+  getLatestDN(cid) {
+    return request('GET', `/containers/${encodeURIComponent(cid)}/dn_latest`)
+  },
+  // Bulk update kondisi item (Good / Rusak ringan / Rusak berat)
+  bulkUpdateCondition: (payload) =>
+    request('POST', '/items/bulk_update_condition', payload),
+// Ringkasan jumlah per kategori
+  summaryByCategory: () =>
+    request('GET', '/items/summary_by_category'),
 }
+
+export default api

@@ -58,35 +58,26 @@ def batch_create():
     finally:
         conn.close()
 
+# contoh list items (ringkas)
 @bp.get("")
 @auth_required
 def list_items():
     q = (request.args.get("q") or "").strip().upper()
-    status = (request.args.get("status") or "").strip()
-    category = (request.args.get("category") or "").strip().upper()
-
-    sql = "SELECT id_code, name, category, model, rack, status, defect_level, serial, created_at FROM item_unit"
-    filters, args = [], []
-
+    sql = """
+    SELECT id_code, name, category, model, rack, status, defect_level
+    FROM item_unit
+    """
+    args, where = [], []
     if q:
-        filters.append("(UPPER(id_code) LIKE ? OR UPPER(name) LIKE ? OR UPPER(model) LIKE ?)")
-        like = f"%{q}%"
-        args += [like, like, like]
-    if status:
-        filters.append("status = ?")
-        args.append(status)
-    if category:
-        filters.append("UPPER(category) = ?")
-        args.append(category)
-
-    if filters:
-        sql += " WHERE " + " AND ".join(filters)
+        where.append("(UPPER(id_code) LIKE ? OR UPPER(name) LIKE ? OR UPPER(model) LIKE ?)")
+        like = f"%{q}%"; args += [like, like, like]
+    if where: sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY created_at DESC"
 
     conn = get_conn()
     try:
         rows = conn.execute(sql, args).fetchall()
-        return jsonify({"data": [dict(r) for r in rows], "count": len(rows)})
+        return jsonify({"data": [dict(r) for r in rows]})
     finally:
         conn.close()
 
@@ -127,6 +118,33 @@ def update_item(id_code):
     finally:
         conn.close()
 
+@bp.get("/summary_by_category")
+@auth_required
+def summary_by_category():
+    """
+    Ringkasan jumlah per kategori (semua status).
+    Sekaligus kirim breakdown status untuk kebutuhan ke depan.
+    """
+    conn = get_conn()
+    try:
+        rows = conn.execute("""
+            SELECT
+              category,
+              COUNT(*) AS total,
+              SUM(CASE WHEN status='Good'   THEN 1 ELSE 0 END) AS good,
+              SUM(CASE WHEN status='Keluar' THEN 1 ELSE 0 END) AS keluar,
+              SUM(CASE WHEN status='Rusak'  THEN 1 ELSE 0 END) AS rusak,
+              SUM(CASE WHEN status='Hilang' THEN 1 ELSE 0 END) AS hilang,
+              SUM(CASE WHEN status='Afkir'  THEN 1 ELSE 0 END) AS afkir
+            FROM item_unit
+            GROUP BY category
+            ORDER BY category ASC
+        """).fetchall()
+        data = [dict(r) for r in rows]
+        return jsonify({"data": data})
+    finally:
+        conn.close()
+
 @bp.get("/<id_code>/qr")
 @auth_required
 def qr_image(id_code):
@@ -147,5 +165,72 @@ def delete_item(id_code):
             return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
         conn.commit()
         return jsonify({"ok": True}), 200
+    finally:
+        conn.close()
+
+@bp.post("/bulk_update_condition")
+@auth_required
+def bulk_update_condition():
+    """
+    Payload:
+    {
+      "ids": ["CAM-70D-002", "CAM-70D-005"],
+      "condition": "good" | "rusak_ringan" | "rusak_berat",
+      "note": "opsional; alasan PIC (tersimpan di log server/monitoring nanti)"
+    }
+    """
+    b = request.get_json(silent=True) or {}
+    ids = b.get("ids") or []
+    condition = (b.get("condition") or "").strip().lower()
+
+    if not ids or not isinstance(ids, list):
+        return jsonify({"error": True, "message": "ids (list) wajib"}), 400
+    if condition not in ("good", "rusak_ringan", "rusak_berat"):
+        return jsonify({"error": True, "message": "condition tidak valid"}), 400
+
+    # mapping condition -> (status, defect_level)
+    if condition == "good":
+        target_status, target_defect = "Good", "none"
+    elif condition == "rusak_ringan":
+        target_status, target_defect = "Rusak", "ringan"
+    else:
+        target_status, target_defect = "Rusak", "berat"
+
+    conn = get_conn()
+    try:
+        updated, skipped = [], []
+
+        for raw_id in ids:
+            id_code = (raw_id or "").strip()
+            if not id_code:
+                continue
+
+            row = conn.execute("""
+              SELECT id_code, status FROM item_unit WHERE id_code=?
+            """, (id_code,)).fetchone()
+
+            if not row:
+                skipped.append({"id_code": id_code, "reason": "Item tidak ditemukan"})
+                continue
+
+            # tidak boleh ubah dari Inventory kalau sedang Keluar (ada di kontainer)
+            if row["status"] == "Keluar":
+                skipped.append({"id_code": id_code, "reason": "Sedang Keluar (ada di kontainer)"})
+                continue
+
+            # lakukan update
+            conn.execute("""
+              UPDATE item_unit SET status=?, defect_level=? WHERE id_code=?
+            """, (target_status, target_defect, id_code))
+            updated.append(id_code)
+
+        conn.commit()
+        return jsonify({
+            "ok": True,
+            "updated": updated,
+            "skipped": skipped,
+            "counts": {"updated": len(updated), "skipped": len(skipped)},
+            "applied_condition": condition
+        })
     finally:
         conn.close()

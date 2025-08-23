@@ -1,0 +1,37 @@
+// src/components/CategorySummary.jsx
+import React, { useMemo } from 'react'
+
+export default function CategorySummary({ data = [] }) {
+  const totals = useMemo(() => {
+    const t = { total: 0 }
+    for (const r of data) t.total += Number(r.total || 0)
+    return t
+  }, [data])
+
+  if (!data.length) {
+    return (
+      <div style={wrap}>
+        <div style={{ color:'#666' }}>Belum ada data kategori.</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={wrap}>
+      <div style={{marginBottom:8, fontWeight:700}}>
+        Ringkasan Kategori · Total: {totals.total} unit
+      </div>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:8}}>
+        {data.map((r) => (
+          <div key={r.category} style={card}>
+            <div style={{fontSize:13, color:'#666'}}>{r.category}</div>
+            <div style={{fontSize:20, fontWeight:700}}>{r.total} unit</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const wrap = { border:'1px solid #eee', borderRadius:12, padding:12, background:'#fff', marginBottom:12 }
+const card = { border:'1px solid #f0f0f0', borderRadius:10, padding:'10px 12px', background:'#fafafa' }

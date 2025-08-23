@@ -1,8 +1,10 @@
+# backend/app.py
 from flask import Flask, jsonify
 from flask_cors import CORS
 import config
 from routes_auth import bp as auth_bp
 from routes_items import bp as items_bp
+from routes_containers import bp as containers_bp   # NEW
 from db import init_db
 
 def create_app():
@@ -16,6 +18,7 @@ def create_app():
     init_db()
     app.register_blueprint(auth_bp)
     app.register_blueprint(items_bp)
+    app.register_blueprint(containers_bp)            # NEW
     return app
 
 if __name__ == "__main__":
