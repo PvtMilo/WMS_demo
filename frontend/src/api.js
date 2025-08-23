@@ -39,5 +39,6 @@ export const api = {
   },
   getItem: (id_code) => request('GET', `/items/${encodeURIComponent(id_code)}`),
   updateItem: (id_code, payload) => request('PUT', `/items/${encodeURIComponent(id_code)}`, payload),
+  deleteItem: (id_code) => request('DELETE', `/items/${encodeURIComponent(id_code)}`),
   qrUrl: (id_code) => `${API_BASE}/items/${encodeURIComponent(id_code)}/qr`
 }

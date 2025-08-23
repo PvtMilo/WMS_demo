@@ -135,3 +135,17 @@ def qr_image(id_code):
     img.save(buf, format="PNG")
     buf.seek(0)
     return Response(buf.getvalue(), mimetype="image/png")
+
+@bp.delete("/<id_code>")
+@auth_required
+def delete_item(id_code):
+    conn = get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM item_unit WHERE id_code=?", (id_code,))
+        if cur.rowcount == 0:
+            return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
+        conn.commit()
+        return jsonify({"ok": True}), 200
+    finally:
+        conn.close()
