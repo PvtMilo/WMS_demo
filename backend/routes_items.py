@@ -62,22 +62,66 @@ def batch_create():
 @bp.get("")
 @auth_required
 def list_items():
-    q = (request.args.get("q") or "").strip().upper()
-    sql = """
-    SELECT id_code, name, category, model, rack, status, defect_level
-    FROM item_unit
     """
-    args, where = [], []
-    if q:
-        where.append("(UPPER(id_code) LIKE ? OR UPPER(name) LIKE ? OR UPPER(model) LIKE ?)")
-        like = f"%{q}%"; args += [like, like, like]
-    if where: sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY created_at DESC"
+    List items dengan paging & pencarian lintas kolom.
+    Query param:
+      - q: string (opsional), dipisah spasi jadi multi-term (AND)
+      - page: int mulai 1 (default 1)
+      - per_page: int (maks 100; default 100)
+    Response:
+    {
+      "data": [ ... <= per_page ... ],
+      "total": <int>,
+      "page": <int>,
+      "per_page": <int>
+    }
+    """
+    q_raw = (request.args.get("q") or "").strip()
+    page = int(request.args.get("page") or 1)
+    per_page = int(request.args.get("per_page") or 100)
+    if page < 1: page = 1
+    if per_page < 1: per_page = 1
+    if per_page > 100: per_page = 100
+
+    tokens = [t.strip().upper() for t in q_raw.split() if t.strip()]
 
     conn = get_conn()
     try:
-        rows = conn.execute(sql, args).fetchall()
-        return jsonify({"data": [dict(r) for r in rows]})
+        where_sql = "WHERE 1=1"
+        args = []
+
+        # Untuk tiap token, buat grup OR across kolom; seluruh token digabung AND
+        for tok in tokens:
+            like = f"%{tok}%"
+            where_sql += " AND (" + " OR ".join([
+                "UPPER(id_code)  LIKE ?",
+                "UPPER(name)     LIKE ?",
+                "UPPER(category) LIKE ?",
+                "UPPER(model)    LIKE ?",
+                "UPPER(rack)     LIKE ?",
+                "UPPER(status)   LIKE ?",
+            ]) + ")"
+            args += [like, like, like, like, like, like]
+
+        # hitung total
+        total = conn.execute(f"SELECT COUNT(*) FROM item_unit {where_sql}", args).fetchone()[0]
+
+        # ambil page
+        offset = (page - 1) * per_page
+        rows = conn.execute(f"""
+            SELECT id_code, name, category, model, rack, status, defect_level, created_at
+            FROM item_unit
+            {where_sql}
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        """, args + [per_page, offset]).fetchall()
+
+        return jsonify({
+            "data": [dict(r) for r in rows],
+            "total": int(total),
+            "page": page,
+            "per_page": per_page
+        })
     finally:
         conn.close()
 
@@ -93,26 +137,32 @@ def get_item(id_code):
     finally:
         conn.close()
 
-@bp.put("/<id_code>")
+@bp.put("/<id_code>")   # ✅ benar → /items/<id_code>
 @auth_required
 def update_item(id_code):
-    body = request.get_json(silent=True) or {}
-    fields = {k: body.get(k) for k in ["name", "category", "model", "rack", "status", "defect_level", "serial"]}
-    set_parts, args = [], []
-    for k, v in fields.items():
-        if v is not None:
-            set_parts.append(f"{k}=?")
-            args.append(v)
-    if not set_parts:
-        return jsonify({"error": True, "message": "Tidak ada perubahan"}), 400
-    args.append(id_code)
+    id_code = (id_code or "").strip()
+    b = request.get_json(silent=True) or {}
 
     conn = get_conn()
     try:
-        cur = conn.cursor()
-        cur.execute("UPDATE item_unit SET " + ", ".join(set_parts) + " WHERE id_code=?", args)
-        if cur.rowcount == 0:
+        row = conn.execute("SELECT status FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        if not row:
             return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
+
+        if (row["status"] or "").lower() == "keluar":
+            return jsonify({"error": True, "message": "Item sedang dibawa event (status Keluar) — tidak bisa diubah dari Inventory."}), 400
+
+        name     = (b.get("name") or "").strip()
+        category = (b.get("category") or "").strip()
+        model    = (b.get("model") or "").strip()
+        rack     = (b.get("rack") or "").strip()
+        serial   = (b.get("serial") or "").strip()
+
+        conn.execute("""
+          UPDATE item_unit
+          SET name=?, category=?, model=?, rack=?, serial=?
+          WHERE id_code=?
+        """, (name, category, model, rack, serial, id_code))
         conn.commit()
         return jsonify({"ok": True})
     finally:
@@ -154,17 +204,39 @@ def qr_image(id_code):
     buf.seek(0)
     return Response(buf.getvalue(), mimetype="image/png")
 
-@bp.delete("/<id_code>")
+from flask import request, jsonify
+from routes_auth import auth_required
+from db import get_conn
+
+@bp.delete("/<id_code>")   # ✅ benar → akan menjadi /items/<id_code>
 @auth_required
 def delete_item(id_code):
+    id_code = (id_code or "").strip()
+    if not id_code:
+        return jsonify({"error": True, "message": "id_code kosong"}), 400
+
     conn = get_conn()
     try:
-        cur = conn.cursor()
-        cur.execute("DELETE FROM item_unit WHERE id_code=?", (id_code,))
-        if cur.rowcount == 0:
+        row = conn.execute("SELECT status FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        if not row:
             return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
+
+        # TOLAK jika sedang Keluar
+        if (row["status"] or "").lower() == "keluar":
+            return jsonify({"error": True, "message": "Item sedang dibawa event (status Keluar) — tidak bisa dihapus."}), 400
+
+        # TOLAK jika masih tercatat aktif di kontainer (belum void)
+        active = conn.execute("""
+            SELECT 1 FROM container_item
+            WHERE id_code=? AND voided_at IS NULL
+            LIMIT 1
+        """, (id_code,)).fetchone()
+        if active:
+            return jsonify({"error": True, "message": "Item tercatat aktif di kontainer — tidak bisa dihapus."}), 400
+
+        conn.execute("DELETE FROM item_unit WHERE id_code=?", (id_code,))
         conn.commit()
-        return jsonify({"ok": True}), 200
+        return jsonify({"ok": True})
     finally:
         conn.close()
 

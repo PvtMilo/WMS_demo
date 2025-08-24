@@ -111,6 +111,14 @@ def init_db():
     CREATE INDEX IF NOT EXISTS ix_dn_snapshots_container
     ON dn_snapshots(container_id, version);
     """)
+    
+    # ==== Index untuk performa list & summary ====
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_created_at ON item_unit(created_at);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_category   ON item_unit(category);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_status     ON item_unit(status);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_model      ON item_unit(model);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_rack       ON item_unit(rack);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_name       ON item_unit(name);")
 
     conn.commit()
     conn.close()
