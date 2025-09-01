@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { api } from '../api.js'
 
 export default function CheckoutAdder({ cid, onAdded }) {
@@ -9,6 +9,7 @@ export default function CheckoutAdder({ cid, onAdded }) {
   const [overrideReason, setOverrideReason] = useState('')
   const [msg, setMsg] = useState('')
   const [loading, setLoading] = useState(false)
+  const scanRef = useRef(null)
 
   function parseIds() {
     const raw = [scanId, ...listIds.split(/\r?\n/)]
@@ -32,7 +33,9 @@ export default function CheckoutAdder({ cid, onAdded }) {
       const c = out.added_counts || {}
       const s = out.skipped || []
       setMsg(`Batch ${out.batch}: +${(c.good||0)} Good, +${(c.rusak_ringan||0)} Ringan, +${(c.rusak_berat||0)} Berat. Skipped: ${s.length}`)
-      setScanId(''); setListIds('')
+      setScanId('')
+      scanRef.current?.focus()
+      setListIds('')
       onAdded?.()
     } catch (e) { setMsg(e.message) }
     finally { setLoading(false) }
@@ -44,7 +47,7 @@ export default function CheckoutAdder({ cid, onAdded }) {
     <form onSubmit={submit} style={{display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
       <h3>Checkout / Tambah Barang</h3>
       <label>Scan ID (USB scanner)
-        <input value={scanId} onChange={e=>setScanId(e.target.value)} style={ipt} placeholder="CAM-70D-001" />
+        <input ref={scanRef} autoFocus value={scanId} onChange={e=>setScanId(e.target.value)} style={ipt} placeholder="CAM-70D-001" />
       </label>
       <label>Input manual (satu ID per baris)
         <textarea value={listIds} onChange={e=>setListIds(e.target.value)} style={{...ipt, height:120}} placeholder="CAM-70D-002&#10;CAM-70D-003"></textarea>
