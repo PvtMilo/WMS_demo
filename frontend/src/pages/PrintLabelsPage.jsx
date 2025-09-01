@@ -87,10 +87,7 @@ export default function PrintLabelsPage() {
           />
           <button onClick={search} style={btn}>Cari</button>
 
-          {/* Select all & selection info */}
-          <button onClick={toggleSelectAllOnPage} style={btn}>
-            {isAllSelectedOnPage() ? 'Unselect All (Halaman Ini)' : 'Select All (Halaman Ini)'}
-          </button>
+          {/* Info pilihan */}
           <span style={{ alignSelf: 'center', color: '#444' }}>
             Dipilih: <b>{selectedCountItems}</b> item · <b>{selectedCountLabels}</b> label
           </span>
@@ -113,14 +110,7 @@ export default function PrintLabelsPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#fafafa' }}>
-                <th style={th}>
-                  <input
-                    type="checkbox"
-                    checked={isAllSelectedOnPage()}
-                    onChange={toggleSelectAllOnPage}
-                    aria-label="Select all items on this page"
-                  />
-                </th>
+                <th style={th}></th>
                 <th style={th}>ID</th>
                 <th style={th}>Nama</th>
                 <th style={th}>Model</th>

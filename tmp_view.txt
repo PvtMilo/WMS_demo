@@ -4,8 +4,6 @@ import ItemForm from '../components/ItemForm.jsx'
 import ItemTable from '../components/ItemTable.jsx'
 import QrModal from '../components/QrModal.jsx'
 import CategorySummary from '../components/CategorySummary.jsx'
-import QrLabelCard from '../components/QrLabelCard.jsx'
-import '../styles/print.css'
 
 const PER_PAGE = 100
 
@@ -22,10 +20,6 @@ export default function InventoryPage() {
   const [targetCond, setTargetCond] = useState('') // '', 'good', 'rusak_ringan', 'rusak_berat'
   const [lastResult, setLastResult] = useState(null)
   const [qrId, setQrId] = useState(null)
-  // Print semua QR
-  const [printAllLoading, setPrintAllLoading] = useState(false)
-  const [printAllList, setPrintAllList] = useState([])
-  const [printingAll, setPrintingAll] = useState(false)
 
   // Ringkasan kategori (cepat, tidak ikut filter search)
   const [catSummary, setCatSummary] = useState([])
@@ -94,43 +88,6 @@ export default function InventoryPage() {
       return next
     })
   }
-
-  // Ambil semua item (tanpa filter) untuk cetak QR massal
-  async function doPrintAllQr() {
-    if (!confirm('Cetak semua QR untuk seluruh barang terdaftar?')) return
-    setPrintAllLoading(true)
-    try {
-      const perPage = 100
-      let pageNum = 1
-      let all = []
-      let totalItems = 0
-      while (true) {
-        const res = await api.listItems({ page: pageNum, per_page: perPage })
-        const batch = res.data || []
-        if (pageNum === 1) totalItems = res.total || batch.length
-        all = all.concat(batch)
-        if (batch.length < perPage || all.length >= totalItems) break
-        pageNum += 1
-      }
-      setPrintAllList(all)
-      setPrintingAll(true)
-    } catch (e) {
-      alert(e.message)
-    } finally {
-      setPrintAllLoading(false)
-    }
-  }
-
-  // Trigger print ketika data siap
-  useEffect(() => {
-    if (printingAll && printAllList.length > 0) {
-      const after = () => { setPrintingAll(false); setPrintAllList([]) }
-      window.addEventListener('afterprint', after)
-      // beri waktu render
-      setTimeout(() => window.print(), 150)
-      return () => window.removeEventListener('afterprint', after)
-    }
-  }, [printingAll, printAllList])
 
 async function deleteOne(id) {
   const row = items.find(it => it.id_code === id)
@@ -228,8 +185,7 @@ async function deleteSelected() {
 
   return (
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
-      <div className="noprint">
-        <h2>Inventory</h2>
+      <h2>Inventory</h2>
 
       {/* Ringkasan kategori (cepat) */}
       <CategorySummary data={catSummary} />
@@ -254,18 +210,6 @@ async function deleteSelected() {
               Menampilkan <b>{startIdx}</b>–<b>{endIdx}</b> dari <b>{total}</b> item
               {total > PER_PAGE && ' · perketat pencarian jika hasil terlalu banyak'}
             </span>
-          </div>
-
-          {/* Cetak semua QR */}
-          <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <button
-              onClick={doPrintAllQr}
-              style={{ ...btn, borderColor: '#111' }}
-              disabled={printAllLoading}
-              title={printAllLoading ? 'Sedang menyiapkan' : ''}
-            >
-              {printAllLoading ? 'Menyiapkan QR…' : 'Cetak Semua QR'}
-            </button>
           </div>
 
           {/* toolbar selection & aksi bulk */}
@@ -347,18 +291,9 @@ async function deleteSelected() {
             </>
           )}
         </div>
-      {qrId && <QrModal idCode={qrId} onClose={() => setQrId(null)} />}
-        </div>
       </div>
 
-      {/* Area print untuk semua QR */}
-      {printAllList.length > 0 && (
-        <div className="page" style={{ marginTop: 16 }}>
-          {printAllList.map((it, idx) => (
-            <QrLabelCard key={`${it.id_code}-${idx}`} idCode={it.id_code} name={it.name} rack={it.rack} />
-          ))}
-        </div>
-      )}
+      {qrId && <QrModal idCode={qrId} onClose={() => setQrId(null)} />}
     </div>
   )
 }

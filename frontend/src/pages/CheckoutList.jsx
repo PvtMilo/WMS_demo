@@ -2,26 +2,32 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../api.js'
 import { formatDateTime } from '../utils/date.js'
 
-export default function CheckInList(){
+export default function CheckoutList(){
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
   useEffect(()=>{
+    let mounted = true
+    setLoading(true); setError('')
     api.listContainers({status:'Open', per_page:100})
-      .then(r=>{ setItems(r.data||[]); setTotal(r.total||0) })
-      .catch(e=>setError(e.message))
-      .finally(()=>setLoading(false))
+      .then(r=>{ if (!mounted) return; setItems(r.data||[]); setTotal(r.total||0) })
+      .catch(e=>{ if (!mounted) return; setError(e.message) })
+      .finally(()=>{ if (mounted) setLoading(false) })
+    return () => { mounted = false }
   },[])
+
   if (loading) return <div style={{padding:24}}>Loading…</div>
   if (error) return <div style={{padding:24,color:'crimson'}}>{error}</div>
+
   return (
     <div style={{padding:24,fontFamily:'sans-serif'}}>
       <div style={{display:'flex', alignItems:'baseline', gap:12}}>
-        <h2 style={{margin:0}}>Check-In</h2>
+        <h2 style={{margin:0}}>Check-Out</h2>
         <span style={{color:'#666'}}>Total Open: <b>{total}</b></span>
       </div>
-      <table style={{width:'100%',borderCollapse:'collapse'}}>
+      <table style={{width:'100%',borderCollapse:'collapse', marginTop:8}}>
         <thead>
           <tr style={{background:'#fafafa'}}>
             <th style={th}>ID</th>
@@ -45,7 +51,7 @@ export default function CheckInList(){
                 <td style={td}>{c.location || '-'}</td>
                 <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
                 <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
-                <td style={td}><a href={`/containers/${c.id}/checkin`}>Buka</a></td>
+                <td style={td}><a href={`/containers/${c.id}/checkout`}>Buka</a></td>
               </tr>
             ))
           ) : (
@@ -58,3 +64,4 @@ export default function CheckInList(){
 }
 const th={textAlign:'left',padding:10,borderBottom:'1px solid #eee'}
 const td={padding:10,borderBottom:'1px solid #f2f2f2'}
+
