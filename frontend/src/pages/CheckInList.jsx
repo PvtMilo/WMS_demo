@@ -6,7 +6,7 @@ export default function CheckInList(){
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   useEffect(()=>{
-    api.listContainers({status:'Open'}).then(r=>setItems(r.data||[])).catch(e=>setError(e.message)).finally(()=>setLoading(false))
+    api.listContainers({status:'Open', per_page:100}).then(r=>setItems(r.data||[])).catch(e=>setError(e.message)).finally(()=>setLoading(false))
   },[])
   if (loading) return <div style={{padding:24}}>Loading…</div>
   if (error) return <div style={{padding:24,color:'crimson'}}>{error}</div>

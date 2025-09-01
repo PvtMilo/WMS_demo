@@ -42,7 +42,16 @@ def create_container():
 def list_containers():
     q = (request.args.get("q") or "").strip().upper()
     status = (request.args.get("status") or "").strip().title()
-    sql = "SELECT id, event_name, pic, crew, location, start_date, end_date, status, created_at FROM containers"
+    page = int(request.args.get("page") or 1)
+    per_page = int(request.args.get("per_page") or 20)
+    if page < 1:
+        page = 1
+    if per_page < 1:
+        per_page = 1
+    if per_page > 100:
+        per_page = 100
+
+    base = "FROM containers"
     args, filters = [], []
     if q:
         filters.append("(UPPER(id) LIKE ? OR UPPER(event_name) LIKE ? OR UPPER(location) LIKE ? OR UPPER(pic) LIKE ?)")
@@ -51,14 +60,26 @@ def list_containers():
     if status in ("Open", "Closed"):
         filters.append("status=?")
         args.append(status)
-    if filters:
-        sql += " WHERE " + " AND ".join(filters)
-    sql += " ORDER BY created_at DESC"
+    where_sql = " WHERE " + " AND ".join(filters) if filters else ""
+
+    sql = (
+        "SELECT id, event_name, pic, crew, location, start_date, end_date, status, created_at "
+        + base
+        + where_sql
+        + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    )
 
     conn = get_conn()
     try:
-        rows = conn.execute(sql, args).fetchall()
-        return jsonify({"data": [dict(r) for r in rows]})
+        total = conn.execute(f"SELECT COUNT(*) c {base}{where_sql}", args).fetchone()["c"]
+        offset = (page - 1) * per_page
+        rows = conn.execute(sql, args + [per_page, offset]).fetchall()
+        return jsonify({
+            "data": [dict(r) for r in rows],
+            "total": int(total),
+            "page": page,
+            "per_page": per_page,
+        })
     finally:
         conn.close()
 
@@ -78,7 +99,7 @@ def _build_detail(conn, cid):
         ORDER BY ci.added_at ASC, ci.id ASC
     """, (cid,)).fetchall()
 
-    batches, totals = {}, {"good":0, "rusak_ringan":0, "rusak_berat":0, "all":0}
+    batches, totals = {}, {"returned":0, "good":0, "rusak_ringan":0, "rusak_berat":0, "all":0}
     for r in rows:
         d = dict(r)
         if d["voided_at"]:
@@ -97,10 +118,13 @@ def _build_detail(conn, cid):
             "return_condition": d.get("return_condition"),
             "damage_note": d.get("damage_note"),
         })
-        cond = d.get("return_condition") or d.get("condition_at_checkout") or "good"
-        if cond in totals:
-            totals[cond] += 1
+
         totals["all"] += 1
+        if d.get("returned_at"):
+            totals["returned"] += 1
+            rc = d.get("return_condition") or "good"
+            if rc in totals:
+                totals[rc] += 1
 
     return dict(c), batches, totals
 
