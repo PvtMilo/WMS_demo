@@ -53,7 +53,7 @@ export default function ContainersPage(){
                       <td style={td}>{c.location || '-'}</td>
                       <td style={td}>{(c.start_date||'-') + ' → ' + (c.end_date||'-')}</td>
                       <td style={td}>{c.status}</td>
-                      <td style={td}><a href={`/containers/${c.id}`}>Buka</a></td>
+                      <td style={td}><a href={`/containers/${c.id}/checkout`}>Buka</a></td>
                     </tr>
                   )):(
                     <tr><td style={td} colSpan={7}>Belum ada kontainer</td></tr>

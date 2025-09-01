@@ -5,7 +5,8 @@ import Dashboard from './pages/Dashboard.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
 import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
 import ContainersPage from './pages/ContainersPage.jsx'      // NEW
-import ContainerDetail from './pages/ContainerDetail.jsx'    // NEW
+import ContainerCheckout from './pages/ContainerCheckout.jsx'
+import ContainerCheckIn from './pages/ContainerCheckIn.jsx'
 import CheckInList from './pages/CheckInList.jsx'
 
 export default function App() {
@@ -18,7 +19,8 @@ export default function App() {
       <Route path="/print-labels" element={<PrintLabelsPage />} />
       <Route path="/containers" element={<ContainersPage />} />         {/* NEW */}
       <Route path="/checkin" element={<CheckInList />} />
-      <Route path="/containers/:cid" element={<ContainerDetail />} />   {/* NEW */}
+      <Route path="/containers/:cid/checkout" element={<ContainerCheckout />} />
+      <Route path="/containers/:cid/checkin" element={<ContainerCheckIn />} />
       <Route path="*" element={<div style={{padding:24}}>Not Found</div>} />
     </Routes>
   )
