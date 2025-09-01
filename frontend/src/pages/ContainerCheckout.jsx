@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
+import { formatDateTime } from '../utils/date.js'
 
 export default function ContainerCheckout(){
   const { cid } = useParams()
@@ -42,7 +43,7 @@ export default function ContainerCheckout(){
         <div><b>PIC:</b> {c.pic}</div>
         <div><b>Crew:</b> {c.crew || '-'}</div>
         <div><b>Lokasi:</b> {c.location || '-'}</div>
-        <div><b>Jadwal:</b> {(c.start_date || '-') + ' → ' + (c.end_date || '-')}</div>
+        <div><b>Jadwal:</b> {formatDateTime(c.start_date, {monthText:true})} → {formatDateTime(c.end_date, {monthText:true})}</div>
       </div>
       <div className="noprint">
         <CheckoutAdder cid={cid} onAdded={refresh}/>
