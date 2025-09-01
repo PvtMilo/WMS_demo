@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../api.js'
 import ContainerForm from '../components/ContainerForm.jsx'
+import { formatDateTime } from '../utils/date.js'
 
 export default function ContainersPage(){
   const [items, setItems] = useState([])
@@ -59,7 +60,7 @@ export default function ContainersPage(){
                         <td style={td}>{c.event_name}</td>
                         <td style={td}>{c.pic}</td>
                         <td style={td}>{c.location || '-'}</td>
-                        <td style={td}>{(c.start_date||'-') + ' → ' + (c.end_date||'-')}</td>
+                        <td style={td}>{formatDateTime(c.start_date, {monthText:true}) + ' → ' + formatDateTime(c.end_date, {monthText:true})}</td>
                         <td style={td}>{c.status}</td>
                         <td style={td}>{c.status === 'Open' ? <a href={`/containers/${c.id}/checkout`}>Buka</a> : '-'}</td>
                       </tr>
