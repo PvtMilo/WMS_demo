@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
+import { formatDateTime } from '../utils/date.js'
 
 export default function ContainerDetail(){
   const { cid } = useParams()
@@ -91,9 +92,11 @@ export default function ContainerDetail(){
       <div style={{border:'1px solid #eee', borderRadius:12, padding:16, marginBottom:16}}>
         <div style={{fontSize:18, fontWeight:700, marginBottom:8}}>Delivery Note</div>
         <div><b>Event:</b> {c.event_name}</div>
-        <div><b>PIC:</b> {c.pic} {c.crew ? `· Crew: ${c.crew}` : ''}</div>
+        <div><b>PIC:</b> {c.pic}</div>
+        <div><b>Crew:</b> {c.crew || '-'}</div>
         <div><b>Lokasi:</b> {c.location || '-'}</div>
-        <div><b>Jadwal:</b> {(c.start_date||'-')} → {(c.end_date||'-')}</div>
+        <div><b>Mulai:</b> {formatDateTime(c.start_date, {monthText:true})}</div>
+        <div><b>Selesai:</b> {formatDateTime(c.end_date, {monthText:true})}</div>
         <div><b>Status:</b> {c.status}</div>
 
         {/* PERHATIAN box jika ada rusak */}

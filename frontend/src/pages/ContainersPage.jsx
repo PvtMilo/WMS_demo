@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../api.js'
 import ContainerForm from '../components/ContainerForm.jsx'
+import { formatDateTime } from '../utils/date.js'
 
 export default function ContainersPage(){
   const [items, setItems] = useState([])
@@ -47,7 +48,8 @@ export default function ContainersPage(){
                       <th style={th}>Event</th>
                       <th style={th}>PIC</th>
                       <th style={th}>Lokasi</th>
-                      <th style={th}>Jadwal</th>
+                      <th style={th}>Mulai</th>
+                      <th style={th}>Selesai</th>
                       <th style={th}>Status</th>
                       <th style={th}>Aksi</th>
                     </tr>
@@ -59,12 +61,13 @@ export default function ContainersPage(){
                         <td style={td}>{c.event_name}</td>
                         <td style={td}>{c.pic}</td>
                         <td style={td}>{c.location || '-'}</td>
-                        <td style={td}>{(c.start_date||'-') + ' → ' + (c.end_date||'-')}</td>
+                        <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
+                        <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
                         <td style={td}>{c.status}</td>
                         <td style={td}>{c.status === 'Open' ? <a href={`/containers/${c.id}/checkout`}>Buka</a> : '-'}</td>
                       </tr>
                     )):(
-                      <tr><td style={td} colSpan={7}>Belum ada kontainer</td></tr>
+                      <tr><td style={td} colSpan={8}>Belum ada kontainer</td></tr>
                     )}
                   </tbody>
                 </table>
