@@ -45,7 +45,7 @@ export default function ContainerCheckIn(){
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
   const c = data.container
-  const t = data.totals || {good:0, rusak_ringan:0, rusak_berat:0, all:0}
+  const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, all:0}
 
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
@@ -54,7 +54,8 @@ export default function ContainerCheckIn(){
       {/* Counters (live) */}
       <div className="noprint" style={{display:'flex', gap:12, marginBottom:12}}>
         <Badge label="Total" value={t.all}/>
-        <Badge label="Returned" value={t.good}/>
+        <Badge label="Returned" value={t.returned}/>
+        <Badge label="Good" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
       </div>
@@ -64,7 +65,6 @@ export default function ContainerCheckIn(){
           <h3>Check-In Barang</h3>
           <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
           <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
-            <option value="good">Returned</option>
             <option value="good">Good</option>
             <option value="rusak_ringan">Rusak ringan</option>
             <option value="rusak_berat">Rusak berat</option>
