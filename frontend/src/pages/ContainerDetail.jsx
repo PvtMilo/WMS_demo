@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
@@ -11,8 +11,10 @@ export default function ContainerDetail(){
   const [error, setError] = useState('')
   const [dn, setDn] = useState(null) // latest snapshot payload
   const [scanRet, setScanRet] = useState('')
+  const [listIds, setListIds] = useState('')
   const [retCond, setRetCond] = useState('good')
   const [retNote, setRetNote] = useState('')
+  const scanRef = useRef(null)
 
   async function refresh(){
     setLoading(true); setError('')
@@ -38,11 +40,17 @@ export default function ContainerDetail(){
 
   async function doCheckin(e){
     e.preventDefault()
-    if (!scanRet.trim()) return
+    const ids = [scanRet, ...listIds.split(/\r?\n/)]
+      .map(s => (s || '').trim())
+      .filter(Boolean)
+    if (!ids.length) return
     try{
-      await api.checkinItem(cid,{ id_code: scanRet.trim(), condition: retCond, damage_note: retNote })
-      setScanRet(''); setRetNote(''); setRetCond('good')
+      for(const id of ids){
+        await api.checkinItem(cid,{ id_code: id, condition: retCond, damage_note: retNote })
+      }
+      setScanRet(''); setListIds(''); setRetNote(''); setRetCond('good')
       await refresh()
+      scanRef.current?.focus()
     }catch(err){ alert(err.message) }
   }
 
@@ -115,7 +123,10 @@ export default function ContainerDetail(){
         <CheckoutAdder cid={cid} onAdded={refresh}/>
         <form onSubmit={doCheckin} style={{marginTop:16, display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
           <h3>Check-In Barang</h3>
-          <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+          <input ref={scanRef} autoFocus value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+          <label>Input manual (satu ID per baris)
+            <textarea value={listIds} onChange={e=>setListIds(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8, height:100}} placeholder="CAM-70D-002&#10;CAM-70D-003"></textarea>
+          </label>
           <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
             <option value="good">Returned</option>
             <option value="good">Good</option>
