@@ -4,12 +4,15 @@ import { api } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 
-export default function ContainerDetail(){
+export default function ContainerDetail({ checkin=false }){
   const { cid } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [dn, setDn] = useState(null) // latest snapshot payload
+  const [scanRet, setScanRet] = useState('')
+  const [retCond, setRetCond] = useState('good')
+  const [retNote, setRetNote] = useState('')
 
   async function refresh(){
     setLoading(true); setError('')
@@ -33,6 +36,22 @@ export default function ContainerDetail(){
     }catch(e){ alert(e.message) }
   }
 
+  async function doCheckin(e){
+    e.preventDefault()
+    if (!scanRet.trim()) return
+    try{
+      await api.checkinItem(cid,{ id_code: scanRet.trim(), condition: retCond, damage_note: retNote })
+      setScanRet(''); setRetNote(''); setRetCond('good')
+      await refresh()
+    }catch(err){ alert(err.message) }
+  }
+
+  async function closeContainer(){
+    if (!confirm('Tutup kontainer?')) return
+    try{ await api.closeContainer(cid); await refresh() }
+    catch(e){ alert(e.message) }
+  }
+
   function printDN(){
     if (!dn) { alert('Buat DN dulu via "Submit DN"'); return }
     window.print()
@@ -50,7 +69,7 @@ export default function ContainerDetail(){
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
   const c = data.container
-  const t = data.totals || {good:0, rusak_ringan:0, rusak_berat:0, all:0}
+  const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, lost:0, out:0, all:0}
 
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
@@ -93,17 +112,40 @@ export default function ContainerDetail(){
       {/* Counters (live) */}
       <div className="noprint" style={{display:'flex', gap:12, marginBottom:12}}>
         <Badge label="Total" value={t.all}/>
+        <Badge label="Returned" value={t.returned}/>
         <Badge label="Good" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
+        <Badge label="Lost" value={t.lost}/>
       </div>
 
       <div className="noprint">
-        <CheckoutAdder cid={cid} onAdded={refresh}/>
+        {!checkin && <CheckoutAdder cid={cid} onAdded={refresh}/>} 
+        {checkin && (
+          <>
+            <form onSubmit={doCheckin} style={{marginTop:16, display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
+              <h3>Check-In Barang</h3>
+              <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+              <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
+                <option value="good">Returned</option>
+                <option value="rusak_ringan">Rusak ringan</option>
+                <option value="rusak_berat">Rusak berat</option>
+                <option value="lost">Lost</option>
+              </select>
+              {retCond !== 'good' && retCond !== 'lost' && (
+                <input value={retNote} onChange={e=>setRetNote(e.target.value)} placeholder="Catatan kerusakan" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+              )}
+              <button style={{padding:'10px 14px'}}>Check-In</button>
+            </form>
+            {c.status === 'Open' && t.out === 0 && (
+              <button onClick={closeContainer} style={{marginTop:16, padding:'10px 14px'}}>Tutup Kontainer</button>
+            )}
+          </>
+        )}
       </div>
 
       {/* Tabel item per batch (printable) - live view */}
-      <ContainerItemsTable batches={data.batches} onVoid={onVoid}/>
+      <ContainerItemsTable batches={data.batches} onVoid={checkin ? undefined : onVoid}/>
     </div>
   )
 }

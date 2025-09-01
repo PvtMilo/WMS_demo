@@ -41,12 +41,16 @@ def create_container():
 @auth_required
 def list_containers():
     q = (request.args.get("q") or "").strip().upper()
+    status = (request.args.get("status") or "").strip().title()
     sql = "SELECT id, event_name, pic, crew, location, start_date, end_date, status, created_at FROM containers"
     args, filters = [], []
     if q:
         filters.append("(UPPER(id) LIKE ? OR UPPER(event_name) LIKE ? OR UPPER(location) LIKE ? OR UPPER(pic) LIKE ?)")
         like = f"%{q}%"
         args += [like, like, like, like]
+    if status in ("Open", "Closed"):
+        filters.append("status=?")
+        args.append(status)
     if filters:
         sql += " WHERE " + " AND ".join(filters)
     sql += " ORDER BY created_at DESC"
@@ -66,6 +70,7 @@ def _build_detail(conn, cid):
     rows = conn.execute("""
         SELECT ci.id, ci.id_code, ci.added_at, ci.batch_label, ci.condition_at_checkout,
                ci.override_reason, ci.voided_at,
+               ci.returned_at, ci.return_condition, ci.damage_note,
                iu.name, iu.model, iu.rack
         FROM container_item ci
         LEFT JOIN item_unit iu ON iu.id_code = ci.id_code
@@ -73,7 +78,7 @@ def _build_detail(conn, cid):
         ORDER BY ci.added_at ASC, ci.id ASC
     """, (cid,)).fetchall()
 
-    batches, totals = {}, {"good":0, "rusak_ringan":0, "rusak_berat":0, "all":0}
+    batches, totals = {}, {"returned":0, "good":0, "rusak_ringan":0, "rusak_berat":0, "lost":0, "out":0, "all":0}
     for r in rows:
         d = dict(r)
         if d["voided_at"]:
@@ -87,11 +92,18 @@ def _build_detail(conn, cid):
             "rack": d.get("rack"),
             "added_at": d["added_at"],
             "condition": d.get("condition_at_checkout") or "good",
-            "reason": d.get("override_reason") or ""
+            "reason": d.get("override_reason") or "",
+            "returned_at": d.get("returned_at"),
+            "return_condition": d.get("return_condition"),
+            "damage_note": d.get("damage_note"),
         })
-        cond = (d.get("condition_at_checkout") or "good")
-        if cond in totals:
-            totals[cond] += 1
+        if d.get("returned_at"):
+            rc = (d.get("return_condition") or "good")
+            if rc in totals:
+                totals[rc] += 1
+            totals["returned"] += 1
+        else:
+            totals["out"] += 1
         totals["all"] += 1
 
     return dict(c), batches, totals
@@ -225,6 +237,75 @@ def void_item(cid):
         # void + revert item status -> Good
         conn.execute("UPDATE container_item SET voided_at=?, void_reason=? WHERE id=?", (now_iso(), reason, row["id"]))
         conn.execute("UPDATE item_unit SET status='Good' WHERE id_code=?", (id_code,))
+        conn.commit()
+        return jsonify({"ok": True})
+    finally:
+        conn.close()
+
+# ---------- Check-in item ----------
+@bp.post("/<cid>/checkin")
+@auth_required
+def checkin_item(cid):
+    b = request.get_json(silent=True) or {}
+    id_code = (b.get("id_code") or "").strip()
+    condition = (b.get("condition") or "good").strip()
+    note = (b.get("damage_note") or "").strip()
+
+    if not id_code:
+        return jsonify({"error": True, "message": "id_code wajib"}), 400
+    if condition not in ("good", "rusak_ringan", "rusak_berat", "lost"):
+        return jsonify({"error": True, "message": "condition tidak valid"}), 400
+
+    conn = get_conn()
+    try:
+        row = conn.execute("""
+            SELECT id FROM container_item
+            WHERE container_id=? AND id_code=? AND voided_at IS NULL
+        """, (cid, id_code)).fetchone()
+        if not row:
+            return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
+
+        conn.execute(
+            "UPDATE container_item SET returned_at=?, return_condition=?, damage_note=? WHERE id=?",
+            (now_iso(), condition, note or None, row["id"]),
+        )
+
+        if condition == "good":
+            conn.execute(
+                "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+                (id_code,),
+            )
+        elif condition == "lost":
+            conn.execute(
+                "UPDATE item_unit SET status='Hilang', defect_level='none' WHERE id_code=?",
+                (id_code,),
+            )
+        else:
+            level = "ringan" if condition == "rusak_ringan" else "berat"
+            conn.execute(
+                "UPDATE item_unit SET status='Rusak', defect_level=? WHERE id_code=?",
+                (level, id_code),
+            )
+
+        conn.commit()
+        return jsonify({"ok": True})
+    finally:
+        conn.close()
+
+# ---------- Close container manually ----------
+@bp.post("/<cid>/close")
+@auth_required
+def close_container(cid):
+    conn = get_conn()
+    try:
+        left = conn.execute(
+            """SELECT COUNT(*) c FROM container_item
+                WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL""",
+            (cid,),
+        ).fetchone()["c"]
+        if left > 0:
+            return jsonify({"error": True, "message": "Masih ada barang Out"}), 400
+        conn.execute("UPDATE containers SET status='Closed' WHERE id=?", (cid,))
         conn.commit()
         return jsonify({"ok": True})
     finally:

@@ -69,6 +69,9 @@ def init_db():
         override_by TEXT,                        -- (opsional) siapa yang setujui
         voided_at TEXT,                          -- jika dibatalkan (mis-scan)
         void_reason TEXT,                        -- alasan void
+        returned_at TEXT,                        -- waktu kembali
+        return_condition TEXT,                   -- good | rusak_ringan | rusak_berat | lost
+        damage_note TEXT,                        -- catatan kerusakan saat kembali
         FOREIGN KEY(container_id) REFERENCES containers(id),
         FOREIGN KEY(id_code) REFERENCES item_unit(id_code)
     );
@@ -82,6 +85,9 @@ def init_db():
             ("override_by", "TEXT"),
             ("voided_at", "TEXT"),
             ("void_reason", "TEXT"),
+            ("returned_at", "TEXT"),
+            ("return_condition", "TEXT"),
+            ("damage_note", "TEXT"),
         ]
     }
     for table, cols in need_cols.items():
