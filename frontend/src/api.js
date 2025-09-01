@@ -122,6 +122,12 @@ export const api = {
     return request('POST', `/containers/${encodeURIComponent(cid)}/void_item`, payload)
   },
 
+  // Check-in item returned to warehouse
+  // payload: { id_code: string, condition?: string, damage_note?: string }
+  checkinItem(cid, payload) {
+    return request('POST', `/containers/${encodeURIComponent(cid)}/checkin`, payload)
+  },
+
   // Submit DN → buat snapshot versi (V1, V2, ...)
   submitDN(cid) {
     return request('POST', `/containers/${encodeURIComponent(cid)}/submit_dn`)

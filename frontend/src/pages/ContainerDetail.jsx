@@ -10,6 +10,9 @@ export default function ContainerDetail(){
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [dn, setDn] = useState(null) // latest snapshot payload
+  const [scanRet, setScanRet] = useState('')
+  const [retCond, setRetCond] = useState('good')
+  const [retNote, setRetNote] = useState('')
 
   async function refresh(){
     setLoading(true); setError('')
@@ -31,6 +34,16 @@ export default function ContainerDetail(){
       alert(`DN versi ${out.version} dibuat.`)
       await refresh()
     }catch(e){ alert(e.message) }
+  }
+
+  async function doCheckin(e){
+    e.preventDefault()
+    if (!scanRet.trim()) return
+    try{
+      await api.checkinItem(cid,{ id_code: scanRet.trim(), condition: retCond, damage_note: retNote })
+      setScanRet(''); setRetNote(''); setRetCond('good')
+      await refresh()
+    }catch(err){ alert(err.message) }
   }
 
   function printDN(){
@@ -93,13 +106,26 @@ export default function ContainerDetail(){
       {/* Counters (live) */}
       <div className="noprint" style={{display:'flex', gap:12, marginBottom:12}}>
         <Badge label="Total" value={t.all}/>
-        <Badge label="Good" value={t.good}/>
+        <Badge label="Returned" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
       </div>
 
       <div className="noprint">
         <CheckoutAdder cid={cid} onAdded={refresh}/>
+        <form onSubmit={doCheckin} style={{marginTop:16, display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
+          <h3>Check-In Barang</h3>
+          <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+          <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
+            <option value="good">Returned</option>
+            <option value="rusak_ringan">Rusak ringan</option>
+            <option value="rusak_berat">Rusak berat</option>
+          </select>
+          {retCond !== 'good' && (
+            <input value={retNote} onChange={e=>setRetNote(e.target.value)} placeholder="Catatan kerusakan" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+          )}
+          <button style={{padding:'10px 14px'}}>Check-In</button>
+        </form>
       </div>
 
       {/* Tabel item per batch (printable) - live view */}

@@ -25,7 +25,8 @@ export default function Dashboard() {
       <ul style={{marginTop:16}}>
         <li><Link to="/inventory">Ke Inventory (Pendaftaran + QR)</Link></li>
         <li><a href="/print-labels">Print QR Labels</a></li>
-        <li><a href="/containers">Kontainer / Checkout</a></li>
+        <li><Link to="/containers">Check-Out</Link></li>
+        <li><Link to="/checkin">Check-In</Link></li>
       </ul>
     </div>
   )
