@@ -5,6 +5,7 @@ export default function CheckoutAdder({ cid, onAdded }) {
   const [scanId, setScanId] = useState('')
   const [listIds, setListIds] = useState('')
   const [amend, setAmend] = useState(false)
+  const [amendReason, setAmendReason] = useState('')
   const [overrideHeavy, setOverrideHeavy] = useState(false)
   const [overrideReason, setOverrideReason] = useState('')
   const [msg, setMsg] = useState('')
@@ -22,13 +23,17 @@ export default function CheckoutAdder({ cid, onAdded }) {
     e.preventDefault()
     const ids = parseIds()
     if (!ids.length) { setMsg('Masukkan setidaknya 1 ID'); return }
+    if (amend && !amendReason.trim()) {
+      setMsg('Alasan amend wajib diisi saat centang Amend'); return
+    }
     if (overrideHeavy && !overrideReason.trim()) {
       setMsg('Alasan override untuk rusak berat wajib diisi'); return
     }
     setLoading(true); setMsg('')
     try {
       const out = await api.addItemsToContainer(cid, {
-        ids, amend, override_heavy: overrideHeavy, override_reason: overrideReason
+        ids, amend, amend_reason: amend ? amendReason : undefined,
+        override_heavy: overrideHeavy, override_reason: overrideReason
       })
       const c = out.added_counts || {}
       const s = out.skipped || []
@@ -36,6 +41,7 @@ export default function CheckoutAdder({ cid, onAdded }) {
       setScanId('')
       scanRef.current?.focus()
       setListIds('')
+      setAmendReason('')
       onAdded?.()
     } catch (e) { setMsg(e.message) }
     finally { setLoading(false) }
@@ -57,6 +63,11 @@ export default function CheckoutAdder({ cid, onAdded }) {
         <label><input type="checkbox" checked={amend} onChange={e=>setAmend(e.target.checked)} /> <span style={{marginLeft:8}}>Amend (tambahan hari-H)</span></label>
         <label><input type="checkbox" checked={overrideHeavy} onChange={e=>setOverrideHeavy(e.target.checked)} /> <span style={{marginLeft:8}}>Setujui Rusak Berat</span></label>
       </div>
+      {amend && (
+        <label>Alasan amend (wajib saat centang Amend)
+          <input value={amendReason} onChange={e=>setAmendReason(e.target.value)} style={ipt} placeholder="Contoh: tambahan mendadak dari klien" />
+        </label>
+      )}
       {overrideHeavy && (
         <label>Alasan override (wajib jika ada rusak berat)
           <input value={overrideReason} onChange={e=>setOverrideReason(e.target.value)} style={ipt} placeholder="Contoh: unit cadangan darurat" />

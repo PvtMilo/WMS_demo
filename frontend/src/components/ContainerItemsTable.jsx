@@ -24,12 +24,13 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                 <th style={th}>Status</th>
                 <th style={th}>Kondisi Return</th>
                 <th style={th}>Waktu Return</th>
+                <th style={th}>Alasan</th>
                 <th style={th}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {batches[key].map((it, i) => (
-                <tr key={it.id_code + i} style={rowStyle(it.return_condition)}>
+                <tr key={it.id_code + i} style={rowStyle(it.return_condition, it.condition)}>
                   <td style={td}>{it.id_code}</td>
                   <td style={td}>{it.name}</td>
                   <td style={td}>{it.model}</td>
@@ -39,6 +40,7 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                   <td style={td}>{it.return_condition ? 'Returned' : 'Out'}</td>
                   <td style={td}>{it.return_condition ? labelCond(it.return_condition) : '-'}</td>
                   <td style={td}>{it.returned_at ? formatDateTime(it.returned_at, {monthText:true}) : '-'}</td>
+                  <td style={td}>{reasonText(it)}</td>
                   <td style={td}>
                     <button
                       type="button"
@@ -65,7 +67,8 @@ const th = {textAlign:'left', padding:10, borderBottom:'1px solid #eee'}
 const td = {padding:10, borderBottom:'1px solid #f2f2f2'}
 const btn = { padding:'6px 10px', border:'1px solid #c1121f', borderRadius:8, background:'#fff', color:'#c1121f', cursor:'pointer' }
 
-function rowStyle(cond){
+function rowStyle(returnCond, outCond){
+  const cond = returnCond || outCond
   if (cond === 'rusak_ringan') return { background:'#fff9c4' } // kuning lembut
   if (cond === 'rusak_berat') return { background:'#ffebee' }   // merah lembut
   return {}
@@ -74,4 +77,15 @@ function labelCond(cond){
   if (cond === 'rusak_ringan') return 'Rusak ringan'
   if (cond === 'rusak_berat') return 'Rusak berat'
   return 'Good'
+}
+
+function reasonText(it){
+  // Prioritas tampilan alasan:
+  // 1) Catatan kerusakan saat return
+  // 2) Alasan amend (jika batch amend)
+  // 3) Alasan override (rusak berat saat checkout)
+  if (it.return_condition && it.damage_note) return it.damage_note
+  if (it.amend_reason) return it.amend_reason
+  if (it.reason) return it.reason
+  return '-'
 }

@@ -90,7 +90,7 @@ def _build_detail(conn, cid):
 
     rows = conn.execute("""
         SELECT ci.id, ci.id_code, ci.added_at, ci.batch_label, ci.condition_at_checkout,
-               ci.override_reason, ci.voided_at,
+               ci.override_reason, ci.amend_reason, ci.voided_at,
                ci.returned_at, ci.return_condition, ci.damage_note,
                iu.name, iu.model, iu.rack
         FROM container_item ci
@@ -113,7 +113,9 @@ def _build_detail(conn, cid):
             "rack": d.get("rack"),
             "added_at": d["added_at"],
             "condition": d.get("condition_at_checkout") or "good",
-            "reason": d.get("override_reason") or "",
+            # simpan kedua jenis alasan agar UI bisa menampilkan sesuai konteks
+            "reason": d.get("override_reason") or "",  # kompatibilitas lama
+            "amend_reason": d.get("amend_reason") or "",
             "returned_at": d.get("returned_at"),
             "return_condition": d.get("return_condition"),
             "damage_note": d.get("damage_note"),
@@ -153,6 +155,7 @@ def add_items(cid):
     is_amend = bool(b.get("amend") or False)
     override_heavy = bool(b.get("override_heavy") or False)
     override_reason = (b.get("override_reason") or "").strip()
+    amend_reason = (b.get("amend_reason") or "").strip()
 
     if not ids or not isinstance(ids, list):
         return jsonify({"error": True, "message": "ids (list) wajib"}), 400
@@ -215,9 +218,17 @@ def add_items(cid):
 
             # insert
             conn.execute("""
-              INSERT INTO container_item (container_id, id_code, added_at, batch_label, condition_at_checkout, override_reason)
-              VALUES (?, ?, ?, ?, ?, ?)
-            """, (cid, id_code, now_iso(), batch_label, condition, override_reason if condition=="rusak_berat" else None))
+              INSERT INTO container_item (container_id, id_code, added_at, batch_label, condition_at_checkout, override_reason, amend_reason)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                cid,
+                id_code,
+                now_iso(),
+                batch_label,
+                condition,
+                (override_reason if condition == "rusak_berat" else None),
+                (amend_reason if is_amend else None),
+            ))
 
             # set status item -> Keluar
             conn.execute("UPDATE item_unit SET status='Keluar' WHERE id_code=?", (id_code,))

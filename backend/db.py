@@ -66,6 +66,7 @@ def init_db():
         batch_label TEXT NOT NULL,               -- MAIN | AMEND-YYYYMMDD-HHMM
         condition_at_checkout TEXT,              -- good | rusak_ringan | rusak_berat
         override_reason TEXT,                    -- alasan jika rusak_berat
+        amend_reason TEXT,                       -- alasan jika batch AMEND
         override_by TEXT,                        -- (opsional) siapa yang setujui
         voided_at TEXT,                          -- jika dibatalkan (mis-scan)
         void_reason TEXT,                        -- alasan void
@@ -82,6 +83,7 @@ def init_db():
         "container_item": [
             ("condition_at_checkout", "TEXT"),
             ("override_reason", "TEXT"),
+            ("amend_reason", "TEXT"),
             ("override_by", "TEXT"),
             ("voided_at", "TEXT"),
             ("void_reason", "TEXT"),
