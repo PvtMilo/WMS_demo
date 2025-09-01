@@ -41,12 +41,16 @@ def create_container():
 @auth_required
 def list_containers():
     q = (request.args.get("q") or "").strip().upper()
+    status = (request.args.get("status") or "").strip().title()
     sql = "SELECT id, event_name, pic, crew, location, start_date, end_date, status, created_at FROM containers"
     args, filters = [], []
     if q:
         filters.append("(UPPER(id) LIKE ? OR UPPER(event_name) LIKE ? OR UPPER(location) LIKE ? OR UPPER(pic) LIKE ?)")
         like = f"%{q}%"
         args += [like, like, like, like]
+    if status in ("Open", "Closed"):
+        filters.append("status=?")
+        args.append(status)
     if filters:
         sql += " WHERE " + " AND ".join(filters)
     sql += " ORDER BY created_at DESC"
@@ -93,7 +97,7 @@ def _build_detail(conn, cid):
             "return_condition": d.get("return_condition"),
             "damage_note": d.get("damage_note"),
         })
-        cond = (d.get("condition_at_checkout") or "good")
+        cond = d.get("return_condition") or d.get("condition_at_checkout") or "good"
         if cond in totals:
             totals[cond] += 1
         totals["all"] += 1

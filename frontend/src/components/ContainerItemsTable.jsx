@@ -34,6 +34,7 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                   <td style={td}>{it.rack}</td>
                   <td style={td}>{labelCond(it.condition)}</td>
                   <td style={td}>{it.added_at}</td>
+                  <td style={td}>{it.return_condition ? (it.return_condition==='good'?'Returned':labelCond(it.return_condition)) : 'Out'}</td>
                   <td style={td}>{it.return_condition ? labelCond(it.return_condition) : 'Out'}</td>
                   <td style={td}>{it.returned_at || '-'}</td>
                   <td style={td}>

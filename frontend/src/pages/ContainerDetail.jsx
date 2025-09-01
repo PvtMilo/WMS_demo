@@ -106,7 +106,7 @@ export default function ContainerDetail(){
       {/* Counters (live) */}
       <div className="noprint" style={{display:'flex', gap:12, marginBottom:12}}>
         <Badge label="Total" value={t.all}/>
-        <Badge label="Good" value={t.good}/>
+        <Badge label="Returned" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
       </div>
@@ -117,6 +117,7 @@ export default function ContainerDetail(){
           <h3>Check-In Barang</h3>
           <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
           <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
+            <option value="good">Returned</option>
             <option value="good">Good</option>
             <option value="rusak_ringan">Rusak ringan</option>
             <option value="rusak_berat">Rusak berat</option>
