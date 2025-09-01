@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../api.js'
+import { formatDateTime } from '../utils/date.js'
 
 export default function CheckInList(){
   const [items, setItems] = useState([])
@@ -34,7 +35,7 @@ export default function CheckInList(){
                 <td style={td}>{c.pic}</td>
                 <td style={td}>{c.crew || '-'}</td>
                 <td style={td}>{c.location || '-'}</td>
-                <td style={td}>{(c.start_date||'-') + ' → ' + (c.end_date||'-')}</td>
+                <td style={td}>{formatDateTime(c.start_date, {monthText:true}) + ' → ' + formatDateTime(c.end_date, {monthText:true})}</td>
                 <td style={td}><a href={`/containers/${c.id}/checkin`}>Buka</a></td>
               </tr>
             ))
