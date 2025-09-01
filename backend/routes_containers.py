@@ -97,7 +97,7 @@ def _build_detail(conn, cid):
             "return_condition": d.get("return_condition"),
             "damage_note": d.get("damage_note"),
         })
-        cond = (d.get("condition_at_checkout") or "good")
+        cond = d.get("return_condition") or d.get("condition_at_checkout") or "good"
         if cond in totals:
             totals[cond] += 1
         totals["all"] += 1
