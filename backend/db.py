@@ -71,6 +71,7 @@ def init_db():
         void_reason TEXT,                        -- alasan void
         returned_at TEXT,                        -- waktu kembali
         return_condition TEXT,                   -- good | rusak_ringan | rusak_berat | lost
+        return_condition TEXT,                   -- good | rusak_ringan | rusak_berat
         damage_note TEXT,                        -- catatan kerusakan saat kembali
         FOREIGN KEY(container_id) REFERENCES containers(id),
         FOREIGN KEY(id_code) REFERENCES item_unit(id_code)

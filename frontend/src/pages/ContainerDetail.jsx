@@ -51,7 +51,6 @@ export default function ContainerDetail({ checkin=false }){
     try{ await api.closeContainer(cid); await refresh() }
     catch(e){ alert(e.message) }
   }
-
   function printDN(){
     if (!dn) { alert('Buat DN dulu via "Submit DN"'); return }
     window.print()
@@ -114,6 +113,7 @@ export default function ContainerDetail({ checkin=false }){
         <Badge label="Total" value={t.all}/>
         <Badge label="Returned" value={t.returned}/>
         <Badge label="Good" value={t.good}/>
+        <Badge label="Returned" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
         <Badge label="Lost" value={t.lost}/>
@@ -142,6 +142,21 @@ export default function ContainerDetail({ checkin=false }){
             )}
           </>
         )}
+        <CheckoutAdder cid={cid} onAdded={refresh}/>
+        <form onSubmit={doCheckin} style={{marginTop:16, display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
+          <h3>Check-In Barang</h3>
+          <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+          <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
+            <option value="good">Returned</option>
+            <option value="good">Good</option>
+            <option value="rusak_ringan">Rusak ringan</option>
+            <option value="rusak_berat">Rusak berat</option>
+          </select>
+          {retCond !== 'good' && (
+            <input value={retNote} onChange={e=>setRetNote(e.target.value)} placeholder="Catatan kerusakan" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
+          )}
+          <button style={{padding:'10px 14px'}}>Check-In</button>
+        </form>
       </div>
 
       {/* Tabel item per batch (printable) - live view */}

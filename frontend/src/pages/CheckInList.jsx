@@ -25,6 +25,7 @@ export default function CheckInList(){
               <td style={td}>{c.event_name}</td>
               <td style={td}>{c.pic}</td>
               <td style={td}><Link to={`/checkin/${c.id}`}>Buka</Link></td>
+              <td style={td}><a href={`/containers/${c.id}`}>Buka</a></td>
             </tr>
           )): <tr><td style={td} colSpan={4}>Tidak ada kontainer</td></tr>}
         </tbody>

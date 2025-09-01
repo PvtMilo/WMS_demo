@@ -23,6 +23,7 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                 <th style={th}>Status</th>
                 <th style={th}>Returned</th>
                 {onVoid && <th style={th}>Aksi</th>}
+                <th style={th}>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -50,6 +51,20 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                       </button>
                     </td>
                   )}
+                  <td style={td}>{it.return_condition ? labelCond(it.return_condition) : 'Out'}</td>
+                  <td style={td}>{it.returned_at || '-'}</td>
+                  <td style={td}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const reason = prompt(`Batalkan ${it.id_code}? Alasan:`, 'mis-scan') || 'mis-scan'
+                        onVoid?.(it.id_code, reason)
+                      }}
+                      style={btn}
+                    >
+                      Batalkan
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

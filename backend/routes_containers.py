@@ -104,6 +104,9 @@ def _build_detail(conn, cid):
             totals["returned"] += 1
         else:
             totals["out"] += 1
+        cond = d.get("return_condition") or d.get("condition_at_checkout") or "good"
+        if cond in totals:
+            totals[cond] += 1
         totals["all"] += 1
 
     return dict(c), batches, totals
@@ -253,7 +256,11 @@ def checkin_item(cid):
 
     if not id_code:
         return jsonify({"error": True, "message": "id_code wajib"}), 400
+
     if condition not in ("good", "rusak_ringan", "rusak_berat", "lost"):
+
+    if condition not in ("good", "rusak_ringan", "rusak_berat"):
+
         return jsonify({"error": True, "message": "condition tidak valid"}), 400
 
     conn = get_conn()
@@ -298,14 +305,21 @@ def checkin_item(cid):
 def close_container(cid):
     conn = get_conn()
     try:
+
         left = conn.execute(
             """SELECT COUNT(*) c FROM container_item
                 WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL""",
             (cid,),
         ).fetchone()["c"]
+
         if left > 0:
             return jsonify({"error": True, "message": "Masih ada barang Out"}), 400
         conn.execute("UPDATE containers SET status='Closed' WHERE id=?", (cid,))
+
+        if left == 0:
+            conn.execute("UPDATE containers SET status='Closed' WHERE id=?", (cid,))
+
+
         conn.commit()
         return jsonify({"ok": True})
     finally:
