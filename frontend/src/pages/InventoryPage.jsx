@@ -26,6 +26,8 @@ export default function InventoryPage() {
   const [printAllLoading, setPrintAllLoading] = useState(false)
   const [printAllList, setPrintAllList] = useState([])
   const [printingAll, setPrintingAll] = useState(false)
+  const [printSelList, setPrintSelList] = useState([])
+  const [printingSel, setPrintingSel] = useState(false)
 
   // Ringkasan kategori (cepat, tidak ikut filter search)
   const [catSummary, setCatSummary] = useState([])
@@ -112,6 +114,9 @@ export default function InventoryPage() {
         if (batch.length < perPage || all.length >= totalItems) break
         pageNum += 1
       }
+      // pastikan mode selected dimatikan
+      setPrintSelList([])
+      setPrintingSel(false)
       setPrintAllList(all)
       setPrintingAll(true)
     } catch (e) {
@@ -131,6 +136,31 @@ export default function InventoryPage() {
       return () => window.removeEventListener('afterprint', after)
     }
   }, [printingAll, printAllList])
+
+  // Cetak QR dari item terpilih (hanya halaman ini)
+  function doPrintSelectedQr() {
+    if (selectedIds.length === 0) { alert('Tidak ada item yang dipilih'); return }
+    const map = new Map(items.map(it => [it.id_code, it]))
+    const list = selectedIds
+      .map(id => map.get(id))
+      .filter(Boolean)
+    if (list.length === 0) { alert('Tidak ada detail item untuk dicetak'); return }
+    // pastikan mode all dimatikan
+    setPrintAllList([])
+    setPrintingAll(false)
+    setPrintSelList(list)
+    setPrintingSel(true)
+  }
+
+  // Trigger print ketika data siap (selected)
+  useEffect(() => {
+    if (printingSel && printSelList.length > 0) {
+      const after = () => { setPrintingSel(false); setPrintSelList([]) }
+      window.addEventListener('afterprint', after)
+      setTimeout(() => window.print(), 150)
+      return () => window.removeEventListener('afterprint', after)
+    }
+  }, [printingSel, printSelList])
 
 async function deleteOne(id) {
   const row = items.find(it => it.id_code === id)
@@ -281,6 +311,15 @@ async function deleteSelected() {
               Delete Selected
             </button>
 
+            <button
+              onClick={doPrintSelectedQr}
+              style={{ ...btn, borderColor: '#111' }}
+              disabled={selectedCount === 0}
+              title={selectedCount ? '' : 'Pilih item dulu'}
+            >
+              Cetak QR (Selected)
+            </button>
+
             <span style={{ marginLeft: 12, color: '#666' }}>Ubah status ke:</span>
             <select
               value={targetCond}
@@ -355,6 +394,14 @@ async function deleteSelected() {
       {printAllList.length > 0 && (
         <div className="page" style={{ marginTop: 16 }}>
           {printAllList.map((it, idx) => (
+            <QrLabelCard key={`${it.id_code}-${idx}`} idCode={it.id_code} name={it.name} rack={it.rack} />
+          ))}
+        </div>
+      )}
+      {/* Area print untuk selected QR */}
+      {printSelList.length > 0 && (
+        <div className="page" style={{ marginTop: 16 }}>
+          {printSelList.map((it, idx) => (
             <QrLabelCard key={`${it.id_code}-${idx}`} idCode={it.id_code} name={it.name} rack={it.rack} />
           ))}
         </div>
