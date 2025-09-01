@@ -258,16 +258,45 @@ def void_item(cid):
 
     conn = get_conn()
     try:
-        row = conn.execute("""
-            SELECT id FROM container_item 
+        row = conn.execute(
+            """
+            SELECT id, condition_at_checkout FROM container_item 
             WHERE container_id=? AND id_code=? AND voided_at IS NULL
-        """, (cid, id_code)).fetchone()
+            """,
+            (cid, id_code),
+        ).fetchone()
         if not row:
             return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
 
-        # void + revert item status -> Good
-        conn.execute("UPDATE container_item SET voided_at=?, void_reason=? WHERE id=?", (now_iso(), reason, row["id"]))
-        conn.execute("UPDATE item_unit SET status='Good' WHERE id_code=?", (id_code,))
+        # Void entry & revert item_unit status to condition before checkout
+        conn.execute(
+            "UPDATE container_item SET voided_at=?, void_reason=? WHERE id=?",
+            (now_iso(), reason, row["id"]),
+        )
+
+        prev = (row["condition_at_checkout"] or "good").strip()
+        if prev == "good":
+            conn.execute(
+                "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+                (id_code,),
+            )
+        elif prev == "rusak_ringan":
+            conn.execute(
+                "UPDATE item_unit SET status='Rusak', defect_level='ringan' WHERE id_code=?",
+                (id_code,),
+            )
+        elif prev == "rusak_berat":
+            conn.execute(
+                "UPDATE item_unit SET status='Rusak', defect_level='berat' WHERE id_code=?",
+                (id_code,),
+            )
+        else:
+            # fallback: jaga-jaga jika ada nilai lain, anggap Good
+            conn.execute(
+                "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+                (id_code,),
+            )
+
         conn.commit()
         return jsonify({"ok": True})
     finally:
@@ -289,12 +318,32 @@ def checkin_item(cid):
 
     conn = get_conn()
     try:
-        row = conn.execute("""
-            SELECT id FROM container_item
+        row = conn.execute(
+            """
+            SELECT id, condition_at_checkout FROM container_item
             WHERE container_id=? AND id_code=? AND voided_at IS NULL
-        """, (cid, id_code)).fetchone()
+            """,
+            (cid, id_code),
+        ).fetchone()
         if not row:
             return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
+
+        prev = (row["condition_at_checkout"] or "good").strip()
+        # Allowed transitions at check-in:
+        # - from good: good | rusak_ringan | rusak_berat
+        # - from rusak_ringan: rusak_ringan | rusak_berat (not good)
+        # - from rusak_berat: rusak_berat only
+        allowed = {
+            "good": {"good", "rusak_ringan", "rusak_berat"},
+            "rusak_ringan": {"rusak_ringan", "rusak_berat"},
+            "rusak_berat": {"rusak_berat"},
+        }.get(prev, {"good", "rusak_ringan", "rusak_berat"})
+
+        if condition not in allowed:
+            return jsonify({
+                "error": True,
+                "message": f"Perubahan kondisi tidak diizinkan (dari {prev} ke {condition})"
+            }), 400
 
         conn.execute(
             "UPDATE container_item SET returned_at=?, return_condition=?, damage_note=? WHERE id=?",

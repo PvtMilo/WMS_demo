@@ -30,6 +30,13 @@ export default function ContainerDetail(){
   }
 
   useEffect(()=>{ refresh() }, [cid])
+  // Default kondisi return mengikuti kondisi saat checkout ketika scan ID diisi
+  useEffect(() => {
+    const id = (scanRet || '').trim()
+    if (!id || !data || !data.batches) return
+    const prev = findPrevCond(data.batches, id)
+    if (prev) setRetCond(prev)
+  }, [scanRet, data])
 
   async function submitDN(){
     if (!confirm('Yakin daftar barang saat ini sudah benar untuk DN?')) return
@@ -50,7 +57,8 @@ export default function ContainerDetail(){
       for(const id of ids){
         await api.checkinItem(cid,{ id_code: id, condition: retCond, damage_note: retNote })
       }
-      setScanRet(''); setListIds(''); setRetNote(''); setRetCond('good')
+      // jangan auto reset ke 'good' agar tidak memaksa default Good
+      setScanRet(''); setListIds(''); setRetNote('')
       await refresh()
       scanRef.current?.focus()
     }catch(err){ alert(err.message) }
@@ -129,12 +137,18 @@ export default function ContainerDetail(){
           <label style={{display:'grid', gap:4}}>Input manual (satu ID per baris)
             <textarea value={listIds} onChange={e=>setListIds(e.target.value)} style={{...ipt, height:120}} placeholder="CAM-70D-002&#10;CAM-70D-003"></textarea>
           </label>
-          <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={ipt}>
-            <option value="good">Returned</option>
-            <option value="good">Good</option>
-            <option value="rusak_ringan">Rusak ringan</option>
-            <option value="rusak_berat">Rusak berat</option>
-          </select>
+          {(() => {
+            const id = (scanRet || '').trim()
+            const prev = id && data?.batches ? findPrevCond(data.batches, id) : null
+            const allow = allowedOptions(prev)
+            return (
+              <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={ipt}>
+                <option value="good" disabled={!allow.has('good')}>Good</option>
+                <option value="rusak_ringan" disabled={!allow.has('rusak_ringan')}>Rusak ringan</option>
+                <option value="rusak_berat" disabled={!allow.has('rusak_berat')}>Rusak berat</option>
+              </select>
+            )
+          })()}
           {retCond !== 'good' && (
             <input value={retNote} onChange={e=>setRetNote(e.target.value)} placeholder="Catatan kerusakan" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
           )}
@@ -155,4 +169,21 @@ function Badge({label, value, color='#111'}){
       <div style={{fontSize:18, fontWeight:700, color}}>{value}</div>
     </div>
   )
+}
+
+// Helpers: temukan kondisi saat checkout untuk ID tertentu
+function findPrevCond(batches, id){
+  const keys = Object.keys(batches || {})
+  for (const k of keys){
+    const arr = batches[k] || []
+    const it = arr.find(x => (x.id_code || '').trim().toUpperCase() === id.toUpperCase())
+    if (it) return it.condition || 'good'
+  }
+  return null
+}
+
+function allowedOptions(prev){
+  if (prev === 'rusak_berat') return new Set(['rusak_berat'])
+  if (prev === 'rusak_ringan') return new Set(['rusak_ringan','rusak_berat'])
+  return new Set(['good','rusak_ringan','rusak_berat'])
 }
