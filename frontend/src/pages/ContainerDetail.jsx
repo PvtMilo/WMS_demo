@@ -118,6 +118,7 @@ export default function ContainerDetail(){
           <input value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
           <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
             <option value="good">Returned</option>
+            <option value="good">Good</option>
             <option value="rusak_ringan">Rusak ringan</option>
             <option value="rusak_berat">Rusak berat</option>
           </select>
