@@ -1,4 +1,5 @@
 import React from 'react'
+import { formatDateTime } from '../utils/date.js'
 
 export default function ContainerItemsTable({ batches = {}, onVoid }) {
   const keys = Object.keys(batches).sort()
@@ -34,10 +35,10 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                   <td style={td}>{it.model}</td>
                   <td style={td}>{it.rack}</td>
                   <td style={td}>{labelCond(it.condition)}</td>
-                  <td style={td}>{it.added_at}</td>
+                  <td style={td}>{formatDateTime(it.added_at, {monthText:true})}</td>
                   <td style={td}>{it.return_condition ? 'Returned' : 'Out'}</td>
                   <td style={td}>{it.return_condition ? labelCond(it.return_condition) : '-'}</td>
-                  <td style={td}>{it.returned_at || '-'}</td>
+                  <td style={td}>{it.returned_at ? formatDateTime(it.returned_at, {monthText:true}) : '-'}</td>
                   <td style={td}>
                     <button
                       type="button"
