@@ -13,6 +13,7 @@ export default function ContainerCheckIn(){
   const [retCond, setRetCond] = useState('good')
   const [retNote, setRetNote] = useState('')
   const scanRef = useRef(null)
+  const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8, width:'100%' }
 
   async function refresh(){
     setLoading(true); setError('')
@@ -72,11 +73,11 @@ export default function ContainerCheckIn(){
       <div className="noprint">
         <form onSubmit={doCheckin} style={{marginTop:16, display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
           <h3>Check-In Barang</h3>
-          <input ref={scanRef} autoFocus value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
-          <label>Input manual (satu ID per baris)
-            <textarea value={listIds} onChange={e=>setListIds(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8, height:100}} placeholder="CAM-70D-002&#10;CAM-70D-003"></textarea>
+          <input ref={scanRef} autoFocus value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={ipt}/>
+          <label style={{display:'grid', gap:4}}>Input manual (satu ID per baris)
+            <textarea value={listIds} onChange={e=>setListIds(e.target.value)} style={{...ipt, height:120}} placeholder="CAM-70D-002&#10;CAM-70D-003"></textarea>
           </label>
-          <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={{padding:8, border:'1px solid #ddd', borderRadius:8}}>
+          <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={ipt}>
             <option value="good">Good</option>
             <option value="rusak_ringan">Rusak ringan</option>
             <option value="rusak_berat">Rusak berat</option>
