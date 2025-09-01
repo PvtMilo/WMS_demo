@@ -14,18 +14,33 @@ export default function CheckInList(){
     <div style={{padding:24,fontFamily:'sans-serif'}}>
       <h2>Check-In</h2>
       <table style={{width:'100%',borderCollapse:'collapse'}}>
-        <thead><tr style={{background:'#fafafa'}}>
-          <th style={th}>ID</th><th style={th}>Event</th><th style={th}>PIC</th><th style={th}>Aksi</th>
-        </tr></thead>
+        <thead>
+          <tr style={{background:'#fafafa'}}>
+            <th style={th}>ID</th>
+            <th style={th}>Event</th>
+            <th style={th}>PIC</th>
+            <th style={th}>Crew</th>
+            <th style={th}>Lokasi</th>
+            <th style={th}>Jadwal</th>
+            <th style={th}>Aksi</th>
+          </tr>
+        </thead>
         <tbody>
-          {items.length? items.map(c=> (
-            <tr key={c.id}>
-              <td style={td}>{c.id}</td>
-              <td style={td}>{c.event_name}</td>
-              <td style={td}>{c.pic}</td>
-              <td style={td}><a href={`/containers/${c.id}/checkin`}>Buka</a></td>
-            </tr>
-          )): <tr><td style={td} colSpan={4}>Tidak ada kontainer</td></tr>}
+          {items.length ? (
+            items.map(c => (
+              <tr key={c.id}>
+                <td style={td}>{c.id}</td>
+                <td style={td}>{c.event_name}</td>
+                <td style={td}>{c.pic}</td>
+                <td style={td}>{c.crew || '-'}</td>
+                <td style={td}>{c.location || '-'}</td>
+                <td style={td}>{(c.start_date||'-') + ' → ' + (c.end_date||'-')}</td>
+                <td style={td}><a href={`/containers/${c.id}/checkin`}>Buka</a></td>
+              </tr>
+            ))
+          ) : (
+            <tr><td style={td} colSpan={7}>Tidak ada kontainer</td></tr>
+          )}
         </tbody>
       </table>
     </div>

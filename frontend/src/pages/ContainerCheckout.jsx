@@ -37,6 +37,13 @@ export default function ContainerCheckout(){
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       <h2>Kontainer: {c.id}</h2>
+      <div style={{marginBottom:16}}>
+        <div><b>Event:</b> {c.event_name}</div>
+        <div><b>PIC:</b> {c.pic}</div>
+        <div><b>Crew:</b> {c.crew || '-'}</div>
+        <div><b>Lokasi:</b> {c.location || '-'}</div>
+        <div><b>Jadwal:</b> {(c.start_date || '-') + ' → ' + (c.end_date || '-')}</div>
+      </div>
       <div className="noprint">
         <CheckoutAdder cid={cid} onAdded={refresh}/>
       </div>
