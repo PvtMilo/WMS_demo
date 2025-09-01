@@ -68,6 +68,7 @@ export default function ContainerCheckIn(){
         <div><b>Lokasi:</b> {c.location || '-'}</div>
         <div><b>Mulai:</b> {formatDateTime(c.start_date, {monthText:true})}</div>
         <div><b>Selesai:</b> {formatDateTime(c.end_date, {monthText:true})}</div>
+        <div><b>Jadwal:</b> {formatDateTime(c.start_date, {monthText:true})} → {formatDateTime(c.end_date, {monthText:true})}</div>
       </div>
 
       {/* Counters (live) */}

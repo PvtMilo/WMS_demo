@@ -45,6 +45,7 @@ export default function ContainerCheckout(){
         <div><b>Lokasi:</b> {c.location || '-'}</div>
         <div><b>Mulai:</b> {formatDateTime(c.start_date, {monthText:true})}</div>
         <div><b>Selesai:</b> {formatDateTime(c.end_date, {monthText:true})}</div>
+        <div><b>Jadwal:</b> {formatDateTime(c.start_date, {monthText:true})} → {formatDateTime(c.end_date, {monthText:true})}</div>
       </div>
       <div className="noprint">
         <CheckoutAdder cid={cid} onAdded={refresh}/>

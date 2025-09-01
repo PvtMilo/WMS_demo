@@ -63,6 +63,7 @@ export default function ContainersPage(){
                         <td style={td}>{c.location || '-'}</td>
                         <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
                         <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
+                        <td style={td}>{formatDateTime(c.start_date, {monthText:true}) + ' → ' + formatDateTime(c.end_date, {monthText:true})}</td>
                         <td style={td}>{c.status}</td>
                         <td style={td}>{c.status === 'Open' ? <a href={`/containers/${c.id}/checkout`}>Buka</a> : '-'}</td>
                       </tr>

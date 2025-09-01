@@ -38,6 +38,7 @@ export default function CheckInList(){
                 <td style={td}>{c.location || '-'}</td>
                 <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
                 <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
+                <td style={td}>{formatDateTime(c.start_date, {monthText:true}) + ' → ' + formatDateTime(c.end_date, {monthText:true})}</td>
                 <td style={td}><a href={`/containers/${c.id}/checkin`}>Buka</a></td>
               </tr>
             ))
