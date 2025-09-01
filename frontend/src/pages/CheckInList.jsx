@@ -22,7 +22,8 @@ export default function CheckInList(){
             <th style={th}>PIC</th>
             <th style={th}>Crew</th>
             <th style={th}>Lokasi</th>
-            <th style={th}>Jadwal</th>
+            <th style={th}>Mulai</th>
+            <th style={th}>Selesai</th>
             <th style={th}>Aksi</th>
           </tr>
         </thead>
@@ -35,12 +36,13 @@ export default function CheckInList(){
                 <td style={td}>{c.pic}</td>
                 <td style={td}>{c.crew || '-'}</td>
                 <td style={td}>{c.location || '-'}</td>
-                <td style={td}>{formatDateTime(c.start_date, {monthText:true}) + ' → ' + formatDateTime(c.end_date, {monthText:true})}</td>
+                <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
+                <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
                 <td style={td}><a href={`/containers/${c.id}/checkin`}>Buka</a></td>
               </tr>
             ))
           ) : (
-            <tr><td style={td} colSpan={7}>Tidak ada kontainer</td></tr>
+            <tr><td style={td} colSpan={8}>Tidak ada kontainer</td></tr>
           )}
         </tbody>
       </table>
