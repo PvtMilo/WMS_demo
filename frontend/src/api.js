@@ -142,6 +142,14 @@ export const api = {
   getLatestDN(cid) {
     return request('GET', `/containers/${encodeURIComponent(cid)}/dn_latest`)
   },
+  // Ambil DN snapshot tertentu
+  getDNVersion(cid, version) {
+    return request('GET', `/containers/${encodeURIComponent(cid)}/dn/${encodeURIComponent(version)}`)
+  },
+  // List semua DN snapshots (audit)
+  getDNList(cid) {
+    return request('GET', `/containers/${encodeURIComponent(cid)}/dn_list`)
+  },
   // Bulk update kondisi item (Good / Rusak ringan / Rusak berat)
   bulkUpdateCondition: (payload) =>
     request('POST', '/items/bulk_update_condition', payload),

@@ -10,6 +10,7 @@ import ContainerCheckIn from './pages/ContainerCheckIn.jsx'
 import CheckInList from './pages/CheckInList.jsx'
 import CheckoutList from './pages/CheckoutList.jsx'
 import SuratJalanPage from './pages/SuratJalanPage.jsx'
+import SuratJalanHistory from './pages/SuratJalanHistory.jsx'
 
 export default function App() {
   return (
@@ -25,6 +26,8 @@ export default function App() {
       <Route path="/containers/:cid/checkout" element={<ContainerCheckout />} />
       <Route path="/containers/:cid/checkin" element={<ContainerCheckIn />} />
       <Route path="/containers/:cid/surat-jalan" element={<SuratJalanPage />} />
+      <Route path="/containers/:cid/surat-jalan/v/:ver" element={<SuratJalanPage />} />
+      <Route path="/containers/:cid/dn-history" element={<SuratJalanHistory />} />
       <Route path="*" element={<div style={{padding:24}}>Not Found</div>} />
     </Routes>
   )

@@ -426,6 +426,50 @@ def dn_latest(cid):
     finally:
         conn.close()
 
+# ---------- Get DN snapshot by version ----------
+@bp.get("/<cid>/dn/<ver>")
+@auth_required
+def dn_by_version(cid, ver):
+    try:
+        ver = int(ver)
+    except Exception:
+        return jsonify({"error": True, "message": "Version tidak valid"}), 400
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT version, payload, created_at FROM dn_snapshots WHERE container_id=? AND version=?",
+            (cid, ver),
+        ).fetchone()
+        if not row:
+            return jsonify({"error": True, "message": "DN versi tidak ditemukan"}), 404
+        data = json.loads(row["payload"])
+        data["_meta"] = {"version": row["version"], "created_at": row["created_at"]}
+        return jsonify(data)
+    finally:
+        conn.close()
+
+# ---------- List DN snapshots (for audit) ----------
+@bp.get("/<cid>/dn_list")
+@auth_required
+def dn_list(cid):
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT version, created_at, payload FROM dn_snapshots WHERE container_id=? ORDER BY version ASC",
+            (cid,),
+        ).fetchall()
+        out = []
+        for r in rows:
+            p = json.loads(r["payload"]) if r["payload"] else {}
+            out.append({
+                "version": r["version"],
+                "created_at": r["created_at"],
+                "payload": p,
+            })
+        return jsonify({"versions": out})
+    finally:
+        conn.close()
+
 # ---------- Set container status ----------
 @bp.post("/<cid>/set_status")
 @auth_required

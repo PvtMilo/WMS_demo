@@ -50,24 +50,9 @@ export default function ContainerCheckout(){
       </div>
       <div className="noprint" style={{display:'flex', gap:8, marginBottom:12}}>
         <button
-          onClick={async () => {
-            setMakingDN(true)
-            try {
-              await api.submitDN(cid)
-              navigate(`/containers/${cid}/surat-jalan`)
-            } catch (e) {
-              alert(e.message)
-            } finally { setMakingDN(false) }
-          }}
+          onClick={() => navigate(`/containers/${cid}/surat-jalan`)}
           style={{padding:'8px 12px'}}
-          disabled={makingDN}
-        >{makingDN ? 'Menyiapkan…' : 'Cetak Surat Jalan'}</button>
-        {data.latest_dn && (
-          <button
-            onClick={() => navigate(`/containers/${cid}/surat-jalan`)}
-            style={{padding:'8px 12px'}}
-          >Lihat/Cetak DN Terakhir (V{data.latest_dn.version})</button>
-        )}
+        >Lihat Surat Jalan</button>
       </div>
       <div className="noprint" style={{display:'flex', gap:8, marginBottom:12}}>
         {c.status === 'Open' && (

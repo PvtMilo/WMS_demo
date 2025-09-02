@@ -5,7 +5,7 @@ import { api } from '../api.js'
 import { formatDateTime } from '../utils/date.js'
 
 export default function SuratJalanPage() {
-  const { cid } = useParams()
+  const { cid, ver } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -16,6 +16,18 @@ export default function SuratJalanPage() {
     setLoading(true); setError('')
     try {
       const res = await api.getLatestDN(cid)
+      setData(res)
+    } catch (e) {
+      setError(e.message)
+      setData(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+  async function loadVersion(v) {
+    setLoading(true); setError('')
+    try {
+      const res = await api.getDNVersion(cid, v)
       setData(res)
     } catch (e) {
       setError(e.message)
@@ -37,7 +49,10 @@ export default function SuratJalanPage() {
     }
   }
 
-  useEffect(() => { loadLatest() }, [cid])
+  useEffect(() => {
+    if (ver) loadVersion(ver)
+    else loadLatest()
+  }, [cid, ver])
 
   const mapped = useMemo(() => {
     if (!data) return null
