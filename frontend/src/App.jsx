@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
+import InventorySummary from './pages/InventorySummary.jsx'
 // import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
 import ContainersPage from './pages/ContainersPage.jsx'      // NEW
 import ContainerCheckout from './pages/ContainerCheckout.jsx'
@@ -19,6 +20,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/inventory" element={<InventoryPage />} />
+      <Route path="/inventory/summary" element={<InventorySummary />} />
       {/* <Route path="/print-labels" element={<PrintLabelsPage />} /> */}
       <Route path="/containers" element={<ContainersPage />} />         {/* NEW */}
       <Route path="/checkin" element={<CheckInList />} />

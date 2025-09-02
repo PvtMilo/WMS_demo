@@ -255,11 +255,15 @@ async function deleteSelected() {
 
   const ipt = { flex: 1, padding: 8, border: '1px solid #ddd', borderRadius: 8 }
   const btn = { padding: '8px 12px', border: '1px solid #ddd', background: '#fff', borderRadius: 8, cursor: 'pointer' }
+  const linkBtn = { ...btn, borderColor: '#111' }
 
   return (
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
       <div className="noprint">
         <h2>Inventory</h2>
+        <div style={{margin:'8px 0 12px', display:'flex', gap:8}}>
+          <a href="/inventory/summary" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lihat Stock Summary (Print)</a>
+        </div>
 
       {/* Ringkasan kategori (cepat) */}
       <CategorySummary data={catSummary} />

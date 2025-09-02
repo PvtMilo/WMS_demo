@@ -153,9 +153,13 @@ export const api = {
   // Bulk update kondisi item (Good / Rusak ringan / Rusak berat)
   bulkUpdateCondition: (payload) =>
     request('POST', '/items/bulk_update_condition', payload),
-// Ringkasan jumlah per kategori
+  // Ringkasan jumlah per kategori
   summaryByCategory: () =>
     request('GET', '/items/summary_by_category'),
+
+  // Ringkasan stok per kategori dengan breakdown per model (untuk print)
+  inventorySummary: () =>
+    request('GET', '/items/summary_by_category_model'),
 }
 
 export default api

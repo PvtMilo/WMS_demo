@@ -195,6 +195,49 @@ def summary_by_category():
     finally:
         conn.close()
 
+@bp.get("/summary_by_category_model")
+@auth_required
+def summary_by_category_model():
+    """
+    Ringkasan stok per kategori dengan breakdown per (name, model).
+    Output:
+    {
+      "categories": [
+        { "category": "Camera", "total": 50, "models": [
+            {"name": "Canon", "model": "70D", "qty": 10},
+            {"name": "Canon", "model": "1300D", "qty": 20},
+            {"name": "Canon", "model": "1200D", "qty": 20}
+        ]}
+      ],
+      "grand_total": 50
+    }
+    """
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT category, name, model, COUNT(*) AS qty
+            FROM item_unit
+            GROUP BY category, name, model
+            ORDER BY category ASC, name ASC, model ASC
+            """
+        ).fetchall()
+
+        cats = {}
+        for r in rows:
+            cat = r["category"] or "-"
+            entry = {"name": r["name"] or "-", "model": r["model"] or "-", "qty": int(r["qty"] or 0)}
+            if cat not in cats:
+                cats[cat] = {"category": cat, "total": 0, "models": []}
+            cats[cat]["models"].append(entry)
+            cats[cat]["total"] += entry["qty"]
+
+        categories = sorted(cats.values(), key=lambda x: x["category"])
+        grand_total = sum(c["total"] for c in categories)
+        return jsonify({"categories": categories, "grand_total": int(grand_total)})
+    finally:
+        conn.close()
+
 @bp.get("/<id_code>/qr")
 @auth_required
 def qr_image(id_code):
