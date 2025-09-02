@@ -12,6 +12,7 @@ export default function ContainerCheckout(){
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [makingDN, setMakingDN] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
   async function refresh(){
     setLoading(true); setError('')
@@ -66,6 +67,19 @@ export default function ContainerCheckout(){
             onClick={() => navigate(`/containers/${cid}/surat-jalan`)}
             style={{padding:'8px 12px'}}
           >Lihat/Cetak DN Terakhir (V{data.latest_dn.version})</button>
+        )}
+      </div>
+      <div className="noprint" style={{display:'flex', gap:8, marginBottom:12}}>
+        {c.status === 'Open' && (
+          <button
+            onClick={async () => {
+              if (!confirm('Ubah status menjadi Sedang Berjalan?')) return
+              setUpdatingStatus(true)
+              try { await api.setContainerStatus(cid, 'Sedang Berjalan'); await refresh() } catch(e){ alert(e.message) } finally { setUpdatingStatus(false) }
+            }}
+            style={{padding:'8px 12px'}}
+            disabled={updatingStatus}
+          >{updatingStatus ? 'Memproses…' : 'Ubah ke Sedang Berjalan'}</button>
         )}
       </div>
       <div className="noprint">

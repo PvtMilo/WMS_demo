@@ -25,7 +25,7 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                 <th style={th}>Kondisi Return</th>
                 <th style={th}>Waktu Return</th>
                 <th style={th}>Alasan</th>
-                <th style={th}>Aksi</th>
+                {onVoid && <th style={th}>Aksi</th>}
               </tr>
             </thead>
             <tbody>
@@ -41,18 +41,20 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
                   <td style={td}>{it.return_condition ? labelCond(it.return_condition) : '-'}</td>
                   <td style={td}>{it.returned_at ? formatDateTime(it.returned_at, {monthText:true}) : '-'}</td>
                   <td style={td}>{reasonText(it)}</td>
-                  <td style={td}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const reason = prompt(`Batalkan ${it.id_code}? Alasan:`, 'mis-scan') || 'mis-scan'
-                        onVoid?.(it.id_code, reason)
-                      }}
-                      style={btn}
-                    >
-                      Batalkan
-                    </button>
-                  </td>
+                  {onVoid && (
+                    <td style={td}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const reason = prompt(`Batalkan ${it.id_code}? Alasan:`, 'mis-scan') || 'mis-scan'
+                          onVoid?.(it.id_code, reason)
+                        }}
+                        style={btn}
+                      >
+                        Batalkan
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

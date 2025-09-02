@@ -8,7 +8,7 @@ export default function CheckInList(){
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   useEffect(()=>{
-    api.listContainers({status:'Open', per_page:100})
+    api.listContainers({status:'Sedang Berjalan', per_page:100})
       .then(r=>{ setItems(r.data||[]); setTotal(r.total||0) })
       .catch(e=>setError(e.message))
       .finally(()=>setLoading(false))
@@ -19,7 +19,7 @@ export default function CheckInList(){
     <div style={{padding:24,fontFamily:'sans-serif'}}>
       <div style={{display:'flex', alignItems:'baseline', gap:12}}>
         <h2 style={{margin:0}}>Check-In</h2>
-        <span style={{color:'#666'}}>Total Open: <b>{total}</b></span>
+        <span style={{color:'#666'}}>Total Sedang Berjalan: <b>{total}</b></span>
       </div>
       <table style={{width:'100%',borderCollapse:'collapse'}}>
         <thead>

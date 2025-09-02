@@ -111,6 +111,11 @@ export const api = {
     return request('GET', `/containers/${encodeURIComponent(cid)}`)
   },
 
+  // Update container status: 'Open' | 'Sedang Berjalan' | 'Closed'
+  setContainerStatus(cid, status) {
+    return request('POST', `/containers/${encodeURIComponent(cid)}/set_status`, { status })
+  },
+
   // payload: { ids: string[], amend?: boolean, override_heavy?: boolean, override_reason?: string }
   addItemsToContainer(cid, payload) {
     return request('POST', `/containers/${encodeURIComponent(cid)}/add_items`, payload)

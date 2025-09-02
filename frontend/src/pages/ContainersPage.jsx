@@ -64,7 +64,17 @@ export default function ContainersPage(){
                         <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
                         <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
                         <td style={td}>{c.status}</td>
-                        <td style={td}>{c.status === 'Open' ? <a href={`/containers/${c.id}/checkout`}>Buka</a> : '-'}</td>
+                        <td style={td}>
+                          {c.status === 'Open' && (
+                            <a href={`/containers/${c.id}/checkout`}>Checkout</a>
+                          )}
+                          {c.status === 'Sedang Berjalan' && (
+                            <a href={`/containers/${c.id}/checkin`}>Check-In</a>
+                          )}
+                          {c.status === 'Closed' && (
+                            <a href={`/containers/${c.id}/checkin`}>Lihat</a>
+                          )}
+                        </td>
                       </tr>
                     )):(
                       <tr><td style={td} colSpan={8}>Belum ada kontainer</td></tr>

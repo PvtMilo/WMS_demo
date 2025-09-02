@@ -13,6 +13,7 @@ export default function ContainerCheckIn(){
   const [listIds, setListIds] = useState('')
   const [retCond, setRetCond] = useState('good')
   const [retNote, setRetNote] = useState('')
+  const [closing, setClosing] = useState(false)
   const scanRef = useRef(null)
   const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8, width:'100%' }
 
@@ -79,15 +80,27 @@ export default function ContainerCheckIn(){
       </div>
 
       {/* Counters (live) */}
-      <div className="noprint" style={{display:'flex', gap:12, marginBottom:12}}>
+      <div className="noprint" style={{display:'flex', gap:12, marginBottom:12, alignItems:'center'}}>
         <Badge label="Total" value={t.all}/>
         <Badge label="Returned" value={t.returned}/>
         <Badge label="Good" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
+        {c.status !== 'Closed' && (
+          <button
+            onClick={async ()=>{
+              if (!confirm('Anda yakin ingin menutup kontainer ini?')) return
+              setClosing(true)
+              try{ await api.setContainerStatus(cid, 'Closed'); await refresh() } catch(e){ alert(e.message) } finally { setClosing(false) }
+            }}
+            style={{marginLeft:12, padding:'8px 12px'}}
+            disabled={closing}
+          >{closing ? 'Menutup…' : 'Tutup Kontainer'}</button>
+        )}
       </div>
 
-      <div className="noprint">
+      {c.status !== 'Closed' && (
+        <div className="noprint">
         <form onSubmit={doCheckin} style={{marginTop:16, display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
           <h3>Check-In Barang</h3>
           <input ref={scanRef} autoFocus value={scanRet} onChange={e=>setScanRet(e.target.value)} placeholder="Scan ID" style={ipt}/>
@@ -112,10 +125,11 @@ export default function ContainerCheckIn(){
           )}
           <button style={{padding:'10px 14px'}}>Check-In</button>
         </form>
-      </div>
+        </div>
+      )}
 
       {/* Tabel item per batch (printable) - live view */}
-      <ContainerItemsTable batches={data.batches} onVoid={onVoid}/>
+      <ContainerItemsTable batches={data.batches} onVoid={c.status !== 'Closed' ? onVoid : undefined}/>
     </div>
   )
 }
@@ -145,3 +159,4 @@ function allowedOptions(prev){
   if (prev === 'rusak_ringan') return new Set(['rusak_ringan','rusak_berat'])
   return new Set(['good','rusak_ringan','rusak_berat'])
 }
+

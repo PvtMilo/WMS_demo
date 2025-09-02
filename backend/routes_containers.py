@@ -57,7 +57,7 @@ def list_containers():
         filters.append("(UPPER(id) LIKE ? OR UPPER(event_name) LIKE ? OR UPPER(location) LIKE ? OR UPPER(pic) LIKE ?)")
         like = f"%{q}%"
         args += [like, like, like, like]
-    if status in ("Open", "Closed"):
+    if status in ("Open", "Closed", "Sedang Berjalan"):
         filters.append("status=?")
         args.append(status)
     where_sql = " WHERE " + " AND ".join(filters) if filters else ""
@@ -139,10 +139,11 @@ def get_container(cid):
         c, batches, totals = _build_detail(conn, cid)
         if not c:
             return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
-        # latest snapshot (if any)
+        # latest snapshot (if any) and count
         snap = conn.execute("SELECT version, created_at FROM dn_snapshots WHERE container_id=? ORDER BY version DESC LIMIT 1", (cid,)).fetchone()
         latest = dict(snap) if snap else None
-        return jsonify({"container": c, "batches": batches, "totals": totals, "latest_dn": latest})
+        dn_count = conn.execute("SELECT COUNT(*) c FROM dn_snapshots WHERE container_id=?", (cid,)).fetchone()["c"]
+        return jsonify({"container": c, "batches": batches, "totals": totals, "latest_dn": latest, "dn_count": int(dn_count)})
     finally:
         conn.close()
 
@@ -165,8 +166,8 @@ def add_items(cid):
         c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
         if not c:
             return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
-        if c["status"] != "Open":
-            return jsonify({"error": True, "message": "Kontainer sudah ditutup"}), 400
+        if c["status"] not in ("Open", "Sedang Berjalan"):
+            return jsonify({"error": True, "message": "Kontainer tidak dalam status yang bisa ditambah (Open/Sedang Berjalan)"}), 400
 
         # tentukan batch label
         if is_amend:
@@ -422,5 +423,40 @@ def dn_latest(cid):
         data = json.loads(row["payload"])
         data["_meta"] = {"version": row["version"], "created_at": row["created_at"]}
         return jsonify(data)
+    finally:
+        conn.close()
+
+# ---------- Set container status ----------
+@bp.post("/<cid>/set_status")
+@auth_required
+def set_status(cid):
+    b = request.get_json(silent=True) or {}
+    status = (b.get("status") or "").strip()
+    allowed = {"Open", "Sedang Berjalan", "Closed"}
+    if status not in allowed:
+        return jsonify({"error": True, "message": "Status tidak valid"}), 400
+
+    conn = get_conn()
+    try:
+        c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
+        if not c:
+            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+        cur = c["status"]
+        if cur == "Closed" and status != "Closed":
+            return jsonify({"error": True, "message": "Kontainer sudah Closed"}), 400
+
+        # If closing, ensure all returned
+        if status == "Closed":
+            left = conn.execute(
+                """SELECT COUNT(*) c FROM container_item
+                    WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL""",
+                (cid,),
+            ).fetchone()["c"]
+            if left > 0:
+                return jsonify({"error": True, "message": "Masih ada item belum kembali"}), 400
+
+        conn.execute("UPDATE containers SET status=? WHERE id=?", (status, cid))
+        conn.commit()
+        return jsonify({"ok": True, "status": status})
     finally:
         conn.close()
