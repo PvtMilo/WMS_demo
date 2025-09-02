@@ -40,7 +40,15 @@ export default function EmoneyPage(){
 
   const pages = Math.max(1, Math.ceil((total||0)/perPage))
 
-  function fmtCents(c){ return (c/100).toFixed(2) }
+  function fmtIDR(c){
+    const v = Math.round((c||0)/100)
+    return 'Rp. ' + new Intl.NumberFormat('id-ID').format(v)
+  }
+
+  async function onDelete(id){
+    if (!confirm('Hapus E-Money ini beserta semua transaksinya?')) return
+    try{ await api.deleteEmoney(id); await refresh(page) } catch(e){ alert(e.message) }
+  }
 
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
@@ -69,12 +77,7 @@ export default function EmoneyPage(){
               <tr style={{background:'#fafafa'}}>
                 <th style={th}>ID</th>
                 <th style={th}>Label</th>
-                <th style={th}>Status</th>
-                <th style={th}>Topup</th>
-                <th style={th}>Expense</th>
-                <th style={th}>Balance</th>
-                <th style={th}>Linked Closed</th>
-                <th style={th}>Fully Closed</th>
+                <th style={th}>Remaining Balance</th>
                 <th style={th}>Aksi</th>
               </tr>
             </thead>
@@ -83,16 +86,15 @@ export default function EmoneyPage(){
                 <tr key={e.id}>
                   <td style={td}>{e.id}</td>
                   <td style={td}>{e.label}</td>
-                  <td style={td}>{e.status}</td>
-                  <td style={td}>{fmtCents(e.tot_topup)}</td>
-                  <td style={td}>{fmtCents(e.tot_expense)}</td>
-                  <td style={td}>{fmtCents(e.balance)}</td>
-                  <td style={td}>{e.linked_closed ? 'Ya' : 'Tidak'}</td>
-                  <td style={td}>{e.fully_closed ? 'Ya' : 'Belum'}</td>
-                  <td style={td}><a href={`/emoney/${e.id}`}>Buka</a></td>
+                  <td style={td}>{fmtIDR(e.balance)}</td>
+                  <td style={td}>
+                    <a href={`/emoney/${e.id}`}>Buka</a>
+                    {' | '}
+                    <button onClick={()=>onDelete(e.id)} style={{...btn, padding:'4px 8px'}}>Delete</button>
+                  </td>
                 </tr>
               )) : (
-                <tr><td style={td} colSpan={9}>Belum ada data</td></tr>
+                <tr><td style={td} colSpan={4}>Belum ada data</td></tr>
               )}
             </tbody>
           </table>

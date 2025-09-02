@@ -108,7 +108,14 @@ def get_emoney(eid):
         if not e:
             return jsonify({"error": True, "message": "Emoney tidak ditemukan"}), 404
         tx = conn.execute(
-            "SELECT id, type, amount_cents, note, ref_container_id, created_at FROM emoney_tx WHERE emoney_id=? ORDER BY created_at DESC, id DESC",
+            """
+            SELECT t.id, t.type, t.amount_cents, t.note, t.ref_container_id, t.created_at,
+                   c.event_name AS event_name, c.pic AS pic
+            FROM emoney_tx t
+            LEFT JOIN containers c ON c.id = t.ref_container_id
+            WHERE t.emoney_id=?
+            ORDER BY t.created_at DESC, t.id DESC
+            """,
             (eid,),
         ).fetchall()
         sums = conn.execute(
@@ -156,13 +163,24 @@ def add_tx(eid):
         return jsonify({"error": True, "message": "amount harus angka > 0"}), 400
     conn = get_conn()
     try:
-        e = conn.execute("SELECT id FROM emoney WHERE id=?", (eid,)).fetchone()
+        e = conn.execute("SELECT id, status FROM emoney WHERE id=?", (eid,)).fetchone()
         if not e:
             return jsonify({"error": True, "message": "Emoney tidak ditemukan"}), 404
+        if (e["status"] or "Open") == "Closed":
+            return jsonify({"error": True, "message": "E-Money sudah Closed"}), 400
         if ref_cid:
             c = conn.execute("SELECT 1 FROM containers WHERE id=?", (ref_cid,)).fetchone()
             if not c:
                 return jsonify({"error": True, "message": "Container tidak ditemukan"}), 400
+        # Balance guard: jangan sampai minus
+        if ttype == "expense":
+            sums = conn.execute(
+                "SELECT SUM(CASE WHEN type='topup' THEN amount_cents ELSE 0 END) topup, SUM(CASE WHEN type='expense' THEN amount_cents ELSE 0 END) expense FROM emoney_tx WHERE emoney_id=?",
+                (eid,),
+            ).fetchone()
+            balance = int(sums["topup"] or 0) - int(sums["expense"] or 0)
+            if amount > balance:
+                return jsonify({"error": True, "message": "Saldo tidak cukup"}), 400
         conn.execute(
             "INSERT INTO emoney_tx (emoney_id, type, amount_cents, note, ref_container_id, created_at) VALUES (?, ?, ?, ?, ?, ?)",
             (eid, ttype, amount, (note or None), ref_cid, now_iso()),
@@ -221,9 +239,11 @@ def tx_by_container(cid):
     try:
         rows = conn.execute(
             """
-            SELECT t.id, t.type, t.amount_cents, t.note, t.created_at, t.emoney_id, e.label AS emoney_label
+            SELECT t.id, t.type, t.amount_cents, t.note, t.created_at, t.emoney_id, e.label AS emoney_label,
+                   c.event_name AS event_name, c.pic AS pic
             FROM emoney_tx t
             LEFT JOIN emoney e ON e.id = t.emoney_id
+            LEFT JOIN containers c ON c.id = t.ref_container_id
             WHERE t.ref_container_id=?
             ORDER BY t.created_at DESC, t.id DESC
             """,
@@ -238,5 +258,24 @@ def tx_by_container(cid):
             "sum_topup": int(sums["topup"] or 0),
             "sum_expense": int(sums["expense"] or 0),
         })
+    finally:
+        conn.close()
+
+@bp.delete("/<eid>")
+@auth_required
+def delete_emoney(eid):
+    eid = (eid or "").strip()
+    if not eid:
+        return jsonify({"error": True, "message": "id wajib"}), 400
+    conn = get_conn()
+    try:
+        row = conn.execute("SELECT id FROM emoney WHERE id=?", (eid,)).fetchone()
+        if not row:
+            return jsonify({"error": True, "message": "Emoney tidak ditemukan"}), 404
+        # Hapus semua transaksi dulu agar tidak ada orphan
+        conn.execute("DELETE FROM emoney_tx WHERE emoney_id=?", (eid,))
+        conn.execute("DELETE FROM emoney WHERE id=?", (eid,))
+        conn.commit()
+        return jsonify({"ok": True})
     finally:
         conn.close()

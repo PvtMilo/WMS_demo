@@ -15,12 +15,14 @@ export default function EmoneyExpenseForm(){
     api.listEmoney({ per_page: 100 }).then(r => setList(r.data||[])).catch(()=>{})
   }, [])
 
-  function fmt(c){ return (c/100).toFixed(2) }
+  function fmtIDR(c){ return 'Rp. ' + new Intl.NumberFormat('id-ID').format(Math.round((c||0)/100)) }
 
   async function submit(e){
     e.preventDefault()
     if (!eid) { alert('Pilih E-Money'); return }
     if (!(amount||'').trim()) { alert('Jumlah wajib'); return }
+    const toCents = (val)=>{ const s=String(val||'').replace(/[^0-9]/g,''); const n=parseInt(s||'0',10); return (isFinite(n)? n*100 : 0) }
+    if (selected && toCents(amount) > (selected.balance||0)) { alert('Saldo E-Money tidak cukup'); return }
     try{
       await api.addEmoneyTx(eid, { type:'expense', amount, note, container_id: cid })
       setMsg('Pengeluaran tercatat')
@@ -47,7 +49,7 @@ export default function EmoneyExpenseForm(){
           </select>
         </label>
         {selected && (
-          <div style={{fontSize:13, color:'#333'}}>Saldo saat ini: <b>{fmt(selected.balance)}</b> · Topup: {fmt(selected.tot_topup)} · Expense: {fmt(selected.tot_expense)}</div>
+          <div style={{fontSize:13, color:'#333'}}>Saldo saat ini: <b>{fmtIDR(selected.balance)}</b> · Topup: {fmtIDR(selected.tot_topup)} · Expense: {fmtIDR(selected.tot_expense)}</div>
         )}
         <input value={amount} onChange={e=>setAmount(e.target.value)} placeholder="Jumlah (contoh: 150000)" style={ipt}/>
         <input value={note} onChange={e=>setNote(e.target.value)} placeholder="Catatan (misal: Pengeluaran PIC Sam - Jagakarsa)" style={ipt}/>
@@ -60,4 +62,3 @@ export default function EmoneyExpenseForm(){
     </div>
   )
 }
-

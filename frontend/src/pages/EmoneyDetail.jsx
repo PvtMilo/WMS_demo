@@ -49,7 +49,7 @@ export default function EmoneyDetail(){
   const btn = { padding:'8px 12px', border:'1px solid #111', borderRadius:8, background:'#fff', cursor:'pointer' }
   const th = { textAlign:'left', padding:10, borderBottom:'1px solid #eee' }
   const td = { padding:10, borderBottom:'1px solid #f2f2f2' }
-  const fmt = (c)=> (c/100).toFixed(2)
+  const fmtIDR = (c)=> 'Rp. ' + new Intl.NumberFormat('id-ID').format(Math.round((c||0)/100))
 
   if (loading) return <div style={{padding:24}}>Memuat…</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
@@ -62,7 +62,7 @@ export default function EmoneyDetail(){
         <div>
           <div style={{fontSize:12, color:'#666'}}>{e.id}</div>
           <h2 style={{margin:'4px 0'}}>{e.label}</h2>
-          <div>Status: <b>{e.status}</b> · Linked Containers Closed: <b>{data.linked_closed ? 'Ya':'Tidak'}</b> · Fully Closed: <b>{data.fully_closed ? 'Ya':'Belum'}</b></div>
+          <div>Status: <b>{e.status}</b></div>
         </div>
         <div>
           <button onClick={()=>nav('/emoney')} className="noprint" style={{...btn, marginRight:8}}>Kembali</button>
@@ -74,9 +74,9 @@ export default function EmoneyDetail(){
 
       <div style={{marginTop:12, display:'flex', gap:16, flexWrap:'wrap'}}>
         <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
-          <div>Total Topup: <b>{fmt(data.tot_topup)}</b></div>
-          <div>Total Expense: <b>{fmt(data.tot_expense)}</b></div>
-          <div>Balance: <b>{fmt(data.balance)}</b></div>
+          <div>Total Topup: <b>{fmtIDR(data.tot_topup)}</b></div>
+          <div>Total Expense: <b>{fmtIDR(data.tot_expense)}</b></div>
+          <div>Balance: <b>{fmtIDR(data.balance)}</b></div>
         </div>
         <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
           <div>Containers terkait: {data.linked_containers.length ? data.linked_containers.join(', ') : '-'}</div>
@@ -107,6 +107,8 @@ export default function EmoneyDetail(){
               <th style={th}>Tipe</th>
               <th style={th}>Jumlah</th>
               <th style={th}>Container</th>
+              <th style={th}>Event</th>
+              <th style={th}>PIC</th>
               <th style={th}>Catatan</th>
             </tr>
           </thead>
@@ -115,12 +117,14 @@ export default function EmoneyDetail(){
               <tr key={t.id}>
                 <td style={td}>{t.created_at}</td>
                 <td style={td}>{t.type}</td>
-                <td style={td}>{fmt(t.amount_cents)}</td>
-                <td style={td}>{t.ref_container_id || '-'}</td>
+                <td style={td}>{fmtIDR(t.amount_cents)}</td>
+                <td style={td}>{t.ref_container_id ? (<a href={`/emoney/history/${t.ref_container_id}`}>{t.ref_container_id}</a>) : '-'}</td>
+                <td style={td}>{t.event_name || '-'}</td>
+                <td style={td}>{t.pic || '-'}</td>
                 <td style={td}>{t.note || '-'}</td>
               </tr>
             )) : (
-              <tr><td style={td} colSpan={5}>Belum ada transaksi</td></tr>
+              <tr><td style={td} colSpan={7}>Belum ada transaksi</td></tr>
             )}
           </tbody>
         </table>
@@ -128,4 +132,3 @@ export default function EmoneyDetail(){
     </div>
   )
 }
-

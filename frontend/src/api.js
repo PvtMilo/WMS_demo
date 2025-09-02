@@ -190,6 +190,8 @@ export const api = {
   setEmoneyStatus: (id, status) => request('POST', `/emoney/${encodeURIComponent(id)}/set_status`, { status }),
   // Emoney tx by container
   emoneyTxByContainer: (cid) => request('GET', `/emoney/tx_by_container/${encodeURIComponent(cid)}`),
+  // Delete emoney (only if no transactions)
+  deleteEmoney: (id) => request('DELETE', `/emoney/${encodeURIComponent(id)}`),
 }
 
 export default api
