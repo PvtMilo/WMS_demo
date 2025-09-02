@@ -160,6 +160,19 @@ export const api = {
   // Ringkasan stok per kategori dengan breakdown per model (untuk print)
   inventorySummary: () =>
     request('GET', '/items/summary_by_category_model'),
+
+  // Maintenance: list rusak
+  maintenanceList: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/items/maintenance_list' + (qs ? `?${qs}` : ''))
+  },
+  // Maintenance: repair item menjadi Good (wajib note)
+  repairItem: (id_code, note) => request('POST', '/items/repair', { id_code, note }),
+  // Maintenance: history
+  repairHistory: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/items/repair_history' + (qs ? `?${qs}` : ''))
+  },
 }
 
 export default api

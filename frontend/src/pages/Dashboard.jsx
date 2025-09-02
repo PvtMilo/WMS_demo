@@ -27,6 +27,7 @@ export default function Dashboard() {
         <li><Link to="/checkout">Check-Out</Link></li>
         <li><Link to="/checkin">Check-In</Link></li>
         <li><Link to="/containers">Kontainer</Link></li>
+        <li><Link to="/maintenance">Maintenance (Rusak → Good)</Link></li>
       </ul>
     </div>
   )

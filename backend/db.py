@@ -128,5 +128,20 @@ def init_db():
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_rack       ON item_unit(rack);")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_name       ON item_unit(name);")
 
+    # ==== Maintenance / Repair logs ====
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS item_repair_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_code TEXT NOT NULL,
+        defect_before TEXT,            -- none | ringan | berat
+        status_before TEXT,            -- Good | Rusak | Keluar | ...
+        last_damage_note TEXT,         -- catatan kerusakan terakhir (dari container_item)
+        repair_note TEXT NOT NULL,     -- catatan penanganan (wajib dari PIC)
+        repaired_at TEXT NOT NULL,     -- timestamp perbaikan
+        FOREIGN KEY(id_code) REFERENCES item_unit(id_code)
+    );
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_repair_code ON item_repair_log(id_code, repaired_at);")
+
     conn.commit()
     conn.close()

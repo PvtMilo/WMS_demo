@@ -195,6 +195,156 @@ def summary_by_category():
     finally:
         conn.close()
 
+@bp.get("/maintenance_list")
+@auth_required
+def maintenance_list():
+    """
+    Daftar item yang berstatus Rusak (ringan/berat), opsional filter q.
+    Mengikutkan catatan kerusakan terakhir (damage_note) jika ada.
+    """
+    q_raw = (request.args.get("q") or "").strip()
+    tokens = [t.strip().upper() for t in q_raw.split() if t.strip()]
+
+    conn = get_conn()
+    try:
+        where_sql = "WHERE iu.status='Rusak'"
+        args = []
+        for tok in tokens:
+            like = f"%{tok}%"
+            where_sql += " AND (" + " OR ".join([
+                "UPPER(iu.id_code)  LIKE ?",
+                "UPPER(iu.name)     LIKE ?",
+                "UPPER(iu.category) LIKE ?",
+                "UPPER(iu.model)    LIKE ?",
+                "UPPER(iu.rack)     LIKE ?",
+                "UPPER(iu.defect_level) LIKE ?",
+            ]) + ")"
+            args += [like, like, like, like, like, like]
+
+        rows = conn.execute(f"""
+            SELECT
+              iu.id_code, iu.name, iu.category, iu.model, iu.rack,
+              iu.status, iu.defect_level,
+              (
+                SELECT ci.damage_note FROM container_item ci
+                WHERE ci.id_code = iu.id_code AND ci.damage_note IS NOT NULL
+                ORDER BY ci.returned_at DESC, ci.id DESC
+                LIMIT 1
+              ) AS last_damage_note,
+              (
+                SELECT ci.returned_at FROM container_item ci
+                WHERE ci.id_code = iu.id_code AND ci.returned_at IS NOT NULL
+                ORDER BY ci.returned_at DESC, ci.id DESC
+                LIMIT 1
+              ) AS last_returned_at
+            FROM item_unit iu
+            {where_sql}
+            ORDER BY iu.category ASC, iu.name ASC, iu.model ASC
+        """, args).fetchall()
+        return jsonify({"data": [dict(r) for r in rows]})
+    finally:
+        conn.close()
+
+@bp.post("/repair")
+@auth_required
+def repair_item():
+    """
+    Tandai item Rusak menjadi Good. Wajib kirim repair_note.
+    Body: { id_code: string, note: string }
+    """
+    b = request.get_json(silent=True) or {}
+    id_code = (b.get("id_code") or "").strip()
+    note = (b.get("note") or "").strip()
+    if not id_code:
+        return jsonify({"error": True, "message": "id_code wajib"}), 400
+    if not note:
+        return jsonify({"error": True, "message": "Catatan penanganan (note) wajib diisi"}), 400
+
+    conn = get_conn()
+    try:
+        row = conn.execute("SELECT status, defect_level FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        if not row:
+            return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
+        if row["status"] != "Rusak":
+            return jsonify({"error": True, "message": "Item tidak dalam status Rusak"}), 400
+
+        last = conn.execute(
+            """
+            SELECT damage_note FROM container_item
+            WHERE id_code=? AND damage_note IS NOT NULL
+            ORDER BY returned_at DESC, id DESC
+            LIMIT 1
+            """,
+            (id_code,),
+        ).fetchone()
+        last_note = (last["damage_note"] if last else None) or None
+
+        # Simpan history
+        conn.execute(
+            """
+            INSERT INTO item_repair_log (id_code, defect_before, status_before, last_damage_note, repair_note, repaired_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (id_code, row["defect_level"] or None, row["status"] or None, last_note, note, now_iso()),
+        )
+
+        # Update item ke Good
+        conn.execute(
+            "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+            (id_code,),
+        )
+        conn.commit()
+        return jsonify({"ok": True})
+    finally:
+        conn.close()
+
+@bp.get("/repair_history")
+@auth_required
+def repair_history():
+    """
+    List repair log terbaru. Query param: limit (default 200), q untuk filter id/nama/model/kategori.
+    """
+    try:
+        limit = int(request.args.get("limit") or 200)
+    except Exception:
+        limit = 200
+    if limit < 1: limit = 1
+    if limit > 1000: limit = 1000
+
+    q_raw = (request.args.get("q") or "").strip()
+    tokens = [t.strip().upper() for t in q_raw.split() if t.strip()]
+
+    conn = get_conn()
+    try:
+        base = (
+            "FROM item_repair_log r LEFT JOIN item_unit iu ON iu.id_code=r.id_code"
+        )
+        where_sql = "WHERE 1=1"
+        args = []
+        for tok in tokens:
+            like = f"%{tok}%"
+            where_sql += " AND (" + " OR ".join([
+                "UPPER(r.id_code) LIKE ?",
+                "UPPER(iu.name) LIKE ?",
+                "UPPER(iu.category) LIKE ?",
+                "UPPER(iu.model) LIKE ?",
+            ]) + ")"
+            args += [like, like, like, like]
+
+        rows = conn.execute(
+            f"""
+            SELECT r.id, r.id_code, iu.name, iu.category, iu.model,
+                   r.defect_before, r.last_damage_note, r.repair_note, r.repaired_at
+            {base} {where_sql}
+            ORDER BY r.repaired_at DESC, r.id DESC
+            LIMIT ?
+            """,
+            args + [limit],
+        ).fetchall()
+        return jsonify({"data": [dict(r) for r in rows]})
+    finally:
+        conn.close()
+
 @bp.get("/summary_by_category_model")
 @auth_required
 def summary_by_category_model():
