@@ -40,4 +40,12 @@
     size: A4 portrait;
     margin: 8mm;
   }
+
+  /* Inventory Summary: padat dan hemat kertas */
+  .inv-summary { font-size: 11px; }
+  .inv-summary .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .inv-summary .card { break-inside: avoid; page-break-inside: avoid; padding: 8px; border-radius: 8px; }
+  .inv-summary table { width: 100%; border-collapse: collapse; }
+  .inv-summary th, .inv-summary td { padding: 4px 6px; }
+  .inv-summary thead tr { background: #f6f6f6; }
 }
