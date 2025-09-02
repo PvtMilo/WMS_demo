@@ -203,6 +203,11 @@ def maintenance_list():
     Mengikutkan catatan kerusakan terakhir (damage_note) jika ada.
     """
     q_raw = (request.args.get("q") or "").strip()
+    page = int(request.args.get("page") or 1)
+    per_page = int(request.args.get("per_page") or 50)
+    if page < 1: page = 1
+    if per_page < 1: per_page = 1
+    if per_page > 200: per_page = 200
     tokens = [t.strip().upper() for t in q_raw.split() if t.strip()]
 
     conn = get_conn()
@@ -221,7 +226,7 @@ def maintenance_list():
             ]) + ")"
             args += [like, like, like, like, like, like]
 
-        rows = conn.execute(f"""
+        base = f"""
             SELECT
               iu.id_code, iu.name, iu.category, iu.model, iu.rack,
               iu.status, iu.defect_level,
@@ -239,9 +244,30 @@ def maintenance_list():
               ) AS last_returned_at
             FROM item_unit iu
             {where_sql}
-            ORDER BY iu.category ASC, iu.name ASC, iu.model ASC
-        """, args).fetchall()
-        return jsonify({"data": [dict(r) for r in rows]})
+        """
+        total = conn.execute(f"SELECT COUNT(*) c FROM ({base}) t", args).fetchone()["c"]
+        offset = (page - 1) * per_page
+        rows = conn.execute(
+            f"{base} ORDER BY iu.category ASC, iu.name ASC, iu.model ASC LIMIT ? OFFSET ?",
+            args + [per_page, offset]
+        ).fetchall()
+        # counts per defect level (global for current filter)
+        cnt_rows = conn.execute(
+            f"SELECT iu.defect_level d, COUNT(*) c FROM item_unit iu {where_sql} GROUP BY iu.defect_level",
+            args,
+        ).fetchall()
+        counts = {"ringan": 0, "berat": 0}
+        for r in cnt_rows:
+            d = (r["d"] or "").strip().lower()
+            if d in counts:
+                counts[d] = int(r["c"] or 0)
+        return jsonify({
+            "data": [dict(r) for r in rows],
+            "total": int(total),
+            "page": page,
+            "per_page": per_page,
+            "counts": counts,
+        })
     finally:
         conn.close()
 
@@ -250,11 +276,12 @@ def maintenance_list():
 def repair_item():
     """
     Tandai item Rusak menjadi Good. Wajib kirim repair_note.
-    Body: { id_code: string, note: string }
+    Body: { id_code: string, note: string, target?: 'good'|'rusak_ringan'|'broken' }
     """
     b = request.get_json(silent=True) or {}
     id_code = (b.get("id_code") or "").strip()
     note = (b.get("note") or "").strip()
+    target = (b.get("target") or "good").strip().lower()
     if not id_code:
         return jsonify({"error": True, "message": "id_code wajib"}), 400
     if not note:
@@ -265,8 +292,8 @@ def repair_item():
         row = conn.execute("SELECT status, defect_level FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
         if not row:
             return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
-        if row["status"] != "Rusak":
-            return jsonify({"error": True, "message": "Item tidak dalam status Rusak"}), 400
+        if row["status"] not in ("Rusak", "Afkir"):
+            return jsonify({"error": True, "message": "Item tidak dalam status Rusak/Afkir"}), 400
 
         last = conn.execute(
             """
@@ -279,20 +306,34 @@ def repair_item():
         ).fetchone()
         last_note = (last["damage_note"] if last else None) or None
 
+        # Tentukan hasil
+        if target == "good":
+            result_status, result_defect = "Good", "none"
+        elif target == "rusak_ringan":
+            result_status, result_defect = "Rusak", "ringan"
+        elif target == "broken":
+            # gunakan status Afkir untuk broken/non-repairable
+            result_status, result_defect = "Afkir", row["defect_level"] or "berat"
+        else:
+            return jsonify({"error": True, "message": "target tidak valid"}), 400
+
         # Simpan history
         conn.execute(
             """
-            INSERT INTO item_repair_log (id_code, defect_before, status_before, last_damage_note, repair_note, repaired_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO item_repair_log (id_code, defect_before, status_before, last_damage_note, repair_note, result_status, result_defect, repaired_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (id_code, row["defect_level"] or None, row["status"] or None, last_note, note, now_iso()),
+            (id_code, row["defect_level"] or None, row["status"] or None, last_note, note, result_status, result_defect, now_iso()),
         )
 
-        # Update item ke Good
-        conn.execute(
-            "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
-            (id_code,),
-        )
+        # Update item
+        if result_status == "Good":
+            conn.execute("UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?", (id_code,))
+        elif result_status == "Rusak":
+            conn.execute("UPDATE item_unit SET status='Rusak', defect_level='ringan' WHERE id_code=?", (id_code,))
+        else:
+            # Afkir (broken)
+            conn.execute("UPDATE item_unit SET status='Afkir' WHERE id_code=?", (id_code,))
         conn.commit()
         return jsonify({"ok": True})
     finally:
@@ -334,7 +375,8 @@ def repair_history():
         rows = conn.execute(
             f"""
             SELECT r.id, r.id_code, iu.name, iu.category, iu.model,
-                   r.defect_before, r.last_damage_note, r.repair_note, r.repaired_at
+                   r.status_before, r.defect_before, r.last_damage_note, r.repair_note, r.repaired_at,
+                   r.result_status, r.result_defect
             {base} {where_sql}
             ORDER BY r.repaired_at DESC, r.id DESC
             LIMIT ?

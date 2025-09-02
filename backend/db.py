@@ -18,6 +18,12 @@ def new_container_id():
     short = uuid.uuid4().hex[:4].upper()
     return f"CTR-{today}-{short}"
 
+def new_emoney_id():
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    import uuid
+    short = uuid.uuid4().hex[:4].upper()
+    return f"EM-{today}-{short}"
+
 def _column_exists(cur, table, name):
     cols = cur.execute(f"PRAGMA table_info({table})").fetchall()
     return any(c[1] == name for c in cols)
@@ -137,11 +143,44 @@ def init_db():
         status_before TEXT,            -- Good | Rusak | Keluar | ...
         last_damage_note TEXT,         -- catatan kerusakan terakhir (dari container_item)
         repair_note TEXT NOT NULL,     -- catatan penanganan (wajib dari PIC)
+        result_status TEXT,            -- Good | Rusak | Afkir (Broken)
+        result_defect TEXT,            -- none | ringan | berat
         repaired_at TEXT NOT NULL,     -- timestamp perbaikan
         FOREIGN KEY(id_code) REFERENCES item_unit(id_code)
     );
     """)
     cur.execute("CREATE INDEX IF NOT EXISTS ix_repair_code ON item_repair_log(id_code, repaired_at);")
+
+    # add columns for existing DBs
+    for name, ddl in (("result_status", "TEXT"), ("result_defect", "TEXT")):
+        if not _column_exists(cur, "item_repair_log", name):
+            cur.execute(f"ALTER TABLE item_repair_log ADD COLUMN {name} {ddl};")
+
+    # ==== E-Money tracking ====
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS emoney (
+        id TEXT PRIMARY KEY,                -- EM-YYYYMMDD-XXXX
+        label TEXT NOT NULL UNIQUE,         -- e.g., Emoney 001 CI
+        status TEXT NOT NULL DEFAULT 'Open',-- Open | Closed
+        created_at TEXT NOT NULL
+    );
+    """)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS emoney_tx (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        emoney_id TEXT NOT NULL,
+        type TEXT NOT NULL,                 -- topup | expense
+        amount_cents INTEGER NOT NULL,      -- positive integer (in cents)
+        note TEXT,
+        ref_container_id TEXT,              -- optional link to containers.id
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(emoney_id) REFERENCES emoney(id),
+        FOREIGN KEY(ref_container_id) REFERENCES containers(id)
+    );
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_emoney_label ON emoney(label);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_emoney_tx_eid ON emoney_tx(emoney_id, created_at);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_emoney_tx_container ON emoney_tx(ref_container_id);")
 
     conn.commit()
     conn.close()

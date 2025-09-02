@@ -166,13 +166,28 @@ export const api = {
     const qs = new URLSearchParams(params).toString()
     return request('GET', '/items/maintenance_list' + (qs ? `?${qs}` : ''))
   },
-  // Maintenance: repair item menjadi Good (wajib note)
-  repairItem: (id_code, note) => request('POST', '/items/repair', { id_code, note }),
+  // Maintenance: repair/update item status
+  repairItem: (id_code, note, target='good') => request('POST', '/items/repair', { id_code, note, target }),
   // Maintenance: history
   repairHistory: (params = {}) => {
     const qs = new URLSearchParams(params).toString()
     return request('GET', '/items/repair_history' + (qs ? `?${qs}` : ''))
   },
+
+  // ---------- E-MONEY ----------
+  // Create emoney account
+  createEmoney: (payload) => request('POST', '/emoney', payload),
+  // List emoney
+  listEmoney: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/emoney' + (qs ? `?${qs}` : ''))
+  },
+  // Get emoney detail
+  getEmoney: (id) => request('GET', `/emoney/${encodeURIComponent(id)}`),
+  // Add transaction (topup/expense)
+  addEmoneyTx: (id, payload) => request('POST', `/emoney/${encodeURIComponent(id)}/tx`, payload),
+  // Set emoney status (Open/Closed) with validations
+  setEmoneyStatus: (id, status) => request('POST', `/emoney/${encodeURIComponent(id)}/set_status`, { status }),
 }
 
 export default api
