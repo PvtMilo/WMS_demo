@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
@@ -7,9 +7,11 @@ import { formatDateTime } from '../utils/date.js'
 
 export default function ContainerCheckout(){
   const { cid } = useParams()
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [makingDN, setMakingDN] = useState(false)
 
   async function refresh(){
     setLoading(true); setError('')
@@ -44,6 +46,27 @@ export default function ContainerCheckout(){
         <div><b>Crew:</b> {c.crew || '-'}</div>
         <div><b>Lokasi:</b> {c.location || '-'}</div>
         <div><b>Jadwal:</b> {formatDateTime(c.start_date, {monthText:true})} → {formatDateTime(c.end_date, {monthText:true})}</div>
+      </div>
+      <div className="noprint" style={{display:'flex', gap:8, marginBottom:12}}>
+        <button
+          onClick={async () => {
+            setMakingDN(true)
+            try {
+              await api.submitDN(cid)
+              navigate(`/containers/${cid}/surat-jalan`)
+            } catch (e) {
+              alert(e.message)
+            } finally { setMakingDN(false) }
+          }}
+          style={{padding:'8px 12px'}}
+          disabled={makingDN}
+        >{makingDN ? 'Menyiapkan…' : 'Cetak Surat Jalan'}</button>
+        {data.latest_dn && (
+          <button
+            onClick={() => navigate(`/containers/${cid}/surat-jalan`)}
+            style={{padding:'8px 12px'}}
+          >Lihat/Cetak DN Terakhir (V{data.latest_dn.version})</button>
+        )}
       </div>
       <div className="noprint">
         <CheckoutAdder cid={cid} onAdded={refresh}/>
