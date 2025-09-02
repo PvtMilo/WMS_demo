@@ -188,6 +188,8 @@ export const api = {
   addEmoneyTx: (id, payload) => request('POST', `/emoney/${encodeURIComponent(id)}/tx`, payload),
   // Set emoney status (Open/Closed) with validations
   setEmoneyStatus: (id, status) => request('POST', `/emoney/${encodeURIComponent(id)}/set_status`, { status }),
+  // Emoney tx by container
+  emoneyTxByContainer: (cid) => request('GET', `/emoney/tx_by_container/${encodeURIComponent(cid)}`),
 }
 
 export default api

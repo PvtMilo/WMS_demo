@@ -51,6 +51,7 @@ export default function ContainersPage(){
                       <th style={th}>Mulai</th>
                       <th style={th}>Selesai</th>
                       <th style={th}>Status</th>
+                      <th style={th}>E-Money</th>
                       <th style={th}>Aksi</th>
                     </tr>
                   </thead>
@@ -63,7 +64,8 @@ export default function ContainersPage(){
                         <td style={td}>{c.location || '-'}</td>
                         <td style={td}>{formatDateTime(c.start_date, {monthText:true})}</td>
                         <td style={td}>{formatDateTime(c.end_date, {monthText:true})}</td>
-                        <td style={td}>{c.status}</td>
+                        <td style={td}>{c.status}{c.status==='Closed' && (c.emoney_expenses||0)>0 ? ' · Fully Closed' : ''}</td>
+                        <td style={td}>{(c.emoney_expenses||0)>0 ? 'Recorded' : 'Pending'}</td>
                         <td style={td}>
                           {c.status === 'Open' && (
                             <a href={`/containers/${c.id}/checkout`}>Checkout</a>
@@ -72,7 +74,13 @@ export default function ContainersPage(){
                             <a href={`/containers/${c.id}/checkin`}>Check-In</a>
                           )}
                           {c.status === 'Closed' && (
-                            <a href={`/containers/${c.id}/checkin`}>Lihat</a>
+                            <>
+                              <a href={`/containers/${c.id}/checkin`}>Lihat</a>
+                              {' | '}
+                              <a href={`/emoney/expense/${c.id}`}>Input E-Money</a>
+                              {' | '}
+                              <a href={`/emoney/history/${c.id}`}>History E-Money</a>
+                            </>
                           )}
                         </td>
                       </tr>

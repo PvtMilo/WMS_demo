@@ -15,6 +15,8 @@ import SuratJalanHistory from './pages/SuratJalanHistory.jsx'
 import MaintenancePage from './pages/MaintenancePage.jsx'
 import EmoneyPage from './pages/EmoneyPage.jsx'
 import EmoneyDetail from './pages/EmoneyDetail.jsx'
+import EmoneyExpenseForm from './pages/EmoneyExpenseForm.jsx'
+import EmoneyContainerHistory from './pages/EmoneyContainerHistory.jsx'
 
 export default function App() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
       <Route path="/maintenance" element={<MaintenancePage />} />
       <Route path="/emoney" element={<EmoneyPage />} />
       <Route path="/emoney/:id" element={<EmoneyDetail />} />
+      <Route path="/emoney/expense/:cid" element={<EmoneyExpenseForm />} />
+      <Route path="/emoney/history/:cid" element={<EmoneyContainerHistory />} />
       <Route path="*" element={<div style={{padding:24}}>Not Found</div>} />
     </Routes>
   )

@@ -211,3 +211,32 @@ def set_status(eid):
     finally:
         conn.close()
 
+@bp.get("/tx_by_container/<cid>")
+@auth_required
+def tx_by_container(cid):
+    cid = (cid or "").strip()
+    if not cid:
+        return jsonify({"error": True, "message": "cid wajib"}), 400
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT t.id, t.type, t.amount_cents, t.note, t.created_at, t.emoney_id, e.label AS emoney_label
+            FROM emoney_tx t
+            LEFT JOIN emoney e ON e.id = t.emoney_id
+            WHERE t.ref_container_id=?
+            ORDER BY t.created_at DESC, t.id DESC
+            """,
+            (cid,),
+        ).fetchall()
+        sums = conn.execute(
+            "SELECT SUM(CASE WHEN type='topup' THEN amount_cents ELSE 0 END) topup, SUM(CASE WHEN type='expense' THEN amount_cents ELSE 0 END) expense FROM emoney_tx WHERE ref_container_id=?",
+            (cid,),
+        ).fetchone()
+        return jsonify({
+            "data": [dict(r) for r in rows],
+            "sum_topup": int(sums["topup"] or 0),
+            "sum_expense": int(sums["expense"] or 0),
+        })
+    finally:
+        conn.close()
