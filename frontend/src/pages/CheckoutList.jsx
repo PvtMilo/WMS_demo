@@ -64,4 +64,3 @@ export default function CheckoutList(){
 }
 const th={textAlign:'left',padding:10,borderBottom:'1px solid #eee'}
 const td={padding:10,borderBottom:'1px solid #f2f2f2'}
-

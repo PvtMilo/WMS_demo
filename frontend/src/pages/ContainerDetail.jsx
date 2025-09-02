@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
@@ -76,7 +76,7 @@ export default function ContainerDetail(){
     }catch(e){ alert(e.message) }
   }
 
-  if (loading) return <div style={{padding:24}}>Loading…</div>
+  if (loading) return <div style={{padding:24}}>Loadingâ€¦</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
@@ -100,9 +100,9 @@ export default function ContainerDetail(){
       <div style={{border:'1px solid #eee', borderRadius:12, padding:16, marginBottom:16}}>
         <div style={{fontSize:18, fontWeight:700, marginBottom:8}}>Delivery Note</div>
         <div><b>Event:</b> {c.event_name}</div>
-        <div><b>PIC:</b> {c.pic} {c.crew ? `· Crew: ${c.crew}` : ''}</div>
+        <div><b>PIC:</b> {c.pic} {c.crew ? `Â· Crew: ${c.crew}` : ''}</div>
         <div><b>Lokasi:</b> {c.location || '-'}</div>
-        <div><b>Jadwal:</b> {formatDateTime(c.start_date, {monthText:true})} → {formatDateTime(c.end_date, {monthText:true})}</div>
+        <div><b>Jadwal:</b> {formatDateTime(c.start_date)} - {formatDateTime(c.end_date)}</div>
         <div><b>Status:</b> {c.status}</div>
 
         {/* PERHATIAN box jika ada rusak */}
@@ -115,7 +115,7 @@ export default function ContainerDetail(){
               <span style={{background:'#ffebee', padding:'2px 6px', borderRadius:6}}>Merah = Rusak berat</span>
             </div>
             <div style={{marginTop:6, fontSize:13}}>
-              Ringan: <b>{t.rusak_ringan}</b> · Berat: <b>{t.rusak_berat}</b>
+              Ringan: <b>{t.rusak_ringan}</b> Â· Berat: <b>{t.rusak_berat}</b>
             </div>
           </div>
         )}

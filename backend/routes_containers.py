@@ -363,13 +363,7 @@ def checkin_item(cid):
                 (level, id_code),
             )
 
-        left = conn.execute(
-            """SELECT COUNT(*) c FROM container_item
-                WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL""",
-            (cid,),
-        ).fetchone()["c"]
-        if left == 0:
-            conn.execute("UPDATE containers SET status='Closed' WHERE id=?", (cid,))
+        # Jangan auto-close ketika semua sudah returned; penutupan dilakukan manual via tombol di UI
 
         conn.commit()
         return jsonify({"ok": True})

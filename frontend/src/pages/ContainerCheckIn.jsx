@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
@@ -61,7 +61,7 @@ export default function ContainerCheckIn(){
     }catch(e){ alert(e.message) }
   }
 
-  if (loading) return <div style={{padding:24}}>Loading…</div>
+  if (loading) return <div style={{padding:24}}>Loadingâ€¦</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
@@ -76,7 +76,7 @@ export default function ContainerCheckIn(){
         <div><b>PIC:</b> {c.pic}</div>
         <div><b>Crew:</b> {c.crew || '-'}</div>
         <div><b>Lokasi:</b> {c.location || '-'}</div>
-        <div><b>Jadwal:</b> {formatDateTime(c.start_date, {monthText:true})} → {formatDateTime(c.end_date, {monthText:true})}</div>
+        <div><b>Jadwal:</b> {formatDateTime(c.start_date)} - {formatDateTime(c.end_date)}</div>
       </div>
 
       {/* Counters (live) */}
@@ -95,7 +95,7 @@ export default function ContainerCheckIn(){
             }}
             style={{marginLeft:12, padding:'8px 12px'}}
             disabled={closing}
-          >{closing ? 'Menutup…' : 'Tutup Kontainer'}</button>
+          >{closing ? 'Menutupâ€¦' : 'Tutup Kontainer'}</button>
         )}
       </div>
 
