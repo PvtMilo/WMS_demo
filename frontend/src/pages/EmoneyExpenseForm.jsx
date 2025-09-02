@@ -44,7 +44,7 @@ export default function EmoneyExpenseForm(){
           <select value={eid} onChange={e=>setEid(e.target.value)} style={ipt}>
             <option value="">-- pilih --</option>
             {list.map(e => (
-              <option key={e.id} value={e.id}>{e.label} ({e.status})</option>
+              <option key={e.id} value={e.id}>{e.label}</option>
             ))}
           </select>
         </label>

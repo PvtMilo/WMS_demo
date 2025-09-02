@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api.js'
+import '../styles/print.css'
 
 export default function EmoneyContainerHistory(){
   const { cid } = useParams()
@@ -29,7 +30,8 @@ export default function EmoneyContainerHistory(){
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
         <h2 style={{margin:0}}>History E-Money untuk Container {cid}</h2>
-        <div>
+        <div className="noprint">
+          <button onClick={()=>window.print()} style={{...btn, marginRight:8}}>Cetak</button>
           <button onClick={()=>nav(`/emoney/expense/${cid}`)} style={{...btn, marginRight:8}}>Input Pengeluaran</button>
           <button onClick={()=>nav('/emoney')} style={btn}>Ke E-Money</button>
         </div>

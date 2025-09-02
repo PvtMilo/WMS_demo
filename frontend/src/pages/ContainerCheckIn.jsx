@@ -132,6 +132,12 @@ export default function ContainerCheckIn(){
       <ContainerItemsTable batches={data.batches} onVoid={c.status !== 'Closed' ? onVoid : undefined}/>
       <div className="noprint" style={{marginTop:12}}>
         <a href={`/containers/${cid}/dn-history`}>Lihat Riwayat Surat Jalan (Audit)</a>
+        {c.status === 'Closed' && (
+          <>
+            <span>{' '}</span>
+            <a href={`/emoney/expense/${cid}`} style={{marginLeft:12}}>Input E-Money</a>
+          </>
+        )}
       </div>
     </div>
   )

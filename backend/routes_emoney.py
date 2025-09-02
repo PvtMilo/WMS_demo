@@ -163,11 +163,9 @@ def add_tx(eid):
         return jsonify({"error": True, "message": "amount harus angka > 0"}), 400
     conn = get_conn()
     try:
-        e = conn.execute("SELECT id, status FROM emoney WHERE id=?", (eid,)).fetchone()
+        e = conn.execute("SELECT id FROM emoney WHERE id=?", (eid,)).fetchone()
         if not e:
             return jsonify({"error": True, "message": "Emoney tidak ditemukan"}), 404
-        if (e["status"] or "Open") == "Closed":
-            return jsonify({"error": True, "message": "E-Money sudah Closed"}), 400
         if ref_cid:
             c = conn.execute("SELECT 1 FROM containers WHERE id=?", (ref_cid,)).fetchone()
             if not c:

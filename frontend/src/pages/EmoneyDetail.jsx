@@ -12,7 +12,6 @@ export default function EmoneyDetail(){
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [cid, setCid] = useState('')
-  const [closing, setClosing] = useState(false)
 
   async function refresh(){
     setLoading(true); setError('')
@@ -35,15 +34,7 @@ export default function EmoneyDetail(){
     }catch(e){ alert(e.message) }
   }
 
-  async function closeEmoney(){
-    if (!confirm('Tutup E-Money ini? Syarat: ada expense dan semua container terkait Closed.')) return
-    setClosing(true)
-    try{
-      await api.setEmoneyStatus(id, 'Closed')
-      await refresh()
-    }catch(e){ alert(e.message) }
-    finally{ setClosing(false) }
-  }
+  // E-Money tidak punya status close/open lagi
 
   const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8 }
   const btn = { padding:'8px 12px', border:'1px solid #111', borderRadius:8, background:'#fff', cursor:'pointer' }
@@ -62,13 +53,9 @@ export default function EmoneyDetail(){
         <div>
           <div style={{fontSize:12, color:'#666'}}>{e.id}</div>
           <h2 style={{margin:'4px 0'}}>{e.label}</h2>
-          <div>Status: <b>{e.status}</b></div>
         </div>
         <div>
           <button onClick={()=>nav('/emoney')} className="noprint" style={{...btn, marginRight:8}}>Kembali</button>
-          {e.status !== 'Closed' && (
-            <button onClick={closeEmoney} className="noprint" disabled={closing} style={btn}>{closing ? 'Menutup…' : 'Tutup E-Money'}</button>
-          )}
         </div>
       </div>
 
