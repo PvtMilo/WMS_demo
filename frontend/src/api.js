@@ -192,6 +192,39 @@ export const api = {
   emoneyTxByContainer: (cid) => request('GET', `/emoney/tx_by_container/${encodeURIComponent(cid)}`),
   // Delete emoney (only if no transactions)
   deleteEmoney: (id) => request('DELETE', `/emoney/${encodeURIComponent(id)}`),
+
+  // ---------- ADMIN CLEANUP / SNAPSHOT / ARCHIVE ----------
+  // Preview cleanup (Fully Closed + E-money scopes) for a time window
+  // params: { start, end, include_containers?, include_emoney?, emoney_scope?, container_ids? }
+  cleanupPreview: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/admin/cleanup/preview' + (qs ? `?${qs}` : ''))
+  },
+  // Run cleanup batch (manual)
+  // payload: { start, end, include_containers, include_emoney, emoney_scope: string[], container_ids?, note? }
+  cleanupRun: (payload) => request('POST', '/admin/cleanup/run', payload),
+  // List cleanup batches
+  cleanupBatches: () => request('GET', '/admin/cleanup/batches'),
+  // Cleanup batch detail
+  cleanupBatchDetail: (id) => request('GET', `/admin/cleanup/batches/${encodeURIComponent(id)}`),
+
+  // Snapshots (export/import)
+  snapshotCreate: (payload = {}) => request('POST', '/admin/cleanup/snapshots/create', payload),
+  snapshotList: () => request('GET', '/admin/cleanup/snapshots'),
+  snapshotRestore: (id) => request('POST', `/admin/cleanup/snapshots/${encodeURIComponent(id)}/restore`),
+
+  // Archive browser (read-only)
+  archiveBatches: () => request('GET', '/admin/archive/batches'),
+  archiveBatchDetail: (id) => request('GET', `/admin/archive/batches/${encodeURIComponent(id)}`),
+  archiveContainers: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/admin/archive/containers' + (qs ? `?${qs}` : ''))
+  },
+  archiveContainerDetail: (id) => request('GET', `/admin/archive/containers/${encodeURIComponent(id)}`),
+  archiveEmoneyTx: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/admin/archive/emoney/tx' + (qs ? `?${qs}` : ''))
+  },
 }
 
 export default api

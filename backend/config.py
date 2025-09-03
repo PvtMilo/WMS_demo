@@ -8,6 +8,6 @@ FRONTEND_ORIGIN = "http://localhost:5173"
 # Login plaintext (HOME SERVER ONLY)
 ADMIN_EMAIL = "admin@wms.local"
 ADMIN_PASSWORD = "Admin123!"
-ADMIN_ID = "pic-001"
+ADMIN_ID = "Admin"
 ADMIN_NAME = "Admin"
-ADMIN_ROLE = "PIC"
+ADMIN_ROLE = "Admin"

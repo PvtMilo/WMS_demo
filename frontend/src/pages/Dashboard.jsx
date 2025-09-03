@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { api, getToken } from '../api.js'
 
+function isAdmin(user){
+  const r = user?.role
+  if (!r) return false
+  const s = String(r)
+  return s.toLowerCase() === 'admin' || s.toUpperCase() === 'PIC'
+}
+
 export default function Dashboard() {
   const n = useNavigate()
   const [user, setUser] = useState(null)
@@ -13,7 +20,7 @@ export default function Dashboard() {
   }, [])
 
   async function doLogout(){ await api.logout(); n('/login') }
-  if (loading) return <div style={{padding:24}}>Loading…</div>
+  if (loading) return <div style={{padding:24}}>Loading...</div>
 
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
@@ -27,8 +34,15 @@ export default function Dashboard() {
         <li><Link to="/checkout">Check-Out</Link></li>
         <li><Link to="/checkin">Check-In</Link></li>
         <li><Link to="/containers">Kontainer</Link></li>
-        <li><Link to="/maintenance">Maintenance (Rusak → Good)</Link></li>
+        <li><Link to="/maintenance">Maintenance (Rusak + Good)</Link></li>
         <li><Link to="/emoney">E-Money</Link></li>
+        {isAdmin(user) && (
+          <>
+            <li style={{marginTop:8}}><b>Admin</b></li>
+            <li><Link to="/admin/data-lifecycle">Admin: Data Lifecycle</Link></li>
+            <li><Link to="/admin/archive">Admin: Archived Browser</Link></li>
+          </>
+        )}
       </ul>
     </div>
   )

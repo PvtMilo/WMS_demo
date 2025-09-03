@@ -41,6 +41,18 @@ export default function EmoneyDetail(){
   const th = { textAlign:'left', padding:10, borderBottom:'1px solid #eee' }
   const td = { padding:10, borderBottom:'1px solid #f2f2f2' }
   const fmtIDR = (c)=> 'Rp. ' + new Intl.NumberFormat('id-ID').format(Math.round((c||0)/100))
+  const fmtTS = (iso) => {
+    if (!iso) return '-'
+    try {
+      const dt = new Date(iso)
+      const s = dt.toLocaleString('id-ID', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false,
+        timeZone: 'Asia/Jakarta'
+      })
+      return s.replace(/(\d{2})\.(\d{2})/, '$1:$2') + ' Wib'
+    } catch { return iso }
+  }
 
   if (loading) return <div style={{padding:24}}>Memuat…</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
@@ -102,7 +114,7 @@ export default function EmoneyDetail(){
           <tbody>
             {data.tx.length ? data.tx.map((t) => (
               <tr key={t.id}>
-                <td style={td}>{t.created_at}</td>
+                <td style={td}>{fmtTS(t.created_at)}</td>
                 <td style={td}>{t.type}</td>
                 <td style={td}>{fmtIDR(t.amount_cents)}</td>
                 <td style={td}>{t.ref_container_id ? (<a href={`/emoney/history/${t.ref_container_id}`}>{t.ref_container_id}</a>) : '-'}</td>

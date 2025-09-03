@@ -10,7 +10,12 @@ from db import init_db
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": [config.FRONTEND_ORIGIN]}}, supports_credentials=True)
+    CORS(
+        app,
+        resources={r"/*": {"origins": [config.FRONTEND_ORIGIN]}},
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization"],
+    )
 
     @app.get("/")
     def health():
@@ -21,6 +26,12 @@ def create_app():
     app.register_blueprint(items_bp)
     app.register_blueprint(containers_bp)            # NEW
     app.register_blueprint(emoney_bp)               # NEW
+    try:
+        from routes_admin_cleanup import bp as admin_cleanup_bp
+        app.register_blueprint(admin_cleanup_bp)
+    except Exception as e:
+        # In dev, allow app to start even if admin routes missing
+        print("[WARN] admin cleanup routes not loaded:", e)
     return app
 
 if __name__ == "__main__":

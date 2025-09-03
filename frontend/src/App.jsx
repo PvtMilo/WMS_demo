@@ -17,6 +17,8 @@ import EmoneyPage from './pages/EmoneyPage.jsx'
 import EmoneyDetail from './pages/EmoneyDetail.jsx'
 import EmoneyExpenseForm from './pages/EmoneyExpenseForm.jsx'
 import EmoneyContainerHistory from './pages/EmoneyContainerHistory.jsx'
+import AdminDataLifecycle from './pages/AdminDataLifecycle.jsx'
+import AdminArchive from './pages/AdminArchive.jsx'
 
 export default function App() {
   return (
@@ -40,6 +42,8 @@ export default function App() {
       <Route path="/emoney/:id" element={<EmoneyDetail />} />
       <Route path="/emoney/expense/:cid" element={<EmoneyExpenseForm />} />
       <Route path="/emoney/history/:cid" element={<EmoneyContainerHistory />} />
+      <Route path="/admin/data-lifecycle" element={<AdminDataLifecycle />} />
+      <Route path="/admin/archive" element={<AdminArchive />} />
       <Route path="*" element={<div style={{padding:24}}>Not Found</div>} />
     </Routes>
   )
