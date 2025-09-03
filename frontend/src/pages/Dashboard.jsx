@@ -45,6 +45,13 @@ export default function Dashboard() {
     })()
   }, [])
 
+  // Ensure body margin is zero while on Dashboard, restore on unmount
+  useEffect(() => {
+    const prev = document.body.style.margin
+    document.body.style.margin = '0'
+    return () => { document.body.style.margin = prev }
+  }, [])
+
   async function doLogout(){ await api.logout(); n('/login') }
   if (loading) return <div style={{padding:24}}>Loading...</div>
 
