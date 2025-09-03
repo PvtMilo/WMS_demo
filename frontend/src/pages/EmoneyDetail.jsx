@@ -73,12 +73,8 @@ export default function EmoneyDetail(){
 
       <div style={{marginTop:12, display:'flex', gap:16, flexWrap:'wrap'}}>
         <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
-          <div>Total Topup: <b>{fmtIDR(data.tot_topup)}</b></div>
           <div>Total Expense: <b>{fmtIDR(data.tot_expense)}</b></div>
           <div>Balance: <b>{fmtIDR(data.balance)}</b></div>
-        </div>
-        <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
-          <div>Containers terkait: {data.linked_containers.length ? data.linked_containers.join(', ') : '-'}</div>
         </div>
       </div>
 
@@ -112,17 +108,21 @@ export default function EmoneyDetail(){
             </tr>
           </thead>
           <tbody>
-            {data.tx.length ? data.tx.map((t) => (
-              <tr key={t.id}>
-                <td style={td}>{fmtTS(t.created_at)}</td>
-                <td style={td}>{t.type}</td>
-                <td style={td}>{fmtIDR(t.amount_cents)}</td>
-                <td style={td}>{t.ref_container_id ? (<a href={`/emoney/history/${t.ref_container_id}`}>{t.ref_container_id}</a>) : '-'}</td>
-                <td style={td}>{t.event_name || '-'}</td>
-                <td style={td}>{t.pic || '-'}</td>
-                <td style={td}>{t.note || '-'}</td>
-              </tr>
-            )) : (
+            {data.tx.length ? data.tx.map((t) => {
+              const isCF = String(t.note || '').toLowerCase().startsWith('archive_carry_forward')
+              const rowStyle = isCF ? { background:'#800000', color:'#fff' } : undefined
+              return (
+                <tr key={t.id} style={rowStyle}>
+                  <td style={td}>{fmtTS(t.created_at)}</td>
+                  <td style={td}>{t.type}</td>
+                  <td style={td}>{fmtIDR(t.amount_cents)}</td>
+                  <td style={td}>{t.ref_container_id ? (<a href={`/emoney/history/${t.ref_container_id}`}>{t.ref_container_id}</a>) : '-'}</td>
+                  <td style={td}>{t.event_name || '-'}</td>
+                  <td style={td}>{t.pic || '-'}</td>
+                  <td style={td}>{t.note || '-'}</td>
+                </tr>
+              )
+            }) : (
               <tr><td style={td} colSpan={7}>Belum ada transaksi</td></tr>
             )}
           </tbody>

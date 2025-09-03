@@ -66,18 +66,22 @@ export default function EmoneyContainerHistory(){
             </tr>
           </thead>
           <tbody>
-            {data.data.length ? data.data.map((t) => (
-              <tr key={t.id}>
-                <td style={td}>{fmtTS(t.created_at)}</td>
-                <td style={td}>{t.emoney_label || t.emoney_id}</td>
-                <td style={td}>{t.type}</td>
-                <td style={td}>{fmtIDR(t.amount_cents)}</td>
-                <td style={td}><a href={`/emoney/history/${cid}`}>{cid}</a></td>
-                <td style={td}>{t.event_name || '-'}</td>
-                <td style={td}>{t.pic || '-'}</td>
-                <td style={td}>{t.note || '-'}</td>
-              </tr>
-            )) : (
+            {data.data.length ? data.data.map((t) => {
+              const isCF = String(t.note || '').toLowerCase().startsWith('archive_carry_forward')
+              const rowStyle = isCF ? { background:'#800000', color:'#fff' } : undefined
+              return (
+                <tr key={t.id} style={rowStyle}>
+                  <td style={td}>{fmtTS(t.created_at)}</td>
+                  <td style={td}>{t.emoney_label || t.emoney_id}</td>
+                  <td style={td}>{t.type}</td>
+                  <td style={td}>{fmtIDR(t.amount_cents)}</td>
+                  <td style={td}><a href={`/emoney/history/${cid}`}>{cid}</a></td>
+                  <td style={td}>{t.event_name || '-'}</td>
+                  <td style={td}>{t.pic || '-'}</td>
+                  <td style={td}>{t.note || '-'}</td>
+                </tr>
+              )
+            }) : (
               <tr><td style={td} colSpan={8}>Belum ada transaksi terkait</td></tr>
             )}
           </tbody>
