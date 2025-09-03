@@ -104,6 +104,7 @@ export default function SuratJalanPage() {
           qty: 1,
           unit: 'Pcs',
           reason,
+          condition: it.condition || 'good',
           entry_desc: 'out',
           exit_desc: it.return_condition ? 'in' : '',
         })

@@ -150,6 +150,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           <colgroup>
             <col style={{ width: "20px" }} />
             <col style={{ width: "300px" }}/>
+            <col style={{ width: "90px" }} />
             <col style={{ width: "50px" }} />
             <col style={{ width: "70px" }} />
             <col style={{ width: "100px" }} />
@@ -160,6 +161,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
             <tr>
               <th>No</th>
               <th>Description</th>
+              <th>Status</th>
               <th>Rak</th>
               <th>Item Code</th>
               <th>Alasan</th>
@@ -172,6 +174,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
               <tr key={idx}>
                 <td style={{ textAlign: "center" }}>{idx + 1}</td>
                 <td className="wrap">{safe(row.description)}</td>
+                <td className="nowrap">{(() => { const s=String(row.condition||'').toLowerCase(); if(s==='good') return 'Good'; if(s==='rusak_ringan') return 'Rusak Ringan'; if(s==='rusak_berat') return 'Rusak Berat'; return safe(row.condition)||'-' })()}</td>
                 <td className="nowrap">{safe(row.rack)}</td>
                 <td className="wrap">{safe(row.code)}</td>
                 <td className="wrap sj-reason">{safe(row.reason)}</td>

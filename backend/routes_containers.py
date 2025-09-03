@@ -93,7 +93,7 @@ def _build_detail(conn, cid):
         SELECT ci.id, ci.id_code, ci.added_at, ci.batch_label, ci.condition_at_checkout,
                ci.override_reason, ci.amend_reason, ci.voided_at,
                ci.returned_at, ci.return_condition, ci.damage_note,
-               iu.name, iu.model, iu.rack
+               iu.name, iu.model, iu.rack, iu.category
         FROM container_item ci
         LEFT JOIN item_unit iu ON iu.id_code = ci.id_code
         WHERE ci.container_id=?
@@ -112,6 +112,7 @@ def _build_detail(conn, cid):
             "name": d.get("name"),
             "model": d.get("model"),
             "rack": d.get("rack"),
+            "category": d.get("category"),
             "added_at": d["added_at"],
             "condition": d.get("condition_at_checkout") or "good",
             # simpan kedua jenis alasan agar UI bisa menampilkan sesuai konteks
