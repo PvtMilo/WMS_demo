@@ -3,11 +3,11 @@ import { api } from '../api.js'   // pastikan file api.js ada di src/
 
 export default function ItemForm({ onCreated }) {
   const [prefix, setPrefix]    = useState('CAM')
-  const [name, setName]        = useState('Canon 70D')
+  const [name, setName]        = useState('Canon')
   const [category, setCategory]= useState('Camera')
   const [model, setModel]      = useState('70D')
   const [rack, setRack]        = useState('R1-A')
-  const [qty, setQty]          = useState(3)
+  const [qty, setQty]          = useState(1)
   const [msg, setMsg]          = useState('')
   const [loading, setLoading]  = useState(false)
 
