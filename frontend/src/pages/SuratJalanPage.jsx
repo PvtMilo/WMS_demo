@@ -92,8 +92,11 @@ export default function SuratJalanPage() {
         else if (it.amend_reason) reason = `Amend: ${it.amend_reason}`
         else if (it.reason) reason = `Override: ${it.reason}`
 
+        // Build description: Kategori + nama + model (skip empty parts)
+        const parts = [it.category, it.name, it.model].filter(Boolean)
+        const desc = parts.length ? parts.join(' ') : (it.name || it.model || it.id_code)
         rows.push({
-          description: it.name || it.model || it.id_code,
+          description: desc,
           category: it.category || '',
           model: it.model || '',
           rack: it.rack || '',

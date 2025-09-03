@@ -8,6 +8,8 @@ export default function CheckoutAdder({ cid, onAdded }) {
   const [amendReason, setAmendReason] = useState('')
   const [overrideHeavy, setOverrideHeavy] = useState(false)
   const [overrideReason, setOverrideReason] = useState('')
+  const [overrideLight, setOverrideLight] = useState(false)
+  const [overrideLightReason, setOverrideLightReason] = useState('')
   const [msg, setMsg] = useState('')
   const [loading, setLoading] = useState(false)
   const scanRef = useRef(null)
@@ -29,11 +31,15 @@ export default function CheckoutAdder({ cid, onAdded }) {
     if (overrideHeavy && !overrideReason.trim()) {
       setMsg('Alasan override untuk rusak berat wajib diisi'); return
     }
+    if (overrideLight && !overrideLightReason.trim()) {
+      setMsg('Alasan override untuk rusak ringan wajib diisi'); return
+    }
     setLoading(true); setMsg('')
     try {
       const out = await api.addItemsToContainer(cid, {
         ids, amend, amend_reason: amend ? amendReason : undefined,
-        override_heavy: overrideHeavy, override_reason: overrideReason
+        override_heavy: overrideHeavy, override_reason: overrideReason,
+        override_light: overrideLight, override_light_reason: overrideLightReason
       })
       const c = out.added_counts || {}
       const s = out.skipped || []
@@ -42,6 +48,10 @@ export default function CheckoutAdder({ cid, onAdded }) {
       scanRef.current?.focus()
       setListIds('')
       setAmendReason('')
+      setOverrideHeavy(false)
+      setOverrideReason('')
+      setOverrideLight(false)
+      setOverrideLightReason('')
       onAdded?.()
     } catch (e) { setMsg(e.message) }
     finally { setLoading(false) }
@@ -63,6 +73,10 @@ export default function CheckoutAdder({ cid, onAdded }) {
         <label><input type="checkbox" checked={amend} onChange={e=>setAmend(e.target.checked)} /> <span style={{marginLeft:8}}>Amend (tambahan hari-H)</span></label>
         <label><input type="checkbox" checked={overrideHeavy} onChange={e=>setOverrideHeavy(e.target.checked)} /> <span style={{marginLeft:8}}>Setujui Rusak Berat</span></label>
       </div>
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+        <span />
+        <label><input type="checkbox" checked={overrideLight} onChange={e=>setOverrideLight(e.target.checked)} /> <span style={{marginLeft:8}}>Setujui Rusak Ringan</span></label>
+      </div>
       {amend && (
         <label>Alasan amend (wajib saat centang Amend)
           <input value={amendReason} onChange={e=>setAmendReason(e.target.value)} style={ipt} placeholder="Contoh: tambahan mendadak dari klien" />
@@ -71,6 +85,11 @@ export default function CheckoutAdder({ cid, onAdded }) {
       {overrideHeavy && (
         <label>Alasan override (wajib jika ada rusak berat)
           <input value={overrideReason} onChange={e=>setOverrideReason(e.target.value)} style={ipt} placeholder="Contoh: unit cadangan darurat" />
+        </label>
+      )}
+      {overrideLight && (
+        <label>Alasan override (wajib jika setujui rusak ringan)
+          <input value={overrideLightReason} onChange={e=>setOverrideLightReason(e.target.value)} style={ipt} placeholder="Contoh: kondisi minor masih layak" />
         </label>
       )}
       <button disabled={loading} style={{padding:'10px 14px'}}>{loading?'Menambahkan…':'Tambah ke Kontainer'}</button>

@@ -148,13 +148,10 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         <h3 style={{ margin: "6px 0" }}>List of Delivered Order</h3>
         <table className="sj-table">
           <colgroup>
-            <col style={{ width: "16px" }} />
-            <col />
-            <col style={{ width: "60px" }} />
-            <col style={{ width: "80px" }} />
+            <col style={{ width: "20px" }} />
+            <col style={{ width: "300px" }}/>
             <col style={{ width: "50px" }} />
             <col style={{ width: "70px" }} />
-            <col style={{ width: "32px" }} />
             <col style={{ width: "100px" }} />
             <col style={{ width: "56px" }} />
             <col style={{ width: "56px" }} />
@@ -163,11 +160,8 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
             <tr>
               <th>No</th>
               <th>Description</th>
-              <th>Kategori</th>
-              <th>Model</th>
               <th>Rak</th>
               <th>Item Code</th>
-              <th>Qty</th>
               <th>Alasan</th>
               <th>Entry Description <br/><small>OUT / IN</small></th>
               <th>Exit Description <br/><small>OUT / IN</small></th>
@@ -178,11 +172,8 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
               <tr key={idx}>
                 <td style={{ textAlign: "center" }}>{idx + 1}</td>
                 <td className="wrap">{safe(row.description)}</td>
-                <td className="wrap">{safe(row.category) || '-'}</td>
-                <td className="wrap">{safe(row.model)}</td>
                 <td className="nowrap">{safe(row.rack)}</td>
                 <td className="wrap">{safe(row.code)}</td>
-                <td style={{ textAlign: "right" }}>{safe(row.qty ?? 1)}</td>
                 <td className="wrap sj-reason">{safe(row.reason)}</td>
                 <td>{toInOut(row.entry_desc)}</td>
                 <td>{toInOut(row.exit_desc)}</td>
