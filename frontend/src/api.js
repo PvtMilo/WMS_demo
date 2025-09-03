@@ -111,6 +111,11 @@ export const api = {
     return request('GET', `/containers/${encodeURIComponent(cid)}`)
   },
 
+  // Containers metrics for dashboard KPIs
+  containerMetrics() {
+    return request('GET', '/containers/metrics')
+  },
+
   // Update container status: 'Open' | 'Sedang Berjalan' | 'Closed'
   setContainerStatus(cid, status) {
     return request('POST', `/containers/${encodeURIComponent(cid)}/set_status`, { status })

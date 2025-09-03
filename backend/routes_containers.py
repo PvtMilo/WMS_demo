@@ -36,6 +36,39 @@ def create_container():
     finally:
         conn.close()
 
+# ---------- Simple metrics for dashboard ----------
+@bp.get("/metrics")
+@auth_required
+def containers_metrics():
+    """Lightweight counts for dashboard KPIs.
+    - open: containers with status 'Open'
+    - running: containers with status 'Sedang Berjalan'
+    - closed_without_expense: containers 'Closed' that have no emoney expense recorded
+    """
+    conn = get_conn()
+    try:
+        open_count = conn.execute("SELECT COUNT(*) c FROM containers WHERE status='Open'").fetchone()["c"]
+        running_count = conn.execute("SELECT COUNT(*) c FROM containers WHERE status='Sedang Berjalan'").fetchone()["c"]
+        closed_wo_exp = conn.execute(
+            """
+            SELECT COUNT(*) c
+            FROM containers c
+            WHERE c.status='Closed'
+              AND 0 = (
+                SELECT COUNT(*) FROM emoney_tx t
+                WHERE t.ref_container_id = c.id AND t.type='expense'
+              )
+            """
+        ).fetchone()["c"]
+
+        return jsonify({
+            "open": int(open_count or 0),
+            "running": int(running_count or 0),
+            "closed_without_expense": int(closed_wo_exp or 0),
+        })
+    finally:
+        conn.close()
+
 # ---------- List containers ----------
 @bp.get("")
 @auth_required

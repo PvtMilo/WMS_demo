@@ -13,38 +13,139 @@ export default function Dashboard() {
   const n = useNavigate()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [kpi, setKpi] = useState({ open: 0, running: 0, closed_without_expense: 0 })
+  const [rusak, setRusak] = useState({ ringan: 0, berat: 0 })
+  const [hilang, setHilang] = useState(0)
+  const [emoney, setEmoney] = useState([])
 
   useEffect(() => {
     if (!getToken()) { n('/login'); return }
     api.me().then(d => setUser(d.user)).catch(() => n('/login')).finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    (async () => {
+      try{
+        const [m, maint, em, cat] = await Promise.all([
+          api.containerMetrics().catch(() => ({})),
+          api.maintenanceList({ per_page: 1 }).catch(() => ({})),
+          api.listEmoney({ page: 1, per_page: 100 }).catch(() => ({})),
+          api.summaryByCategory().catch(() => ({})),
+        ])
+        setKpi({
+          open: Number(m?.open || 0),
+          running: Number(m?.running || 0),
+          closed_without_expense: Number(m?.closed_without_expense || 0),
+        })
+        setRusak({ ringan: Number(maint?.counts?.ringan || 0), berat: Number(maint?.counts?.berat || 0) })
+        setEmoney(Array.isArray(em?.data) ? em.data : [])
+        const list = Array.isArray(cat?.data) ? cat.data : []
+        setHilang(list.reduce((a,r)=> a + Number(r?.hilang || 0), 0))
+      }catch{}
+    })()
+  }, [])
+
   async function doLogout(){ await api.logout(); n('/login') }
   if (loading) return <div style={{padding:24}}>Loading...</div>
 
+  const gold = '#F2C14E'
+  const black = '#000'
+
   return (
-    <div style={{padding:24, fontFamily:'sans-serif'}}>
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <h2>Dashboard</h2>
-        <button onClick={doLogout} style={{padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, background:'#fff'}}>Logout</button>
-      </div>
-      <p>Halo, <b>{user?.name}</b> ({user?.role})</p>
-      <ul style={{marginTop:16}}>
-        <li><Link to="/inventory">Ke Inventory (Pendaftaran + QR)</Link></li>
-        <li><Link to="/checkout">Check-Out</Link></li>
-        <li><Link to="/checkin">Check-In</Link></li>
-        <li><Link to="/containers">Kontainer</Link></li>
-        <li><Link to="/maintenance">Maintenance (Rusak + Good)</Link></li>
-        <li><Link to="/emoney">E-Money</Link></li>
+    <div style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif'}}>
+      {/* Left Sidebar */}
+      <div style={{width:260, background:black, color:gold, padding:16, display:'flex', flexDirection:'column', gap:12}}>
+        <div style={{fontWeight:800, letterSpacing:1, textAlign:'center', margin:'8px 0'}}>LOGO</div>
+        <SideButton to="/inventory" label="INVENTORY" />
+        <SideButton to="/containers" label="CONTAINER" />
+        <SideButton to="/checkout" label="CHECK OUT" />
+        <SideButton to="/checkin" label="CHECK IN" />
+        <SideButton to="/maintenance" label="MAINTENANCE" />
+        <SideButton to="/emoney" label="EMONEY" />
+
         {isAdmin(user) && (
-          <>
-            <li style={{marginTop:8}}><b>Admin</b></li>
-            <li><Link to="/admin/data-lifecycle">Admin: Data Lifecycle</Link></li>
-            <li><Link to="/admin/archive">Admin: Archived Browser</Link></li>
-          </>
+          <div style={{marginTop:24}}>
+            <div style={{fontWeight:700, marginBottom:8}}>ADMIN</div>
+            <div style={{display:'grid', gap:8}}>
+              <div style={{fontSize:13}}>• <Link style={{color:gold}} to="/admin/data-lifecycle">Admin: Data Lifecycle</Link></div>
+              <div style={{fontSize:13}}>• <Link style={{color:gold}} to="/admin/archive">Admin: Archived Browser</Link></div>
+            </div>
+          </div>
         )}
-      </ul>
+
+        <button onClick={doLogout} style={{marginTop:'auto', padding:'8px 12px', border:'1px solid '+gold, borderRadius:8, background:'transparent', color:gold, cursor:'pointer'}}>Logout</button>
+      </div>
+
+      {/* Main Content */}
+      <div style={{flex:1, padding:24}}>
+        <h2 style={{marginTop:0}}>Dashboard</h2>
+        <p>Halo, <b>{user?.name}</b> ({user?.role})</p>
+
+        {/* KPI Row */}
+        <div style={{display:'grid', gridTemplateColumns:'repeat(3, minmax(0, 1fr))', gap:24, margin:'16px 0 20px'}}>
+          <KpiBox title="Checkout" value={kpi.open} />
+          <KpiBox title="Check-in" value={kpi.running} />
+          <KpiBox title="Closed" value={kpi.closed_without_expense} />
+        </div>
+
+        {/* E-Money Table */}
+        <div style={{border:'1px solid '+black, borderRadius:12, overflow:'hidden', marginBottom:24}}>
+          <div style={{background:black, color:gold, padding:12, display:'grid', gridTemplateColumns:'2fr 1fr 1fr'}}>
+            <div>Nama</div>
+            <div>Saldo</div>
+            <div>Aksi</div>
+          </div>
+          <div>
+            {(emoney && emoney.length ? emoney : []).map(e => (
+              <div key={e.id} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr', alignItems:'center', gap:8, borderBottom:'1px solid #ddd', padding:'10px 12px'}}>
+                <div style={{color:gold}}>{e.label}</div>
+                <div>{fmtIDR(e.balance)}</div>
+                <div>
+                  <Link to={`/emoney/${e.id}`} style={{color:gold}}>Lihat emoney</Link>
+                </div>
+              </div>
+            ))}
+            {(!emoney || emoney.length === 0) && (
+              <div style={{padding:12}}>Belum ada akun E-Money</div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom KPI Row */}
+        <div style={{display:'grid', gridTemplateColumns:'repeat(3, minmax(0, 1fr))', gap:24}}>
+          <KpiBox title="Rusak Ringan" value={rusak.ringan} />
+          <KpiBox title="Rusak Berat" value={rusak.berat} />
+          <KpiBox title="Hilang" value={hilang} />
+        </div>
+      </div>
     </div>
+  )
+}
+
+function fmtIDR(cents){
+  const v = Math.round((cents || 0) / 100)
+  return 'Rp. ' + new Intl.NumberFormat('id-ID').format(v)
+}
+
+function KpiBox({ title, value }){
+  const gold = '#F2C14E'
+  const black = '#000'
+  return (
+    <div style={{background:black, color:gold, borderRadius:8, padding:'16px 12px', textAlign:'center'}}>
+      <div style={{fontWeight:700, fontSize:18, marginBottom:8}}>{title}</div>
+      <div style={{fontWeight:800, fontSize:24}}>{value}</div>
+    </div>
+  )
+}
+
+function SideButton({ to, label }){
+  const gold = '#F2C14E'
+  return (
+    <Link to={to} style={{textDecoration:'none'}}>
+      <div style={{background:'#fff', color:gold, borderRadius:6, padding:'10px 12px', textAlign:'center', fontWeight:700}}>
+        {label}
+      </div>
+    </Link>
   )
 }
 
