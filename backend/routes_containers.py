@@ -494,6 +494,15 @@ def set_status(cid):
             if left > 0:
                 return jsonify({"error": True, "message": "Masih ada item belum kembali"}), 400
 
+        # Require DN snapshot before moving to "Sedang Berjalan"
+        if status == "Sedang Berjalan":
+            dn_count = conn.execute(
+                "SELECT COUNT(*) c FROM dn_snapshots WHERE container_id=?",
+                (cid,),
+            ).fetchone()["c"]
+            if int(dn_count or 0) <= 0:
+                return jsonify({"error": True, "message": "Buat Surat Jalan (DN) terlebih dahulu"}), 400
+
         conn.execute("UPDATE containers SET status=? WHERE id=?", (status, cid))
         conn.commit()
         return jsonify({"ok": True, "status": status})
