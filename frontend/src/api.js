@@ -193,6 +193,11 @@ export const api = {
   setEmoneyStatus: (id, status) => request('POST', `/emoney/${encodeURIComponent(id)}/set_status`, { status }),
   // Emoney tx by container
   emoneyTxByContainer: (cid) => request('GET', `/emoney/tx_by_container/${encodeURIComponent(cid)}`),
+  // Emoney tx by date range (audit)
+  emoneyTxRange: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/emoney/tx' + (qs ? `?${qs}` : ''))
+  },
   // Delete emoney (only if no transactions)
   deleteEmoney: (id) => request('DELETE', `/emoney/${encodeURIComponent(id)}`),
 

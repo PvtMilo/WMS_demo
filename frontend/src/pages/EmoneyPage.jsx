@@ -54,7 +54,14 @@ export default function EmoneyPage(){
 
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
-      <h2>E-Money</h2>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <h2 style={{margin:0}}>E-Money</h2>
+        <div>
+          <a href="/emoney/history" className="noprint" style={{ textDecoration:'none' }}>
+            <button style={{...btn}}>History (Audit)</button>
+          </a>
+        </div>
+      </div>
       <div className="noprint" style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:16, marginBottom:12}}>
         <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
           <div style={{fontWeight:700, marginBottom:6}}>Tambah E-Money</div>

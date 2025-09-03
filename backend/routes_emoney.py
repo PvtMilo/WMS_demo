@@ -14,6 +14,37 @@ def _to_cents(amount):
         return None
     return int(round(v * 100))
 
+def _parse_date_range(req):
+    """Parse start/end (YYYY-MM-DD) from query and return (start_iso, end_iso).
+    If missing, default to last 31 days. Ensure start <= end. ISO is inclusive day span.
+    """
+    import datetime
+    today = datetime.datetime.now().date()
+    start_s = (req.args.get("start") or "").strip()
+    end_s = (req.args.get("end") or "").strip()
+
+    def to_date(s):
+        try:
+            if not s:
+                return None
+            return datetime.datetime.strptime(s, "%Y-%m-%d").date()
+        except Exception:
+            return None
+    ds = to_date(start_s)
+    de = to_date(end_s)
+    if not ds and not de:
+        de = today
+        ds = de - datetime.timedelta(days=30)
+    elif ds and not de:
+        de = ds
+    elif de and not ds:
+        ds = de
+    if ds > de:
+        ds, de = de, ds
+    start_iso = datetime.datetime.combine(ds, datetime.time.min).isoformat(timespec="seconds")
+    end_iso = datetime.datetime.combine(de, datetime.time.max).replace(microsecond=0).isoformat(timespec="seconds")
+    return start_iso, end_iso
+
 @bp.post("")
 @auth_required
 def create_emoney():
@@ -255,6 +286,74 @@ def tx_by_container(cid):
             "data": [dict(r) for r in rows],
             "sum_topup": int(sums["topup"] or 0),
             "sum_expense": int(sums["expense"] or 0),
+        })
+    finally:
+        conn.close()
+
+@bp.get("/tx")
+@auth_required
+def tx_by_range():
+    """List emoney transactions within a date range, optional filters.
+    Query params:
+      - start: YYYY-MM-DD (inclusive, default: last 31 days)
+      - end  : YYYY-MM-DD (inclusive)
+      - eid  : filter by emoney_id (optional)
+      - type : topup|expense (optional)
+      - order: asc|desc (default: asc)
+    """
+    start_iso, end_iso = _parse_date_range(request)
+    eid = (request.args.get("eid") or "").strip()
+    ttype = (request.args.get("type") or "").strip().lower()
+    order = (request.args.get("order") or "asc").strip().lower()
+    if order not in ("asc", "desc"):
+        order = "asc"
+    if ttype and ttype not in ("topup", "expense"):
+        return jsonify({"error": True, "message": "type harus topup/expense"}), 400
+
+    conn = get_conn()
+    try:
+        where = ["t.created_at >= ?", "t.created_at <= ?"]
+        args = [start_iso, end_iso]
+        if eid:
+            where.append("t.emoney_id = ?")
+            args.append(eid)
+        if ttype:
+            where.append("t.type = ?")
+            args.append(ttype)
+        where_sql = " AND ".join(where)
+
+        rows = conn.execute(
+            f"""
+            SELECT t.id, t.created_at, t.type, t.amount_cents, t.note,
+                   t.ref_container_id, t.emoney_id,
+                   e.label AS emoney_label,
+                   c.event_name AS event_name, c.pic AS pic
+            FROM emoney_tx t
+            LEFT JOIN emoney e ON e.id = t.emoney_id
+            LEFT JOIN containers c ON c.id = t.ref_container_id
+            WHERE {where_sql}
+            ORDER BY t.created_at {order.upper()}, t.id {order.upper()}
+            """,
+            args,
+        ).fetchall()
+
+        sums = conn.execute(
+            f"""
+            SELECT
+              SUM(CASE WHEN t.type='topup'  THEN t.amount_cents ELSE 0 END) AS topup,
+              SUM(CASE WHEN t.type='expense' THEN t.amount_cents ELSE 0 END) AS expense
+            FROM emoney_tx t
+            WHERE {where_sql}
+            """,
+            args,
+        ).fetchone()
+
+        return jsonify({
+            "data": [dict(r) for r in rows],
+            "sum_topup": int(sums["topup"] or 0),
+            "sum_expense": int(sums["expense"] or 0),
+            "start": start_iso,
+            "end": end_iso,
         })
     finally:
         conn.close()

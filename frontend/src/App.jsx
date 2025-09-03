@@ -17,6 +17,7 @@ import EmoneyPage from './pages/EmoneyPage.jsx'
 import EmoneyDetail from './pages/EmoneyDetail.jsx'
 import EmoneyExpenseForm from './pages/EmoneyExpenseForm.jsx'
 import EmoneyContainerHistory from './pages/EmoneyContainerHistory.jsx'
+import EmoneyHistoryPage from './pages/EmoneyHistoryPage.jsx'
 import AdminDataLifecycle from './pages/AdminDataLifecycle.jsx'
 import AdminArchive from './pages/AdminArchive.jsx'
 
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/containers/:cid/dn-history" element={<SuratJalanHistory />} />
       <Route path="/maintenance" element={<MaintenancePage />} />
       <Route path="/emoney" element={<EmoneyPage />} />
+      <Route path="/emoney/history" element={<EmoneyHistoryPage />} />
       <Route path="/emoney/:id" element={<EmoneyDetail />} />
       <Route path="/emoney/expense/:cid" element={<EmoneyExpenseForm />} />
       <Route path="/emoney/history/:cid" element={<EmoneyContainerHistory />} />
