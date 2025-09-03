@@ -115,6 +115,9 @@ export const api = {
   setContainerStatus(cid, status) {
     return request('POST', `/containers/${encodeURIComponent(cid)}/set_status`, { status })
   },
+  deleteContainer(cid) {
+    return request('DELETE', `/containers/${encodeURIComponent(cid)}`)
+  },
 
   // payload: { ids: string[], amend?: boolean, override_heavy?: boolean, override_reason?: string }
   addItemsToContainer(cid, payload) {

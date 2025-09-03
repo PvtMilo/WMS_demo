@@ -6,7 +6,7 @@ function isAdmin(user){
   const r = user?.role
   if (!r) return false
   const s = String(r)
-  return s.toLowerCase() === 'admin' || s.toUpperCase() === 'PIC'
+  return s.toLowerCase() === 'admin'
 }
 
 export default function AdminArchive() {
@@ -137,3 +137,4 @@ function box(){ return { border:'1px solid #eee', borderRadius:8, padding:12 } }
 function th(){ return { textAlign:'left', borderBottom:'1px solid #eee', padding:'6px 8px' } }
 function td(){ return { borderBottom:'1px solid #f5f5f5', padding:'6px 8px', fontSize:14 } }
 function alertErr(){ return { ...box(), border:'1px solid #f99', background:'#fee' } }
+

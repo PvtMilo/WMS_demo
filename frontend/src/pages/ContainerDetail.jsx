@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api, getToken } from '../api.js'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
@@ -15,6 +15,7 @@ export default function ContainerDetail(){
   const [listIds, setListIds] = useState('')
   const [retCond, setRetCond] = useState('good')
   const [retNote, setRetNote] = useState('')
+  const [user, setUser] = useState(null)
   const scanRef = useRef(null)
   const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8, width:'100%' }
 
@@ -30,6 +31,7 @@ export default function ContainerDetail(){
   }
 
   useEffect(()=>{ refresh() }, [cid])
+  useEffect(()=>{ (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
   // Default kondisi return mengikuti kondisi saat checkout ketika scan ID diisi
   useEffect(() => {
     const id = (scanRet || '').trim()
@@ -76,7 +78,7 @@ export default function ContainerDetail(){
     }catch(e){ alert(e.message) }
   }
 
-  if (loading) return <div style={{padding:24}}>Loadingâ€¦</div>
+  if (loading) return <div style={{padding:24}}>Loading…</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
@@ -93,6 +95,11 @@ export default function ContainerDetail(){
           <button onClick={printDN} style={{padding:'8px 12px', border:'1px solid #111', background:'#111', color:'#fff', borderRadius:8}} disabled={!dn}>
             {dn ? `Print DN (V${dn._meta?.version})` : 'Print DN (buat DN dulu)'}
           </button>
+          {String(user?.role||'').toLowerCase()==='admin' && (
+            <button onClick={async()=>{ if(confirm('Hapus kontainer ini? (hanya untuk kontainer Closed)')){ try{ await api.deleteContainer(cid); alert('Kontainer dihapus'); window.history.back() }catch(e){ alert(e.message) } } }} style={{padding:'8px 12px', border:'1px solid #c00', color:'#c00', borderRadius:8, background:'#fff'}}>
+              Delete Container
+            </button>
+          )}
         </div>
       </div>
 
@@ -100,7 +107,7 @@ export default function ContainerDetail(){
       <div style={{border:'1px solid #eee', borderRadius:12, padding:16, marginBottom:16}}>
         <div style={{fontSize:18, fontWeight:700, marginBottom:8}}>Delivery Note</div>
         <div><b>Event:</b> {c.event_name}</div>
-        <div><b>PIC:</b> {c.pic} {c.crew ? `Â· Crew: ${c.crew}` : ''}</div>
+        <div><b>PIC:</b> {c.pic} {c.crew ? `· Crew: ${c.crew}` : ''}</div>
         <div><b>Lokasi:</b> {c.location || '-'}</div>
         <div><b>Jadwal:</b> {formatDateTime(c.start_date)} - {formatDateTime(c.end_date)}</div>
         <div><b>Status:</b> {c.status}</div>
@@ -115,7 +122,7 @@ export default function ContainerDetail(){
               <span style={{background:'#ffebee', padding:'2px 6px', borderRadius:6}}>Merah = Rusak berat</span>
             </div>
             <div style={{marginTop:6, fontSize:13}}>
-              Ringan: <b>{t.rusak_ringan}</b> Â· Berat: <b>{t.rusak_berat}</b>
+              Ringan: <b>{t.rusak_ringan}</b> · Berat: <b>{t.rusak_berat}</b>
             </div>
           </div>
         )}
@@ -187,3 +194,4 @@ function allowedOptions(prev){
   if (prev === 'rusak_ringan') return new Set(['rusak_ringan','rusak_berat'])
   return new Set(['good','rusak_ringan','rusak_berat'])
 }
+

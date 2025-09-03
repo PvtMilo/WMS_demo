@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { api } from '../api.js'
+import { api, getToken } from '../api.js'
 import ItemForm from '../components/ItemForm.jsx'
 import ItemTable from '../components/ItemTable.jsx'
 import QrModal from '../components/QrModal.jsx'
@@ -13,6 +13,7 @@ export default function InventoryPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [user, setUser] = useState(null)
 
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
@@ -61,6 +62,7 @@ export default function InventoryPage() {
     refresh({ keepPage: false })
     loadSummary()
   }, [])
+  useEffect(() => { (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
 
   // --- PAGING: pindah halaman -> fetch data halaman itu
   useEffect(() => {
@@ -76,6 +78,7 @@ export default function InventoryPage() {
   const selectedIds = useMemo(() => Object.keys(selected), [selected])
   const selectedCount = selectedIds.length
   const allSelectedOnPage = items.length > 0 && items.every(it => selected[it.id_code])
+  const canDelete = String(user?.role||'').toLowerCase()==='admin' || String(user?.role||'').toLowerCase()==='pic'
 
   function toggleOne(id) {
     setSelected(prev => {
@@ -306,14 +309,16 @@ async function deleteSelected() {
           <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ color: '#444' }}>Dipilih: <b>{selectedCount}</b> item</span>
             <button onClick={() => setSelected({})} style={btn}>Clear Selected</button>
-            <button
-              onClick={deleteSelected}
-              style={{ ...btn, borderColor: '#c1121f', color: '#c1121f' }}
-              disabled={selectedCount === 0}
-              title={selectedCount ? '' : 'Pilih item dulu'}
-            >
-              Delete Selected
-            </button>
+            {canDelete && (
+              <button
+                onClick={deleteSelected}
+                style={{ ...btn, borderColor: '#c1121f', color: '#c1121f' }}
+                disabled={selectedCount === 0}
+                title={selectedCount ? '' : 'Pilih item dulu'}
+              >
+                Delete Selected
+              </button>
+            )}
 
             <button
               onClick={doPrintSelectedQr}
@@ -366,7 +371,8 @@ async function deleteSelected() {
                 onToggleAllOnPage={toggleAllOnPage}
                 allSelectedOnPage={allSelectedOnPage}
                 onShowQr={setQrId}
-                onDeleteOne={deleteOne}
+                onDeleteOne={canDelete ? deleteOne : undefined}
+                canDelete={canDelete}
               />
 
               {/* Pagination */}
@@ -413,3 +419,5 @@ async function deleteSelected() {
     </div>
   )
 }
+
+

@@ -1,6 +1,6 @@
 # backend/routes_containers.py
 from flask import Blueprint, request, jsonify
-from routes_auth import auth_required
+from routes_auth import auth_required, require_roles
 from db import get_conn, now_iso, new_container_id
 from datetime import datetime
 import json
@@ -506,5 +506,30 @@ def set_status(cid):
         conn.execute("UPDATE containers SET status=? WHERE id=?", (status, cid))
         conn.commit()
         return jsonify({"ok": True, "status": status})
+    finally:
+        conn.close()
+
+# ---------- Delete container (admin only, safe) ----------
+@bp.delete("/<cid>")
+@auth_required
+@require_roles('admin')
+def delete_container(cid):
+    cid = (cid or '').strip()
+    if not cid:
+        return jsonify({"error": True, "message": "cid wajib"}), 400
+    conn = get_conn()
+    try:
+        c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
+        if not c:
+            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+        if (c["status"] or '').lower() == 'open':
+            return jsonify({"error": True, "message": "Tidak boleh hapus kontainer yang masih Open"}), 400
+        # Delete children then parent; unlink emoney tx
+        conn.execute("DELETE FROM container_item WHERE container_id=?", (cid,))
+        conn.execute("DELETE FROM dn_snapshots   WHERE container_id=?", (cid,))
+        conn.execute("UPDATE emoney_tx SET ref_container_id=NULL WHERE ref_container_id=?", (cid,))
+        conn.execute("DELETE FROM containers WHERE id=?", (cid,))
+        conn.commit()
+        return jsonify({"ok": True})
     finally:
         conn.close()

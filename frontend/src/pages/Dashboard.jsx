@@ -6,7 +6,7 @@ function isAdmin(user){
   const r = user?.role
   if (!r) return false
   const s = String(r)
-  return s.toLowerCase() === 'admin' || s.toUpperCase() === 'PIC'
+  return s.toLowerCase() === 'admin'
 }
 
 export default function Dashboard() {
@@ -47,3 +47,4 @@ export default function Dashboard() {
     </div>
   )
 }
+

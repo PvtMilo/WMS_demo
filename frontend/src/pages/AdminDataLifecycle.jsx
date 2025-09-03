@@ -6,7 +6,7 @@ function isAdmin(user){
   const r = user?.role
   if (!r) return false
   const s = String(r)
-  return s.toLowerCase() === 'admin' || s.toUpperCase() === 'PIC'
+  return s.toLowerCase() === 'admin'
 }
 
 export default function AdminDataLifecycle() {
@@ -138,3 +138,4 @@ function box(){ return { border:'1px solid #eee', borderRadius:8, padding:12 } }
 function alertErr(){ return { ...box(), border:'1px solid #f99', background:'#fee' } }
 function alertOk(){ return { ...box(), border:'1px solid #9c9', background:'#efe' } }
 function safeJson(o){ try { return JSON.stringify(o,null,2) } catch { return String(o) } }
+

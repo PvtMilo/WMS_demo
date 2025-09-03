@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from routes_auth import auth_required
+from routes_auth import auth_required, require_roles
 from db import get_conn, now_iso
 import qrcode, io, re
 
@@ -440,11 +440,12 @@ def qr_image(id_code):
     return Response(buf.getvalue(), mimetype="image/png")
 
 from flask import request, jsonify
-from routes_auth import auth_required
+from routes_auth import auth_required, require_roles
 from db import get_conn
 
 @bp.delete("/<id_code>")   # ✅ benar → akan menjadi /items/<id_code>
 @auth_required
+@require_roles('admin','pic')
 def delete_item(id_code):
     id_code = (id_code or "").strip()
     if not id_code:

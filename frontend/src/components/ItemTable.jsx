@@ -19,6 +19,7 @@ export default function ItemTable({
   allSelectedOnPage = false,
   onShowQr,
   onDeleteOne,
+  canDelete = true,
 }) {
   const safeItems = Array.isArray(items) ? items : []
 
@@ -77,25 +78,27 @@ export default function ItemTable({
                         QR
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => onDeleteOne?.(it.id_code)}
-                        style={{
-                          ...btn,
-                          borderColor: '#c1121f',
-                          color: '#c1121f',
-                          opacity: isKeluar ? 0.5 : 1,
-                          cursor: isKeluar ? 'not-allowed' : 'pointer',
-                        }}
-                        disabled={isKeluar}
-                        title={
-                          isKeluar
-                            ? 'Tidak bisa hapus: barang sedang dibawa event (status Keluar)'
-                            : 'Hapus item'
-                        }
-                      >
-                        Delete
-                      </button>
+                      {canDelete && (
+                        <button
+                          type="button"
+                          onClick={() => onDeleteOne?.(it.id_code)}
+                          style={{
+                            ...btn,
+                            borderColor: '#c1121f',
+                            color: '#c1121f',
+                            opacity: isKeluar ? 0.5 : 1,
+                            cursor: isKeluar ? 'not-allowed' : 'pointer',
+                          }}
+                          disabled={isKeluar}
+                          title={
+                            isKeluar
+                              ? 'Tidak bisa hapus: barang sedang dibawa event (status Keluar)'
+                              : 'Hapus item'
+                          }
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

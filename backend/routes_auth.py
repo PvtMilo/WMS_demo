@@ -24,6 +24,19 @@ def auth_required(fn):
         return fn(*args, **kwargs)
     return wrapper
 
+def require_roles(*roles):
+    allowed = set([str(r).lower() for r in roles])
+    def deco(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            user = getattr(request, 'user', None)
+            role = str((user or {}).get('role') or '').lower()
+            if not role or (allowed and role not in allowed):
+                return jsonify({"error": True, "message": "Forbidden: role tidak diizinkan"}), 403
+            return fn(*args, **kwargs)
+        return wrapper
+    return deco
+
 @bp.post("/login")
 def login():
     """Login plaintext → token UUID."""
@@ -31,16 +44,20 @@ def login():
     email = (data.get("email") or "").strip()
     password = (data.get("password") or "").strip()
 
-    if email != config.ADMIN_EMAIL:
-        return jsonify({"error": True, "message": "Email tidak dikenal"}), 401
-    if password != config.ADMIN_PASSWORD:
-        return jsonify({"error": True, "message": "Password salah"}), 401
+    # Find user in config.USERS
+    account = None
+    for u in getattr(config, 'USERS', []):
+        if email.lower() == u.get('email', '').lower() and password == u.get('password'):
+            account = u
+            break
+    if not account:
+        return jsonify({"error": True, "message": "Email/password salah"}), 401
 
     user = {
-        "id": config.ADMIN_ID,
-        "email": config.ADMIN_EMAIL,
-        "name": config.ADMIN_NAME,
-        "role": config.ADMIN_ROLE,
+        "id": account.get('id'),
+        "email": account.get('email'),
+        "name": account.get('name'),
+        "role": account.get('role'),
     }
     token = uuid.uuid4().hex
     TOKENS[token] = user

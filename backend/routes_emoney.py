@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from routes_auth import auth_required
+from routes_auth import auth_required, require_roles
 from db import get_conn, now_iso, new_emoney_id
 
 bp = Blueprint("emoney", __name__, url_prefix="/emoney")
@@ -261,6 +261,7 @@ def tx_by_container(cid):
 
 @bp.delete("/<eid>")
 @auth_required
+@require_roles('admin')
 def delete_emoney(eid):
     eid = (eid or "").strip()
     if not eid:

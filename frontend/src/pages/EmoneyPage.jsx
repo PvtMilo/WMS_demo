@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { api } from '../api.js'
+import { api, getToken } from '../api.js'
 
 export default function EmoneyPage(){
   const [label, setLabel] = useState('')
@@ -10,6 +10,7 @@ export default function EmoneyPage(){
   const perPage = 20
   const [q, setQ] = useState('')
   const [msg, setMsg] = useState('')
+  const [user, setUser] = useState(null)
 
   async function refresh(p = page){
     setLoading(true)
@@ -22,6 +23,7 @@ export default function EmoneyPage(){
     finally{ setLoading(false) }
   }
   useEffect(()=>{ refresh(1) }, [])
+  useEffect(()=>{ (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
 
   async function create(){
     const v = (label || '').trim()
@@ -89,8 +91,12 @@ export default function EmoneyPage(){
                   <td style={td}>{fmtIDR(e.balance)}</td>
                   <td style={td}>
                     <a href={`/emoney/${e.id}`}>Buka</a>
-                    {' | '}
-                    <button onClick={()=>onDelete(e.id)} style={{...btn, padding:'4px 8px'}}>Delete</button>
+                    {String(user?.role||'').toLowerCase()==='admin' && (
+                      <>
+                        {' | '}
+                        <button onClick={()=>onDelete(e.id)} style={{...btn, padding:'4px 8px'}}>Delete</button>
+                      </>
+                    )}
                   </td>
                 </tr>
               )) : (
@@ -111,3 +117,4 @@ export default function EmoneyPage(){
     </div>
   )
 }
+

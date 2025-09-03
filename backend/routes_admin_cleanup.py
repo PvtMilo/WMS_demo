@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from routes_auth import auth_required
+from routes_auth import auth_required, require_roles
 from db import get_conn, DB_PATH, now_iso
 import os, shutil, datetime
 import json
@@ -81,6 +81,7 @@ def _make_snapshot(note: str | None = None):
 # --------- CLEANUP PREVIEW/RUN/BATCHES ---------
 @bp.get("/cleanup/preview")
 @auth_required
+@require_roles('admin')
 def cleanup_preview():
     # Minimal stub response so frontend can integrate
     start = request.args.get("start")
@@ -105,6 +106,7 @@ def cleanup_preview():
 
 @bp.post("/cleanup/run")
 @auth_required
+@require_roles('admin')
 def cleanup_run():
     b = request.get_json(silent=True) or {}
     start = _parse_date(str(b.get("start") or ""))
@@ -313,6 +315,7 @@ def cleanup_run():
 
 @bp.get("/cleanup/batches")
 @auth_required
+@require_roles('admin')
 def cleanup_batches():
     snap_dir = _ensure_snapshots_dir()
     items = []
@@ -339,6 +342,7 @@ def cleanup_batches():
 
 @bp.get("/cleanup/batches/<bid>")
 @auth_required
+@require_roles('admin')
 def cleanup_batch_detail(bid):
     snap_dir = _ensure_snapshots_dir()
     try:
@@ -357,6 +361,7 @@ def cleanup_batch_detail(bid):
 # --------- SNAPSHOTS (EXPORT / FULL RESTORE) ---------
 @bp.post("/cleanup/snapshots/create")
 @auth_required
+@require_roles('admin')
 def snapshot_create():
     data = request.get_json(silent=True) or {}
     snap = _make_snapshot(data.get("note"))
@@ -365,6 +370,7 @@ def snapshot_create():
 
 @bp.get("/cleanup/snapshots")
 @auth_required
+@require_roles('admin')
 def snapshot_list():
     snap_dir = _ensure_snapshots_dir()
     raw = []
@@ -401,6 +407,7 @@ def snapshot_list():
 
 @bp.post("/cleanup/snapshots/<sid>/restore")
 @auth_required
+@require_roles('admin')
 def snapshot_restore(sid):
     # Perform full restore by overwriting DB with the chosen snapshot file
     snap_dir = _ensure_snapshots_dir()
@@ -452,6 +459,7 @@ def snapshot_restore(sid):
 # --------- ARCHIVE BROWSER (READ-ONLY) ---------
 @bp.get("/archive/batches")
 @auth_required
+@require_roles('admin')
 def archive_batches():
     # Alias to cleanup batches
     return cleanup_batches()
@@ -459,6 +467,7 @@ def archive_batches():
 
 @bp.get("/archive/batches/<bid>")
 @auth_required
+@require_roles('admin')
 def archive_batch_detail(bid):
     # Alias to cleanup batch detail
     return cleanup_batch_detail(bid)
