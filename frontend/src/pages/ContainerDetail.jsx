@@ -96,7 +96,7 @@ export default function ContainerDetail(){
             {dn ? `Print DN (V${dn._meta?.version})` : 'Print DN (buat DN dulu)'}
           </button>
           {String(user?.role||'').toLowerCase()==='admin' && (
-            <button onClick={async()=>{ if(confirm('Hapus kontainer ini? (hanya untuk kontainer Closed)')){ try{ await api.deleteContainer(cid); alert('Kontainer dihapus'); window.history.back() }catch(e){ alert(e.message) } } }} style={{padding:'8px 12px', border:'1px solid #c00', color:'#c00', borderRadius:8, background:'#fff'}}>
+            <button onClick={async()=>{ if(confirm('Hapus kontainer ini?')){ try{ await api.deleteContainer(cid); alert('Kontainer dihapus'); window.history.back() }catch(e){ alert(e.message) } } }} style={{padding:'8px 12px', border:'1px solid #c00', color:'#c00', borderRadius:8, background:'#fff'}}>
               Delete Container
             </button>
           )}

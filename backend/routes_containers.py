@@ -523,8 +523,6 @@ def delete_container(cid):
         c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
         if not c:
             return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
-        if (c["status"] or '').lower() == 'open':
-            return jsonify({"error": True, "message": "Tidak boleh hapus kontainer yang masih Open"}), 400
         # Delete children then parent; unlink emoney tx
         conn.execute("DELETE FROM container_item WHERE container_id=?", (cid,))
         conn.execute("DELETE FROM dn_snapshots   WHERE container_id=?", (cid,))

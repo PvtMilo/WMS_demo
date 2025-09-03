@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { api, getToken } from '../api.js'
+import React, { useEffect, useState } from 'react'
+import { api } from '../api.js'
 import ContainerForm from '../components/ContainerForm.jsx'
 import { formatDateTime } from '../utils/date.js'
 
@@ -11,15 +11,6 @@ export default function ContainersPage(){
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const perPage = 20
-  const [user, setUser] = useState(null)
-
-  // Admin-only selection state
-  const [selected, setSelected] = useState({}) // { [id]: true }
-  const selectedIds = useMemo(() => Object.keys(selected), [selected])
-  const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
-  const deletableOnPage = useMemo(() => items, [items])
-  const allSelectedOnPage = deletableOnPage.length>0 && deletableOnPage.every(c => selected[c.id])
-  const [delLoading, setDelLoading] = useState(false)
 
   async function refresh(p = page){
     setLoading(true); setError('')
@@ -34,42 +25,6 @@ export default function ContainersPage(){
     finally{ setLoading(false) }
   }
   useEffect(()=>{ refresh(page) }, [page])
-  useEffect(()=>{ (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
-  useEffect(()=>{ setSelected({}) }, [page, q])
-
-  function toggleOne(id){
-    setSelected(prev => { const next = { ...prev }; if(next[id]) delete next[id]; else next[id]=true; return next })
-  }
-  function toggleAll(){
-    setSelected(prev => {
-      const next = { ...prev }
-      if (allSelectedOnPage) {
-        for (const c of deletableOnPage) delete next[c.id]
-      } else {
-        for (const c of deletableOnPage) next[c.id] = true
-      }
-      return next
-    })
-  }
-
-  async function deleteSelected(){
-    if (!isAdmin) return
-    const ids = selectedIds
-    if (ids.length === 0) { alert('Tidak ada kontainer dipilih'); return }
-    const ok = window.confirm(`Hapus ${ids.length} kontainer terpilih?`)
-    if (!ok) return
-    setDelLoading(true)
-    let okCount = 0, fail = []
-    try {
-      for (const id of ids){
-        try { await api.deleteContainer(id); okCount += 1 } catch(e){ fail.push({ id, msg: e.message }) }
-      }
-      if (fail.length) alert(`Gagal hapus ${fail.length} kontainer: ` + fail.map(f=>`${f.id} (${f.msg})`).join(', '))
-      if (okCount>0) alert(`Berhasil hapus ${okCount} kontainer`)
-      setSelected({})
-      await refresh(1)
-    } finally { setDelLoading(false) }
-  }
 
   const ipt = {padding:8, border:'1px solid #ddd', borderRadius:8}
   return (
@@ -82,15 +37,6 @@ export default function ContainersPage(){
             <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Cari id/event/pic/lokasi..." style={{...ipt, flex:1}}/>
             <button onClick={()=>{setPage(1); refresh(1)}} style={{padding:'8px 12px'}}>Cari</button>
           </div>
-          {isAdmin && (
-            <div style={{marginBottom:8, display:'flex', gap:8, alignItems:'center'}}>
-              <span>Dipilih: <b>{selectedIds.length}</b></span>
-              <button onClick={()=>setSelected({})} style={{padding:'6px 10px', border:'1px solid #ddd', borderRadius:6, background:'#fff'}}>Clear</button>
-              <button onClick={deleteSelected} disabled={selectedIds.length===0||delLoading} style={{padding:'6px 10px', border:'1px solid #c00', color:'#c00', borderRadius:6, background:'#fff'}}>
-                {delLoading ? 'Deleting...' : 'Delete Selected'}
-              </button>
-            </div>
-          )}
           {error && <div style={{color:'crimson'}}>{error}</div>}
           {loading ? 'Loading…' : (
             <div>
@@ -98,11 +44,6 @@ export default function ContainersPage(){
                 <table style={{width:'100%', borderCollapse:'collapse'}}>
                   <thead>
                     <tr style={{background:'#fafafa'}}>
-                      {isAdmin && (
-                        <th style={th}>
-                          <input type="checkbox" checked={allSelectedOnPage} onChange={toggleAll} />
-                        </th>
-                      )}
                       <th style={th}>ID</th>
                       <th style={th}>Event</th>
                       <th style={th}>PIC</th>
@@ -117,15 +58,6 @@ export default function ContainersPage(){
                   <tbody>
                     {items.length ? items.map((c)=>(
                       <tr key={c.id}>
-                        {isAdmin && (
-                          <td style={td}>
-                            <input
-                              type="checkbox"
-                              checked={!!selected[c.id]}
-                              onChange={()=>toggleOne(c.id)}
-                            />
-                          </td>
-                        )}
                         <td style={td}>{c.id}</td>
                         <td style={td}>{c.event_name}</td>
                         <td style={td}>{c.pic}</td>
@@ -153,7 +85,7 @@ export default function ContainersPage(){
                         </td>
                       </tr>
                     )):(
-                      <tr><td style={td} colSpan={isAdmin?10:9}>Belum ada kontainer</td></tr>
+                      <tr><td style={td} colSpan={8}>Belum ada kontainer</td></tr>
                     )}
                   </tbody>
                 </table>
