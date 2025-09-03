@@ -154,9 +154,8 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
             <col style={{ width: "80px" }} />
             <col style={{ width: "50px" }} />
             <col style={{ width: "70px" }} />
-            <col style={{ width: "28px" }} />
-            <col style={{ width: "28px" }} />
-            <col style={{ width: "84px" }} />
+            <col style={{ width: "32px" }} />
+            <col style={{ width: "100px" }} />
             <col style={{ width: "56px" }} />
             <col style={{ width: "56px" }} />
           </colgroup>
@@ -169,7 +168,6 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
               <th>Rak</th>
               <th>Item Code</th>
               <th>Qty</th>
-              <th>Unit</th>
               <th>Alasan</th>
               <th>Entry Description <br/><small>OUT / IN</small></th>
               <th>Exit Description <br/><small>OUT / IN</small></th>
@@ -185,7 +183,6 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
                 <td className="nowrap">{safe(row.rack)}</td>
                 <td className="wrap">{safe(row.code)}</td>
                 <td style={{ textAlign: "right" }}>{safe(row.qty ?? 1)}</td>
-                <td style={{ textAlign: "center" }}>{safe(row.unit) || "Pcs"}</td>
                 <td className="wrap sj-reason">{safe(row.reason)}</td>
                 <td>{toInOut(row.entry_desc)}</td>
                 <td>{toInOut(row.exit_desc)}</td>

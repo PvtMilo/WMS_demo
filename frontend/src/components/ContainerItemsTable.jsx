@@ -30,7 +30,7 @@ export default function ContainerItemsTable({ batches = {}, onVoid }) {
             </thead>
             <tbody>
               {batches[key].map((it, i) => (
-                <tr key={it.id_code + i} style={rowStyle(it.return_condition)}>
+                <tr key={it.id_code + i} style={rowStyle(it)}>
                   <td style={td}>{it.id_code}</td>
                   <td style={td}>{it.name}</td>
                   <td style={td}>{it.model}</td>
@@ -69,12 +69,13 @@ const th = {textAlign:'left', padding:10, borderBottom:'1px solid #eee'}
 const td = {padding:10, borderBottom:'1px solid #f2f2f2'}
 const btn = { padding:'6px 10px', border:'1px solid #c1121f', borderRadius:8, background:'#fff', color:'#c1121f', cursor:'pointer' }
 
-function rowStyle(returnCond){
-  // Hanya highlight jika sudah returned; belum returned tanpa highlight
-  if (!returnCond) return {}
-  if (returnCond === 'good') return { background:'#e6ffed' }       // hijau lembut
-  if (returnCond === 'rusak_ringan') return { background:'#fff9c4' } // kuning lembut
-  if (returnCond === 'rusak_berat') return { background:'#ffebee' }   // merah lembut
+function rowStyle(it){
+  // Highlight berdasarkan kondisi: gunakan return_condition jika ada, jika tidak pakai condition saat checkout
+  const cond = it.return_condition || it.condition
+  if (!cond) return {}
+  if (cond === 'good') return { background:'#e6ffed' }       // hijau lembut
+  if (cond === 'rusak_ringan') return { background:'#fff9c4' } // kuning lembut
+  if (cond === 'rusak_berat') return { background:'#ffebee' }   // merah lembut
   return {}
 }
 function labelCond(cond){
