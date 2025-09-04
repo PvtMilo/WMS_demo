@@ -14,6 +14,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
+  const [showBatchForm, setShowBatchForm] = useState(false)
 
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
@@ -268,13 +269,25 @@ async function deleteSelected() {
           <a href="/inventory/summary" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lihat Stock Summary (Print)</a>
         </div>
 
-      {/* Ringkasan kategori (cepat) */}
-      <CategorySummary data={catSummary} />
-
-      <div className="inv-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: 24 }}>
+      <div style={{ display: 'grid', gap: 16 }}>
         <div>
-          <ItemForm onCreated={async () => { await refresh({ keepPage: true }); await loadSummary() }} />
+          {!showBatchForm ? (
+            <div style={{ padding: 16, border: '1px solid #eee', borderRadius: 12, background: '#fafafa' }}>
+              <button style={{ ...btn, borderColor: '#111' }} onClick={() => setShowBatchForm(true)}>+ Batch Item Registration</button>
+              <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>Klik untuk membuka form pendaftaran barang (batch)</div>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button style={btn} onClick={() => setShowBatchForm(false)}>Tutup</button>
+              </div>
+              <ItemForm onCreated={async () => { setShowBatchForm(false); await refresh({ keepPage: true }); await loadSummary() }} />
+            </div>
+          )}
         </div>
+
+        {/* Ringkasan kategori (cepat) */}
+        <CategorySummary data={catSummary} />
 
         <div>
           {/* toolbar pencarian */}
