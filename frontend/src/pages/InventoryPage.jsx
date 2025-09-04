@@ -271,7 +271,7 @@ async function deleteSelected() {
       {/* Ringkasan kategori (cepat) */}
       <CategorySummary data={catSummary} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: 24 }}>
+      <div className="inv-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: 24 }}>
         <div>
           <ItemForm onCreated={async () => { await refresh({ keepPage: true }); await loadSummary() }} />
         </div>

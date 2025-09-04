@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { api, getToken } from '../api.js'
 import '../styles/layout.css'
 
@@ -12,7 +12,6 @@ function isAdmin(user){
 
 export default function Dashboard({ children }) {
   const n = useNavigate()
-  const loc = useLocation()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -33,12 +32,11 @@ export default function Dashboard({ children }) {
 
   const gold = '#F2C14E'
   const black = '#000'
-  const isInventory = String(loc?.pathname || '').startsWith('/inventory')
 
   return (
     <div style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif', overflow:'hidden'}}>
       {/* Left Sidebar */}
-      <div className={`sidebar ${isInventory ? 'collapsed' : ''}`} style={{background:black, color:gold, padding:16, display:'flex', flexDirection:'column', gap:12, height:'100vh', overflowY:'auto', flexShrink:0}}>
+      <div className={'sidebar'} style={{background:black, color:gold, padding:16, display:'flex', flexDirection:'column', gap:12, height:'100vh', overflowY:'auto', flexShrink:0}}>
         <div className="logo" style={{fontWeight:800, letterSpacing:1, textAlign:'center', margin:'8px 0'}}>LOGO</div>
         <SideButton to="/dashboard" label="DASHBOARD" />
         <SideButton to="/inventory" label="INVENTORY" />
@@ -62,7 +60,7 @@ export default function Dashboard({ children }) {
       </div>
 
       {/* Main Content */}
-      <div className={`layout-content ${isInventory ? 'inventory' : ''}`} style={{flex:1, padding:24, height:'100vh', boxSizing:'border-box', overflowY:'auto', overflowX: isInventory ? 'auto' : 'hidden'}}>
+      <div className={'layout-content'} style={{flex:1, padding:24, height:'100vh', boxSizing:'border-box', overflowY:'auto', overflowX:'hidden'}}>
         {children ? (
           children
         ) : (

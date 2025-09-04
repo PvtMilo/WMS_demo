@@ -20,10 +20,14 @@
 }
 
 .layout-content { overflow-y: auto; overflow-x: hidden; }
-.layout-content.inventory { overflow-x: auto; }
+.layout-content.inventory { overflow-x: hidden; }
 
 /* KPI grid responsive columns via CSS variable */
 :root { --kpi-cols: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 1400px) { :root { --kpi-cols: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px)  { :root { --kpi-cols: repeat(1, minmax(0, 1fr)); } }
 
+/* Inventory grid responsiveness without affecting sidebar */
+@media (max-width: 1200px) {
+  .inv-grid { grid-template-columns: 1fr !important; }
+}
