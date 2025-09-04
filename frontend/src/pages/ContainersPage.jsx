@@ -6,12 +6,14 @@ import { formatDateTime } from '../utils/date.js'
 export default function ContainersPage(){
   const [items, setItems] = useState([])
   const [q, setQ] = useState('')
+  const [statusFilter, setStatusFilter] = useState('') // '', 'Open', 'Sedang Berjalan', 'Closed', 'FullyClosed'
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const perPage = 20
   const [user, setUser] = useState(null)
+  const [showCreate, setShowCreate] = useState(false)
 
   // Admin-only selection state
   const [selected, setSelected] = useState({}) // { [id]: true }
@@ -26,6 +28,11 @@ export default function ContainersPage(){
     try{
       const params = { page: p, per_page: perPage }
       if (q) params.q = q
+      if (statusFilter === 'FullyClosed') {
+        params.fully_closed = 1
+      } else if (statusFilter) {
+        params.status = statusFilter
+      }
       const res = await api.listContainers(params)
       setItems(res.data || [])
       setTotal(res.total || 0)
@@ -34,6 +41,7 @@ export default function ContainersPage(){
     finally{ setLoading(false) }
   }
   useEffect(()=>{ refresh(page) }, [page])
+  useEffect(()=>{ setPage(1); refresh(1) }, [statusFilter])
   useEffect(()=>{ (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
   useEffect(()=>{ setSelected({}) }, [page, q])
 
@@ -72,15 +80,54 @@ export default function ContainersPage(){
   }
 
   const ipt = {padding:8, border:'1px solid #ddd', borderRadius:8}
+  const btn = {padding:'8px 12px', border:'1px solid #ddd', background:'#fff', borderRadius:8, cursor:'pointer'}
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       <h2>Kontainer</h2>
-      <div style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:24}}>
-        <div><ContainerForm onCreated={() => refresh(1)} /></div>
+      <div style={{display:'grid', gap:16}}>
+        {/* Create container form section above filters */}
         <div>
-          <div style={{marginBottom:8, display:'flex', gap:8}}>
+          {!showCreate ? (
+            <div style={{padding:16, border:'1px solid #eee', borderRadius:12, background:'#fafafa'}}>
+              <button style={{...btn, borderColor:'#111'}} onClick={()=>setShowCreate(true)}>+ Buat Kontainer / Event</button>
+              <div style={{fontSize:12, color:'#666', marginTop:6}}>Klik untuk membuka form pembuatan kontainer</div>
+            </div>
+          ) : (
+            <div style={{display:'grid', gap:8}}>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                <h3 style={{margin:0}}>Form Kontainer</h3>
+                <button style={btn} onClick={()=>setShowCreate(false)}>Tutup</button>
+              </div>
+              <ContainerForm onCreated={() => { setShowCreate(false); refresh(1) }} />
+            </div>
+          )}
+        </div>
+
+        {/* Filters + table section */}
+        <div>
+          <div style={{marginBottom:8, display:'flex', gap:8, flexWrap:'wrap', alignItems:'center'}}>
+            {/* Status filters */}
+            <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+              {[
+                { key:'', label:'All' },
+                { key:'Open', label:'Open' },
+                { key:'Sedang Berjalan', label:'Sedang Berjalan' },
+                { key:'Closed', label:'Closed' },
+                { key:'FullyClosed', label:'Fully Closed' },
+              ].map(s => (
+                <button
+                  key={s.key||'all'}
+                  onClick={()=>setStatusFilter(s.key)}
+                  style={{
+                    ...btn,
+                    padding:'6px 10px',
+                    ...(statusFilter===s.key ? { background:'#111', color:'#fff', borderColor:'#111' } : {})
+                  }}
+                >{s.label}</button>
+              ))}
+            </div>
             <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Cari id/event/pic/lokasi..." style={{...ipt, flex:1}}/>
-            <button onClick={()=>{setPage(1); refresh(1)}} style={{padding:'8px 12px'}}>Cari</button>
+            <button onClick={()=>{setPage(1); refresh(1)}} style={{...btn}}>Cari</button>
           </div>
           {isAdmin && (
             <div style={{marginBottom:8, display:'flex', gap:8, alignItems:'center'}}>

@@ -75,6 +75,7 @@ def containers_metrics():
 def list_containers():
     q = (request.args.get("q") or "").strip().upper()
     status = (request.args.get("status") or "").strip().title()
+    fully_closed = (request.args.get("fully_closed") or "").strip().lower() in ("1", "true", "yes", "y")
     page = int(request.args.get("page") or 1)
     per_page = int(request.args.get("per_page") or 20)
     if page < 1:
@@ -90,9 +91,14 @@ def list_containers():
         filters.append("(UPPER(id) LIKE ? OR UPPER(event_name) LIKE ? OR UPPER(location) LIKE ? OR UPPER(pic) LIKE ?)")
         like = f"%{q}%"
         args += [like, like, like, like]
-    if status in ("Open", "Closed", "Sedang Berjalan"):
+    # Apply status filter unless fully_closed scope is requested
+    if not fully_closed and status in ("Open", "Closed", "Sedang Berjalan"):
         filters.append("status=?")
         args.append(status)
+    # Fully Closed: Closed AND has at least one emoney expense recorded
+    if fully_closed:
+        filters.append("status='Closed'")
+        filters.append("EXISTS (SELECT 1 FROM emoney_tx t WHERE t.ref_container_id=containers.id AND t.type='expense')")
     where_sql = " WHERE " + " AND ".join(filters) if filters else ""
 
     sql = (
