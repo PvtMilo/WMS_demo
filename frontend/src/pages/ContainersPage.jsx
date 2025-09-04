@@ -81,6 +81,7 @@ export default function ContainersPage(){
 
   const ipt = {padding:8, border:'1px solid #ddd', borderRadius:8}
   const btn = {padding:'8px 12px', border:'1px solid #ddd', background:'#fff', borderRadius:8, cursor:'pointer'}
+  const smBtn = {padding:'6px 10px', border:'1px solid #ddd', background:'#fff', borderRadius:6, textDecoration:'none', display:'inline-block', cursor:'pointer'}
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       <h2>Kontainer</h2>
@@ -182,21 +183,29 @@ export default function ContainersPage(){
                         <td style={td}>{c.status}{c.status==='Closed' && (c.emoney_expenses||0)>0 ? ' · Fully Closed' : ''}</td>
                         <td style={td}>{(c.emoney_expenses||0)>0 ? 'Recorded' : 'Pending'}</td>
                         <td style={td}>
-                          {c.status === 'Open' && (
-                            <a href={`/containers/${c.id}/checkout`}>Checkout</a>
-                          )}
-                          {c.status === 'Sedang Berjalan' && (
-                            <a href={`/containers/${c.id}/checkin`}>Check-In</a>
-                          )}
-                          {c.status === 'Closed' && (
-                            <>
-                              <a href={`/containers/${c.id}/checkin`}>Lihat</a>
-                              {' | '}
-                              <a href={`/emoney/expense/${c.id}`}>Input E-Money</a>
-                              {' | '}
-                              <a href={`/emoney/history/${c.id}`}>History E-Money</a>
-                            </>
-                          )}
+                          <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+                            {c.status === 'Open' && (
+                              <a href={`/containers/${c.id}/checkout`} style={{...smBtn, borderColor:'#111'}}>Checkout</a>
+                            )}
+                            {c.status === 'Sedang Berjalan' && (
+                              <a href={`/containers/${c.id}/checkin`} style={{...smBtn, borderColor:'#111'}}>Check-In</a>
+                            )}
+                            {c.status === 'Closed' && (
+                              <>
+                                <a href={`/containers/${c.id}/checkin`} style={smBtn}>Lihat</a>
+                                <a
+                                  href={`/emoney/expense/${c.id}`}
+                                  style={{
+                                    ...smBtn,
+                                    borderColor: (c.emoney_expenses||0)>0 ? '#ddd' : '#c1121f',
+                                    color: (c.emoney_expenses||0)>0 ? '#333' : '#c1121f'
+                                  }}
+                                  title={(c.emoney_expenses||0)>0 ? 'Sudah ada pengeluaran' : ''}
+                                >Input E-Money</a>
+                                <a href={`/emoney/history/${c.id}`} style={smBtn}>History E-Money</a>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )):(
