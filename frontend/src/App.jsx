@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
 import InventorySummary from './pages/InventorySummary.jsx'
 // import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
-import ContainersPage from './pages/ContainersPage.jsx'      // NEW
+import ContainersPage from './pages/ContainersPage.jsx'
 import ContainerCheckout from './pages/ContainerCheckout.jsx'
 import ContainerCheckIn from './pages/ContainerCheckIn.jsx'
 import CheckInList from './pages/CheckInList.jsx'
@@ -26,26 +26,27 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
+      {/* Dashboard layout renders persistent sidebar; children render into content area */}
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/inventory" element={<InventoryPage />} />
-      <Route path="/inventory/summary" element={<InventorySummary />} />
+      <Route path="/inventory" element={<Dashboard><InventoryPage /></Dashboard>} />
+      <Route path="/inventory/summary" element={<Dashboard><InventorySummary /></Dashboard>} />
       {/* <Route path="/print-labels" element={<PrintLabelsPage />} /> */}
-      <Route path="/containers" element={<ContainersPage />} />         {/* NEW */}
-      <Route path="/checkin" element={<CheckInList />} />
-      <Route path="/checkout" element={<CheckoutList />} />
-      <Route path="/containers/:cid/checkout" element={<ContainerCheckout />} />
-      <Route path="/containers/:cid/checkin" element={<ContainerCheckIn />} />
-      <Route path="/containers/:cid/surat-jalan" element={<SuratJalanPage />} />
-      <Route path="/containers/:cid/surat-jalan/v/:ver" element={<SuratJalanPage />} />
-      <Route path="/containers/:cid/dn-history" element={<SuratJalanHistory />} />
-      <Route path="/maintenance" element={<MaintenancePage />} />
-      <Route path="/emoney" element={<EmoneyPage />} />
-      <Route path="/emoney/history" element={<EmoneyHistoryPage />} />
-      <Route path="/emoney/:id" element={<EmoneyDetail />} />
-      <Route path="/emoney/expense/:cid" element={<EmoneyExpenseForm />} />
-      <Route path="/emoney/history/:cid" element={<EmoneyContainerHistory />} />
-      <Route path="/admin/data-lifecycle" element={<AdminDataLifecycle />} />
-      <Route path="/admin/archive" element={<AdminArchive />} />
+      <Route path="/containers" element={<Dashboard><ContainersPage /></Dashboard>} />
+      <Route path="/checkin" element={<Dashboard><CheckInList /></Dashboard>} />
+      <Route path="/checkout" element={<Dashboard><CheckoutList /></Dashboard>} />
+      <Route path="/containers/:cid/checkout" element={<Dashboard><ContainerCheckout /></Dashboard>} />
+      <Route path="/containers/:cid/checkin" element={<Dashboard><ContainerCheckIn /></Dashboard>} />
+      <Route path="/containers/:cid/surat-jalan" element={<Dashboard><SuratJalanPage /></Dashboard>} />
+      <Route path="/containers/:cid/surat-jalan/v/:ver" element={<Dashboard><SuratJalanPage /></Dashboard>} />
+      <Route path="/containers/:cid/dn-history" element={<Dashboard><SuratJalanHistory /></Dashboard>} />
+      <Route path="/maintenance" element={<Dashboard><MaintenancePage /></Dashboard>} />
+      <Route path="/emoney" element={<Dashboard><EmoneyPage /></Dashboard>} />
+      <Route path="/emoney/history" element={<Dashboard><EmoneyHistoryPage /></Dashboard>} />
+      <Route path="/emoney/:id" element={<Dashboard><EmoneyDetail /></Dashboard>} />
+      <Route path="/emoney/expense/:cid" element={<Dashboard><EmoneyExpenseForm /></Dashboard>} />
+      <Route path="/emoney/history/:cid" element={<Dashboard><EmoneyContainerHistory /></Dashboard>} />
+      <Route path="/admin/data-lifecycle" element={<Dashboard><AdminDataLifecycle /></Dashboard>} />
+      <Route path="/admin/archive" element={<Dashboard><AdminArchive /></Dashboard>} />
       <Route path="*" element={<div style={{padding:24}}>Not Found</div>} />
     </Routes>
   )

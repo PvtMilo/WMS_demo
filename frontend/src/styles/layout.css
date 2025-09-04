@@ -1,0 +1,29 @@
+/* Persistent layout + responsive tweaks */
+
+.layout-root { overflow: hidden; }
+
+.sidebar {
+  width: 260px;
+  transition: width 160ms ease-in-out;
+}
+.sidebar.collapsed {
+  width: 88px;
+}
+.sidebar .logo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar.collapsed .admin-title { display: none; }
+
+.side-btn-link { display: block; }
+.side-btn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout-content { overflow-y: auto; overflow-x: hidden; }
+.layout-content.inventory { overflow-x: auto; }
+
+/* KPI grid responsive columns via CSS variable */
+:root { --kpi-cols: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1400px) { :root { --kpi-cols: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px)  { :root { --kpi-cols: repeat(1, minmax(0, 1fr)); } }
+

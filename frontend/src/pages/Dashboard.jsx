@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { api, getToken } from '../api.js'
+import '../styles/layout.css'
 
 function isAdmin(user){
   const r = user?.role
@@ -9,40 +10,15 @@ function isAdmin(user){
   return s.toLowerCase() === 'admin'
 }
 
-export default function Dashboard() {
+export default function Dashboard({ children }) {
   const n = useNavigate()
+  const loc = useLocation()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [kpi, setKpi] = useState({ open: 0, running: 0, closed_without_expense: 0 })
-  const [rusak, setRusak] = useState({ ringan: 0, berat: 0 })
-  const [hilang, setHilang] = useState(0)
-  const [emoney, setEmoney] = useState([])
 
   useEffect(() => {
     if (!getToken()) { n('/login'); return }
     api.me().then(d => setUser(d.user)).catch(() => n('/login')).finally(() => setLoading(false))
-  }, [])
-
-  useEffect(() => {
-    (async () => {
-      try{
-        const [m, maint, em, cat] = await Promise.all([
-          api.containerMetrics().catch(() => ({})),
-          api.maintenanceList({ per_page: 1 }).catch(() => ({})),
-          api.listEmoney({ page: 1, per_page: 100 }).catch(() => ({})),
-          api.summaryByCategory().catch(() => ({})),
-        ])
-        setKpi({
-          open: Number(m?.open || 0),
-          running: Number(m?.running || 0),
-          closed_without_expense: Number(m?.closed_without_expense || 0),
-        })
-        setRusak({ ringan: Number(maint?.counts?.ringan || 0), berat: Number(maint?.counts?.berat || 0) })
-        setEmoney(Array.isArray(em?.data) ? em.data : [])
-        const list = Array.isArray(cat?.data) ? cat.data : []
-        setHilang(list.reduce((a,r)=> a + Number(r?.hilang || 0), 0))
-      }catch{}
-    })()
   }, [])
 
   // Ensure body margin is zero while on Dashboard, restore on unmount
@@ -57,12 +33,14 @@ export default function Dashboard() {
 
   const gold = '#F2C14E'
   const black = '#000'
+  const isInventory = String(loc?.pathname || '').startsWith('/inventory')
 
   return (
-    <div style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif'}}>
+    <div style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif', overflow:'hidden'}}>
       {/* Left Sidebar */}
-      <div style={{width:260, background:black, color:gold, padding:16, display:'flex', flexDirection:'column', gap:12}}>
-        <div style={{fontWeight:800, letterSpacing:1, textAlign:'center', margin:'8px 0'}}>LOGO</div>
+      <div className={`sidebar ${isInventory ? 'collapsed' : ''}`} style={{background:black, color:gold, padding:16, display:'flex', flexDirection:'column', gap:12, height:'100vh', overflowY:'auto', flexShrink:0}}>
+        <div className="logo" style={{fontWeight:800, letterSpacing:1, textAlign:'center', margin:'8px 0'}}>LOGO</div>
+        <SideButton to="/dashboard" label="DASHBOARD" />
         <SideButton to="/inventory" label="INVENTORY" />
         <SideButton to="/containers" label="CONTAINER" />
         <SideButton to="/checkout" label="CHECK OUT" />
@@ -84,46 +62,12 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div style={{flex:1, padding:24}}>
-        <h2 style={{marginTop:0}}>Dashboard</h2>
-        <p>Halo, <b>{user?.name}</b> ({user?.role})</p>
-
-        {/* KPI Row */}
-        <div style={{display:'grid', gridTemplateColumns:'repeat(3, minmax(0, 1fr))', gap:24, margin:'16px 0 20px'}}>
-          <KpiBox title="Checkout" value={kpi.open} />
-          <KpiBox title="Check-in" value={kpi.running} />
-          <KpiBox title="Closed" value={kpi.closed_without_expense} />
-        </div>
-
-        {/* E-Money Table */}
-        <div style={{border:'1px solid '+black, borderRadius:12, overflow:'hidden', marginBottom:24}}>
-          <div style={{background:black, color:gold, padding:12, display:'grid', gridTemplateColumns:'2fr 1fr 1fr'}}>
-            <div>Nama</div>
-            <div>Saldo</div>
-            <div>Aksi</div>
-          </div>
-          <div>
-            {(emoney && emoney.length ? emoney : []).map(e => (
-              <div key={e.id} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr', alignItems:'center', gap:8, borderBottom:'1px solid #ddd', padding:'10px 12px'}}>
-                <div style={{color:gold}}>{e.label}</div>
-                <div>{fmtIDR(e.balance)}</div>
-                <div>
-                  <Link to={`/emoney/${e.id}`} style={{color:gold}}>Lihat emoney</Link>
-                </div>
-              </div>
-            ))}
-            {(!emoney || emoney.length === 0) && (
-              <div style={{padding:12}}>Belum ada akun E-Money</div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom KPI Row */}
-        <div style={{display:'grid', gridTemplateColumns:'repeat(3, minmax(0, 1fr))', gap:24}}>
-          <KpiBox title="Rusak Ringan" value={rusak.ringan} />
-          <KpiBox title="Rusak Berat" value={rusak.berat} />
-          <KpiBox title="Hilang" value={hilang} />
-        </div>
+      <div className={`layout-content ${isInventory ? 'inventory' : ''}`} style={{flex:1, padding:24, height:'100vh', boxSizing:'border-box', overflowY:'auto', overflowX: isInventory ? 'auto' : 'hidden'}}>
+        {children ? (
+          children
+        ) : (
+          <DashboardHome user={user} />
+        )}
       </div>
     </div>
   )
@@ -148,11 +92,83 @@ function KpiBox({ title, value }){
 function SideButton({ to, label }){
   const gold = '#F2C14E'
   return (
-    <Link to={to} style={{textDecoration:'none'}}>
-      <div style={{background:'#fff', color:gold, borderRadius:6, padding:'10px 12px', textAlign:'center', fontWeight:700}}>
+    <Link to={to} className="side-btn-link" style={{textDecoration:'none'}}>
+      <div className="side-btn" style={{background:'#fff', color:gold, borderRadius:6, padding:'10px 12px', textAlign:'center', fontWeight:700}}>
         {label}
       </div>
     </Link>
+  )
+}
+
+function DashboardHome({ user }){
+  const [kpi, setKpi] = useState({ open: 0, running: 0, closed_without_expense: 0 })
+  const [rusak, setRusak] = useState({ ringan: 0, berat: 0 })
+  const [hilang, setHilang] = useState(0)
+  const [emoney, setEmoney] = useState([])
+  const gold = '#F2C14E'
+  const black = '#000'
+
+  useEffect(() => {
+    (async () => {
+      try{
+        const [m, maint, em, cat] = await Promise.all([
+          api.containerMetrics().catch(() => ({})),
+          api.maintenanceList({ per_page: 1 }).catch(() => ({})),
+          api.listEmoney({ page: 1, per_page: 100 }).catch(() => ({})),
+          api.summaryByCategory().catch(() => ({})),
+        ])
+        setKpi({
+          open: Number(m?.open || 0),
+          running: Number(m?.running || 0),
+          closed_without_expense: Number(m?.closed_without_expense || 0),
+        })
+        setRusak({ ringan: Number(maint?.counts?.ringan || 0), berat: Number(maint?.counts?.berat || 0) })
+        setEmoney(Array.isArray(em?.data) ? em.data : [])
+        const list = Array.isArray(cat?.data) ? cat.data : []
+        setHilang(list.reduce((a,r)=> a + Number(r?.hilang || 0), 0))
+      }catch{}
+    })()
+  }, [])
+
+  return (
+    <>
+      <h2 style={{marginTop:0}}>Dashboard</h2>
+      <p>Halo, <b>{user?.name}</b> ({user?.role})</p>
+
+      <div className="kpi-grid" style={{display:'grid', gridTemplateColumns:'var(--kpi-cols)', gap:24, margin:'16px 0 20px'}}>
+        <KpiBox title="Checkout" value={kpi.open} />
+        <KpiBox title="Check-in" value={kpi.running} />
+        <KpiBox title="Closed" value={kpi.closed_without_expense} />
+      </div>
+
+      <div style={{border:'1px solid '+black, borderRadius:12, overflow:'hidden', marginBottom:24}}>
+        <div style={{background:black, color:gold, padding:12, display:'grid', gridTemplateColumns:'2fr 1fr 1fr'}}>
+          <div>Nama</div>
+          <div>Saldo</div>
+          <div>Aksi</div>
+        </div>
+        <div>
+          {(emoney && emoney.length ? emoney : []).map(e => (
+            <div key={e.id} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr', alignItems:'center', gap:8, borderBottom:'1px solid #ddd', padding:'10px 12px'}}>
+              <div style={{color:gold}}>{e.label}</div>
+              <div>{fmtIDR(e.balance)}</div>
+              <div>
+                <Link to={`/emoney/${e.id}`} style={{color:gold}}>Lihat emoney</Link>
+              </div>
+            </div>
+          ))}
+          {(!emoney || emoney.length === 0) && (
+            <div style={{padding:12}}>Belum ada akun E-Money</div>
+          )}
+        </div>
+      </div>
+
+      <div className="kpi-grid" style={{display:'grid', gridTemplateColumns:'var(--kpi-cols)', gap:24}}>
+        <KpiBox title="Rusak Ringan" value={rusak.ringan} />
+        <KpiBox title="Rusak Berat" value={rusak.berat} />
+        <KpiBox title="Hilang" value={hilang} />
+      </div>
+    </>
   )
 }
 
