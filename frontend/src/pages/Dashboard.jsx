@@ -36,7 +36,7 @@ export default function Dashboard({ children }) {
   return (
     <div style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif', overflow:'hidden'}}>
       {/* Left Sidebar */}
-      <div className={'sidebar'} style={{background:black, color:gold, padding:16, display:'flex', flexDirection:'column', gap:12, height:'100vh', overflowY:'auto', flexShrink:0}}>
+      <div className={'sidebar'} style={{background:black, color:gold, padding:'16px 16px 28px 16px', display:'flex', flexDirection:'column', gap:12, height:'100vh', overflowY:'auto', flexShrink:0, boxSizing:'border-box'}}>
         <div className="logo" style={{fontWeight:800, letterSpacing:1, textAlign:'center', margin:'8px 0'}}>LOGO</div>
         <SideButton to="/dashboard" label="DASHBOARD" />
         <SideButton to="/inventory" label="INVENTORY" />
@@ -56,7 +56,7 @@ export default function Dashboard({ children }) {
           </div>
         )}
 
-        <button onClick={doLogout} style={{marginTop:'auto', padding:'8px 12px', border:'1px solid '+gold, borderRadius:8, background:'transparent', color:gold, cursor:'pointer'}}>Logout</button>
+        <button onClick={doLogout} style={{marginTop:'auto', marginBottom:4, padding:'8px 12px', border:'1px solid '+gold, borderRadius:8, background:'transparent', color:gold, cursor:'pointer'}}>Logout</button>
       </div>
 
       {/* Main Content */}
