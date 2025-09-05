@@ -89,7 +89,15 @@ export default function ContainerCheckout(){
               try { await api.getLatestDN(cid) } catch { alert('Harap buat Surat Jalan (Delivery Note) terlebih dahulu.'); return }
               if (!confirm('Ubah status menjadi Sedang Berjalan?')) return
               setUpdatingStatus(true)
-              try { await api.setContainerStatus(cid, 'Sedang Berjalan'); await refresh() } catch(e){ alert(e.message) } finally { setUpdatingStatus(false) }
+              try {
+                await api.setContainerStatus(cid, 'Sedang Berjalan')
+                // Setelah status kembali ke Sedang Berjalan, arahkan ke halaman Check-In
+                navigate(`/containers/${cid}/checkin`)
+              } catch(e){
+                alert(e.message)
+              } finally {
+                setUpdatingStatus(false)
+              }
             }}
             style={{padding:'8px 12px'}}
             disabled={updatingStatus || !hasDN}

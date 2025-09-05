@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
 
 export default function ContainerCheckIn(){
   const { cid } = useParams()
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -14,6 +15,7 @@ export default function ContainerCheckIn(){
   const [retCond, setRetCond] = useState('good')
   const [retNote, setRetNote] = useState('')
   const [closing, setClosing] = useState(false)
+  const [reopening, setReopening] = useState(false)
   const scanRef = useRef(null)
   const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8, width:'100%' }
 
@@ -86,6 +88,25 @@ export default function ContainerCheckIn(){
         <Badge label="Good" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
+        {c.status === 'Sedang Berjalan' && (
+          <button
+            onClick={async ()=>{
+              if (!confirm('Penambahan barang: ubah status ke Open dan kembali ke Checkout?')) return
+              setReopening(true)
+              try{
+                await api.setContainerStatus(cid, 'Open')
+                // Arahkan ke halaman Checkout untuk menambah barang & update DN
+                navigate(`/containers/${cid}/checkout`)
+              }catch(e){
+                alert(e.message)
+              }finally{
+                setReopening(false)
+              }
+            }}
+            style={{marginLeft:12, padding:'8px 12px'}}
+            disabled={reopening}
+          >{reopening ? 'Mengubah…' : 'Penambahan Barang'}</button>
+        )}
         {c.status !== 'Closed' && (
           <button
             onClick={async ()=>{
