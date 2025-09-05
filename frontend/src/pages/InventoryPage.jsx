@@ -73,6 +73,58 @@ export default function InventoryPage() {
     refresh({ keepPage: true })
   }, [page])
 
+  // --- GUARD: cegah refresh/close saat bulk delete berjalan
+  useEffect(() => {
+    if (!delLoading) return
+    const onBeforeUnload = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [delLoading])
+
+  // --- GUARD: cegah navigasi in-app (klik link, tombol back) saat bulk delete
+  useEffect(() => {
+    if (!delLoading) return
+
+    // 1) Blokir klik anchor/link
+    const preventNavClick = (e) => {
+      const el = e.target && e.target.closest ? e.target.closest('a[href]') : null
+      if (el && el.getAttribute('href')) {
+        e.preventDefault()
+        e.stopPropagation()
+        alert('Sedang menghapus item. Mohon tunggu hingga selesai.')
+      }
+    }
+    document.addEventListener('click', preventNavClick, true)
+
+    // 2) Tahan tombol back/forward dengan mendorong state dummy
+    const onPopState = () => {
+      try { window.history.pushState(null, '', window.location.href) } catch {}
+      alert('Sedang menghapus item. Mohon tunggu hingga selesai.')
+    }
+    try { window.history.pushState(null, '', window.location.href) } catch {}
+    window.addEventListener('popstate', onPopState)
+
+    // 3) Cegah shortcut refresh (F5, Ctrl/Cmd+R) sebisanya
+    const onKeyDown = (e) => {
+      const k = (e.key || '').toLowerCase()
+      if (k === 'f5' || ((k === 'r') && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault()
+        e.stopPropagation()
+        alert('Sedang menghapus item. Mohon tunggu hingga selesai.')
+      }
+    }
+    window.addEventListener('keydown', onKeyDown, true)
+
+    return () => {
+      document.removeEventListener('click', preventNavClick, true)
+      window.removeEventListener('popstate', onPopState)
+      window.removeEventListener('keydown', onKeyDown, true)
+    }
+  }, [delLoading])
+
   // --- IMPORTANT: reset selection setiap kali ganti page atau keyword search
   useEffect(() => {
     setSelected({})
