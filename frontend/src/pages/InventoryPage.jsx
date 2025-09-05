@@ -24,6 +24,9 @@ export default function InventoryPage() {
   const [targetCond, setTargetCond] = useState('') // '', 'good', 'rusak_ringan', 'rusak_berat'
   const [lastResult, setLastResult] = useState(null)
   const [qrId, setQrId] = useState(null)
+  // Bulk delete UX state
+  const [delLoading, setDelLoading] = useState(false)
+  const [delProgress, setDelProgress] = useState({ done: 0, total: 0 })
   // Print semua QR
   const [printAllLoading, setPrintAllLoading] = useState(false)
   const [printAllList, setPrintAllList] = useState([])
@@ -184,6 +187,7 @@ async function deleteOne(id) {
 async function deleteSelected() {
   const ids = selectedIds
   if (ids.length === 0) return alert('Tidak ada item yang dipilih')
+  if (delLoading) return
 
   // Pisahkan yang statusnya Keluar (tidak boleh dihapus)
   const selectedRows = items.filter(it => selected[it.id_code])
@@ -200,14 +204,22 @@ async function deleteSelected() {
   if (!confirm(`Hapus ${allowed.length} item terpilih (selain yang Keluar)?`)) return
 
   try {
+    setDelLoading(true)
+    setDelProgress({ done: 0, total: allowed.length })
+    let done = 0
     for (const id of allowed) {
       try { await api.deleteItem(id) } catch (_) { /* lanjut item lain */ }
+      done += 1
+      setDelProgress(prev => ({ ...prev, done }))
     }
     setSelected({})
     await refresh({ keepPage: true })
     await loadSummary()
   } catch (e) {
     alert(e.message)
+  } finally {
+    setDelLoading(false)
+    setDelProgress({ done: 0, total: 0 })
   }
 }
 
@@ -298,8 +310,9 @@ async function deleteSelected() {
               onKeyDown={onKeyDownSearch}
               placeholder='Cari id/nama/kategori/model/rak/status...'
               style={ipt}
+              disabled={delLoading}
             />
-            <button onClick={doSearch} style={btn}>Cari</button>
+            <button onClick={doSearch} style={btn} disabled={delLoading}>Cari</button>
             <span style={{ fontSize: 12, color: '#777' }}>
               Menampilkan <b>{startIdx}</b>–<b>{endIdx}</b> dari <b>{total}</b> item
               {total > PER_PAGE && ' · perketat pencarian jika hasil terlalu banyak'}
@@ -321,23 +334,23 @@ async function deleteSelected() {
           {/* toolbar selection & aksi bulk */}
           <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ color: '#444' }}>Dipilih: <b>{selectedCount}</b> item</span>
-            <button onClick={() => setSelected({})} style={btn}>Clear Selected</button>
+            <button onClick={() => setSelected({})} style={btn} disabled={delLoading}>Clear Selected</button>
             {canDelete && (
               <button
                 onClick={deleteSelected}
-                style={{ ...btn, borderColor: '#c1121f', color: '#c1121f' }}
-                disabled={selectedCount === 0}
-                title={selectedCount ? '' : 'Pilih item dulu'}
+                style={{ ...btn, borderColor: '#c1121f', color: '#c1121f', opacity: delLoading ? 0.6 : 1 }}
+                disabled={selectedCount === 0 || delLoading}
+                title={selectedCount ? (delLoading ? 'Sedang menghapus' : '') : 'Pilih item dulu'}
               >
-                Delete Selected
+                {delLoading ? `Deleting ${delProgress.done}/${delProgress.total}...` : 'Delete Selected'}
               </button>
             )}
 
             <button
               onClick={doPrintSelectedQr}
               style={{ ...btn, borderColor: '#111' }}
-              disabled={selectedCount === 0}
-              title={selectedCount ? '' : 'Pilih item dulu'}
+              disabled={selectedCount === 0 || delLoading}
+              title={selectedCount ? (delLoading ? 'Sedang menghapus' : '') : 'Pilih item dulu'}
             >
               Cetak QR (Selected)
             </button>
@@ -427,6 +440,22 @@ async function deleteSelected() {
           {printSelList.map((it, idx) => (
             <QrLabelCard key={`${it.id_code}-${idx}`} idCode={it.id_code} name={it.name} rack={it.rack} />
           ))}
+        </div>
+      )}
+
+      {delLoading && (
+        <div
+          className="noprint"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.65)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, flexDirection: 'column', textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 8 }}>
+            Menghapus item… {delProgress.done} / {delProgress.total}
+          </div>
+          <div style={{ fontSize: 13, color: '#555' }}>Mohon tunggu, jangan tutup halaman.</div>
         </div>
       )}
     </div>
