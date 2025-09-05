@@ -119,25 +119,25 @@ export default function SuratJalanPage() {
     <div className="noprint" style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 12 }}>
       <button onClick={() => navigate(-1)} style={{ padding: '8px 12px' }}>Kembali</button>
       <button onClick={makeSnapshotAndOpen} disabled={working} style={{ padding: '8px 12px' }}>
-        {working ? 'Memproses…' : (data ? 'Update DN dari Data Terkini' : 'Buat DN dari Checkout')}
+        {working ? 'Memproses...' : (data ? 'Update DN dari Data Terkini' : 'Buat DN dari Checkout')}
       </button>
       {data && (
         <>
           <button onClick={() => window.print()} style={{ padding: '8px 12px' }}>Cetak</button>
           <div style={{ marginLeft: 8, color: '#666' }}>
-            Versi: <b>V{data._meta?.version}</b> · Dibuat: {formatDateTime(data._meta?.created_at, { monthText: true })}
+            Versi: <b>V{data._meta?.version}</b> - Dibuat: {formatDateTime(data._meta?.created_at, { monthText: true })}
           </div>
         </>
       )}
     </div>
   )
 
-  if (loading) return <div style={{ padding: 24 }}>Memuat…</div>
+  if (loading) return <div style={{ padding: 24 }}>Memuat...</div>
   if (error && !data) return (
     <div style={{ padding: 24 }}>
       <div style={{ color: 'crimson', marginBottom: 8 }}>{error}</div>
       <button onClick={makeSnapshotAndOpen} disabled={working} style={{ padding: '8px 12px' }}>
-        {working ? 'Memproses…' : 'Buat DN dari Checkout'}
+        {working ? 'Memproses...' : 'Buat DN dari Checkout'}
       </button>
     </div>
   )
@@ -154,3 +154,4 @@ export default function SuratJalanPage() {
     </div>
   )
 }
+

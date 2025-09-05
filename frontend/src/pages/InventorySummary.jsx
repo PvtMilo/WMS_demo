@@ -27,7 +27,7 @@ export default function InventorySummary(){
   const btn = { padding:'8px 12px', border:'1px solid #111', background:'#fff', borderRadius:8, cursor:'pointer' }
   const grid = { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }
 
-  if (loading) return <div style={{padding:24}}>Memuat…</div>
+  if (loading) return <div style={{padding:24}}>Memuat...</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
 
   return (
@@ -47,7 +47,7 @@ export default function InventorySummary(){
       <div className="grid" style={grid}>
         {data.categories.map(cat => (
           <div key={cat.category} className="card" style={card}>
-            <div style={{fontSize:14, fontWeight:700, marginBottom:6}}>{cat.category} · {cat.total} unit</div>
+            <div style={{fontSize:14, fontWeight:700, marginBottom:6}}>{cat.category} - {cat.total} unit</div>
             <table style={{width:'100%', borderCollapse:'collapse'}}>
               <thead>
                 <tr style={{background:'#fafafa'}}>
@@ -72,3 +72,4 @@ export default function InventorySummary(){
     </div>
   )
 }
+

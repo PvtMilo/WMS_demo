@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
@@ -61,7 +61,7 @@ export default function ContainerCheckIn(){
     }catch(e){ alert(e.message) }
   }
 
-  if (loading) return <div style={{padding:24}}>Loadingâ€¦</div>
+  if (loading) return <div style={{padding:24}}>Loading...</div>
   if (error) return <div style={{padding:24, color:'crimson'}}>{error}</div>
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
@@ -95,7 +95,7 @@ export default function ContainerCheckIn(){
             }}
             style={{marginLeft:12, padding:'8px 12px'}}
             disabled={closing}
-          >{closing ? 'Menutupâ€¦' : 'Tutup Kontainer'}</button>
+          >{closing ? 'Menutup...' : 'Tutup Kontainer'}</button>
         )}
       </div>
 
