@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import SuratJalan from '../components/SuratJalan.jsx'
 import { api } from '../api.js'
 import { formatDateTime } from '../utils/date.js'
+import '../styles/print.css'
 
 export default function SuratJalanPage() {
   const { cid, ver } = useParams()

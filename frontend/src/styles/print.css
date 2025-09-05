@@ -29,8 +29,26 @@
 .controls { margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; }
 
 @media print {
-  body { margin: 0; }
+  body { margin: 0; background: #fff !important; color: #000; }
   .noprint { display: none !important; }
+
+  /* Hide app chrome/navigation during print */
+  .sidebar, nav, aside, header.app-header, footer, .app-footer, .side-btn, .side-btn-link {
+    display: none !important;
+  }
+
+  /* Let content expand fully for print */
+  .layout-root { overflow: visible !important; }
+  .layout-content {
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Make long tables print nicely */
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+
   .page { 
     page-break-inside: avoid; 
     break-inside: avoid; 

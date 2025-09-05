@@ -34,7 +34,7 @@ export default function Dashboard({ children }) {
   const black = '#000'
 
   return (
-    <div style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif', overflow:'hidden'}}>
+    <div className="layout-root" style={{display:'flex', minHeight:'100vh', fontFamily:'sans-serif'}}>
       {/* Left Sidebar */}
       <div className={'sidebar'} style={{background:black, color:gold, padding:'16px 16px 28px 16px', display:'flex', flexDirection:'column', gap:12, height:'100vh', overflowY:'auto', flexShrink:0, boxSizing:'border-box'}}>
         <div className="logo" style={{fontWeight:800, letterSpacing:1, textAlign:'center', margin:'8px 0'}}>LOGO</div>
