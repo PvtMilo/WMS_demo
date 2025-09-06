@@ -107,39 +107,250 @@ export default function EmoneyPage(){
   }
 
   return (
-    <div style={{padding:24, fontFamily:'sans-serif'}}>
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <h2 style={{margin:0}}>E-Money</h2>
-        <div>
-          <a href="/emoney/history" className="noprint" style={{ textDecoration:'none' }}>
-            <button style={{...btn}}>History (Audit)</button>
-          </a>
-        </div>
-      </div>
-      <div className="noprint" style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:16, marginBottom:12}}>
-        <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
-          <div style={{fontWeight:700, marginBottom:6}}>Tambah E-Money</div>
-          <div style={{display:'flex', gap:8}}>
-            <input value={label} onChange={e=>setLabel(e.target.value)} placeholder="Label (contoh: Emoney 001 CI)" style={{...ipt, flex:1}}/>
-            <button onClick={create} style={btn}>Tambah</button>
+    <div style={{fontFamily:'sans-serif'}}>
+      {/* Header Section */}
+      <div style={{
+        background: 'white',
+        borderRadius: 12,
+        padding: 24,
+        marginBottom: 24,
+        border: '1px solid #e5e5e5',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+            <div style={{
+              width: 40,
+              height: 40,
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              borderRadius: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 18
+            }}>
+              💳
+            </div>
+            <div>
+              <h2 style={{margin: '0 0 4px 0', color: '#1f2937', fontSize: 24, fontWeight: 700}}>
+                E-Money Management
+              </h2>
+              <div style={{color: '#6b7280', fontSize: 14}}>Kelola akun e-money dan transaksi</div>
+            </div>
+          </div>
+          
+          <div className="noprint">
+            <a href="/emoney/history" style={{ textDecoration:'none' }}>
+              <button style={{
+                padding: '8px 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: 8,
+                background: 'white',
+                color: '#374151',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}>
+                📊 History (Audit)
+              </button>
+            </a>
           </div>
         </div>
-        <div style={{border:'1px solid #eee', borderRadius:12, padding:12}}>
-          <div style={{display:'flex', gap:8, alignItems:'center'}}>
-            <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Cari id/label/status..." style={{...ipt, flex:1}}/>
-            <button onClick={()=>refresh(1)} style={btn}>Cari</button>
+
+        {/* Action Cards */}
+        <div className="noprint" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16}}>
+          {/* Add E-Money Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+            border: '1px solid #bbf7d0',
+            borderRadius: 12,
+            padding: 20
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 16
+            }}>
+              <div style={{
+                width: 32,
+                height: 32,
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 14
+              }}>
+                ➕
+              </div>
+              <h3 style={{margin: 0, color: '#1f2937', fontSize: 16, fontWeight: 600}}>
+                Tambah E-Money
+              </h3>
+            </div>
+            <div style={{display: 'flex', gap: 12}}>
+              <input 
+                value={label} 
+                onChange={e=>setLabel(e.target.value)} 
+                placeholder="Label (contoh: Emoney 001 CI)" 
+                style={{
+                  flex: 1,
+                  padding: 10,
+                  border: '1px solid #d1d5db',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  transition: 'border-color 0.2s ease'
+                }}
+              />
+              <button 
+                onClick={create} 
+                style={{
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderRadius: 8,
+                  background: '#059669',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Tambah
+              </button>
+            </div>
+          </div>
+
+          {/* Search Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            border: '1px solid #bae6fd',
+            borderRadius: 12,
+            padding: 20
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 16
+            }}>
+              <div style={{
+                width: 32,
+                height: 32,
+                background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 14
+              }}>
+                🔍
+              </div>
+              <h3 style={{margin: 0, color: '#1f2937', fontSize: 16, fontWeight: 600}}>
+                Cari E-Money
+              </h3>
+            </div>
+            <div style={{display: 'flex', gap: 12}}>
+              <input 
+                value={q} 
+                onChange={e=>setQ(e.target.value)} 
+                placeholder="Cari id/label/status..." 
+                style={{
+                  flex: 1,
+                  padding: 10,
+                  border: '1px solid #d1d5db',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  transition: 'border-color 0.2s ease'
+                }}
+              />
+              <button 
+                onClick={()=>refresh(1)} 
+                style={{
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderRadius: 8,
+                  background: '#0ea5e9',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Cari
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {msg && <div style={{color:'crimson'}}>{msg}</div>}
-      {loading ? 'Memuat…' : (
+      {/* Error Message */}
+      {msg && (
+        <div style={{
+          padding: '12px 16px',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: 8,
+          color: '#dc2626',
+          fontSize: 14,
+          fontWeight: 500,
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
+        }}>
+          ⚠️ {msg}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '200px'
+          }}>
+            <div style={{
+              padding: '24px 32px',
+              background: 'white',
+              borderRadius: 12,
+              border: '1px solid #e5e5e5',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12
+            }}>
+              <div style={{
+                width: 20,
+                height: 20,
+                border: '2px solid #F2C14E',
+                borderTop: '2px solid transparent',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              <span style={{color: '#374151', fontWeight: 500}}>Memuat data e-money...</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* E-Money Table */
         <div style={{ 
           overflow: 'auto', 
           border: '1px solid #e5e5e5', 
           borderRadius: 12, 
           backgroundColor: 'white',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: 24
         }}>
           <table style={{width:'100%', borderCollapse:'collapse'}}>
             <thead>
@@ -183,13 +394,74 @@ export default function EmoneyPage(){
         </div>
       )}
 
-      <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:12 }}>
-        <button style={btn} disabled={page<=1} onClick={()=>setPage(1)}>First</button>
-        <button style={btn} disabled={page<=1} onClick={()=>{ const n=Math.max(1,page-1); setPage(n); refresh(n) }}>Prev</button>
-        <span>Hal {page} / {pages}</span>
-        <button style={btn} disabled={page>=pages} onClick={()=>{ const n=Math.min(pages,page+1); setPage(n); refresh(n) }}>Next</button>
-        <button style={btn} disabled={page>=pages} onClick={()=>{ setPage(pages); refresh(pages) }}>Last</button>
-      </div>
+      {/* Pagination */}
+      {!loading && (
+        <div style={{
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px 24px',
+          background: 'white',
+          borderRadius: 12,
+          border: '1px solid #e5e5e5',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        }}>
+          <button 
+            style={{
+              ...btn,
+              opacity: page <= 1 ? 0.5 : 1,
+              cursor: page <= 1 ? 'not-allowed' : 'pointer'
+            }} 
+            disabled={page<=1} 
+            onClick={()=>setPage(1)}
+          >
+            ⏮️ First
+          </button>
+          <button 
+            style={{
+              ...btn,
+              opacity: page <= 1 ? 0.5 : 1,
+              cursor: page <= 1 ? 'not-allowed' : 'pointer'
+            }} 
+            disabled={page<=1} 
+            onClick={()=>{ const n=Math.max(1,page-1); setPage(n); refresh(n) }}
+          >
+            ◀️ Prev
+          </button>
+          <span style={{
+            padding: '8px 16px',
+            background: '#f3f4f6',
+            borderRadius: 8,
+            fontWeight: 600,
+            color: '#374151'
+          }}>
+            Hal {page} / {pages}
+          </span>
+          <button 
+            style={{
+              ...btn,
+              opacity: page >= pages ? 0.5 : 1,
+              cursor: page >= pages ? 'not-allowed' : 'pointer'
+            }} 
+            disabled={page>=pages} 
+            onClick={()=>{ const n=Math.min(pages,page+1); setPage(n); refresh(n) }}
+          >
+            Next ▶️
+          </button>
+          <button 
+            style={{
+              ...btn,
+              opacity: page >= pages ? 0.5 : 1,
+              cursor: page >= pages ? 'not-allowed' : 'pointer'
+            }} 
+            disabled={page>=pages} 
+            onClick={()=>{ setPage(pages); refresh(pages) }}
+          >
+            Last ⏭️
+          </button>
+        </div>
+      )}
     </div>
   )
 }
