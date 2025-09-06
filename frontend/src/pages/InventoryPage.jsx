@@ -180,7 +180,6 @@ export default function InventoryPage() {
       setPrintingAll(true)
     } catch (e) {
       alert(e.message)
-    } finally {
       setPrintAllLoading(false)
     }
   }
@@ -188,9 +187,13 @@ export default function InventoryPage() {
   // Trigger print ketika data siap
   useEffect(() => {
     if (printingAll && printAllList.length > 0) {
-      const after = () => { setPrintingAll(false); setPrintAllList([]) }
+      const after = () => {
+        setPrintingAll(false)
+        setPrintAllList([])
+        setPrintAllLoading(false)
+      }
       window.addEventListener('afterprint', after)
-      // beri waktu render
+      // beri waktu render sebelum memicu dialog print
       setTimeout(() => window.print(), 150)
       return () => window.removeEventListener('afterprint', after)
     }
@@ -492,6 +495,22 @@ async function deleteSelected() {
           {printSelList.map((it, idx) => (
             <QrLabelCard key={`${it.id_code}-${idx}`} idCode={it.id_code} name={it.name} rack={it.rack} />
           ))}
+        </div>
+      )}
+
+      {printAllLoading && (
+        <div
+          className="noprint"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.65)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, flexDirection: 'column', textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 8 }}>
+            Menyiapkan QR…
+          </div>
+          <div style={{ fontSize: 13, color: '#555' }}>Mohon tunggu, sedang memuat semua data dan label.</div>
         </div>
       )}
 
