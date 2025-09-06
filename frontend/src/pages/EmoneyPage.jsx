@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { api, getToken } from '../api.js'
 
 export default function EmoneyPage(){
@@ -95,6 +95,17 @@ export default function EmoneyPage(){
   }
 
   const pages = Math.max(1, Math.ceil((total||0)/perPage))
+
+  // buat window nomor halaman (maks 7 tombol)
+  const pageNumbers = useMemo(() => {
+    const maxButtons = 7
+    if (pages <= maxButtons) return Array.from({ length: pages }, (_, i) => i + 1)
+    const half = Math.floor(maxButtons / 2)
+    let start = Math.max(1, page - half)
+    let end = start + maxButtons - 1
+    if (end > pages) { end = pages; start = end - maxButtons + 1 }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+  }, [pages, page])
 
   function fmtIDR(c){
     const v = Math.round((c||0)/100)
@@ -396,70 +407,22 @@ export default function EmoneyPage(){
 
       {/* Pagination */}
       {!loading && (
-        <div style={{
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px 24px',
-          background: 'white',
-          borderRadius: 12,
-          border: '1px solid #e5e5e5',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-        }}>
-          <button 
-            style={{
-              ...btn,
-              opacity: page <= 1 ? 0.5 : 1,
-              cursor: page <= 1 ? 'not-allowed' : 'pointer'
-            }} 
-            disabled={page<=1} 
-            onClick={()=>setPage(1)}
-          >
-            ⏮️ First
-          </button>
-          <button 
-            style={{
-              ...btn,
-              opacity: page <= 1 ? 0.5 : 1,
-              cursor: page <= 1 ? 'not-allowed' : 'pointer'
-            }} 
-            disabled={page<=1} 
-            onClick={()=>{ const n=Math.max(1,page-1); setPage(n); refresh(n) }}
-          >
-            ◀️ Prev
-          </button>
-          <span style={{
-            padding: '8px 16px',
-            background: '#f3f4f6',
-            borderRadius: 8,
-            fontWeight: 600,
-            color: '#374151'
-          }}>
-            Hal {page} / {pages}
-          </span>
-          <button 
-            style={{
-              ...btn,
-              opacity: page >= pages ? 0.5 : 1,
-              cursor: page >= pages ? 'not-allowed' : 'pointer'
-            }} 
-            disabled={page>=pages} 
-            onClick={()=>{ const n=Math.min(pages,page+1); setPage(n); refresh(n) }}
-          >
-            Next ▶️
-          </button>
-          <button 
-            style={{
-              ...btn,
-              opacity: page >= pages ? 0.5 : 1,
-              cursor: page >= pages ? 'not-allowed' : 'pointer'
-            }} 
-            disabled={page>=pages} 
-            onClick={()=>{ setPage(pages); refresh(pages) }}
-          >
-            Last ⏭️
-          </button>
+        <div style={{ marginTop: 12, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button style={btn} disabled={page === 1} onClick={() => setPage(1)}>First</button>
+          <button style={btn} disabled={page === 1} onClick={() => { const n = Math.max(1, page - 1); setPage(n); refresh(n) }}>Prev</button>
+          {pageNumbers[0] > 1 && <span>…</span>}
+          {pageNumbers.map(n => (
+            <button
+              key={n}
+              style={{ ...btn, ...(n === page ? { background: '#111', color: '#fff', borderColor: '#111' } : {}) }}
+              onClick={() => { setPage(n); refresh(n) }}
+            >
+              {n}
+            </button>
+          ))}
+          {pageNumbers[pageNumbers.length - 1] < pages && <span>…</span>}
+          <button style={btn} disabled={page === pages} onClick={() => { const n = Math.min(pages, page + 1); setPage(n); refresh(n) }}>Next</button>
+          <button style={btn} disabled={page === pages} onClick={() => { setPage(pages); refresh(pages) }}>Last</button>
         </div>
       )}
     </div>
