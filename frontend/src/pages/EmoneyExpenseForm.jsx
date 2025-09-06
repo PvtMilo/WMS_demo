@@ -171,16 +171,18 @@ export default function EmoneyExpenseForm(){
                   <div style={{fontSize: 12, color: '#6b7280', marginBottom: 4}}>SALDO SAAT INI</div>
                   <div style={{fontSize: 16, fontWeight: 700, color: '#059669'}}>{fmtIDR(selected.balance)}</div>
                 </div>
-                <div style={{
-                  padding: '12px',
-                  background: 'white',
-                  borderRadius: 8,
-                  border: '1px solid #e5e5e5',
-                  textAlign: 'center'
-                }}>
-                  <div style={{fontSize: 12, color: '#6b7280', marginBottom: 4}}>TOTAL TOPUP</div>
-                  <div style={{fontSize: 16, fontWeight: 700, color: '#3b82f6'}}>{fmtIDR(selected.tot_topup)}</div>
-                </div>
+                {false && (
+                  <div style={{
+                    padding: '12px',
+                    background: 'white',
+                    borderRadius: 8,
+                    border: '1px solid #e5e5e5',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{fontSize: 12, color: '#6b7280', marginBottom: 4}}>TOTAL TOPUP</div>
+                    <div style={{fontSize: 16, fontWeight: 700, color: '#3b82f6'}}>{fmtIDR(selected.tot_topup)}</div>
+                  </div>
+                )}
                 <div style={{
                   padding: '12px',
                   background: 'white',

@@ -175,7 +175,7 @@ export default function EmoneyContainerHistory(){
             </div>
             <div>
               <h2 style={{margin: '0 0 4px 0', color: '#1f2937', fontSize: 24, fontWeight: 700}}>
-                History E-Money
+                History E-Money Event Only
               </h2>
               <div style={{color: '#6b7280', fontSize: 14}}>Container: <strong>{cid}</strong></div>
             </div>
@@ -259,32 +259,6 @@ export default function EmoneyContainerHistory(){
             </div>
           </div>
           
-          <div style={{
-            background: 'white',
-            border: '1px solid #e5e5e5',
-            borderRadius: 12,
-            padding: '16px',
-            textAlign: 'center',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-          }}>
-            <div style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: '#6b7280',
-              marginBottom: 8,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              Total Topup Terkait
-            </div>
-            <div style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: '#059669'
-            }}>
-              {fmtIDR(data.sum_topup)}
-            </div>
-          </div>
         </div>
       </div>
 
