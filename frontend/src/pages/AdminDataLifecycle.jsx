@@ -22,6 +22,8 @@ export default function AdminDataLifecycle() {
   const [end, setEnd] = useState(iso(new Date(today.getFullYear(), today.getMonth(), 1)))
   const [includeContainers, setIncludeContainers] = useState(true)
   const [includeEmoney, setIncludeEmoney] = useState(true)
+  const [includeMaintenance, setIncludeMaintenance] = useState(false)
+  const [includeLost, setIncludeLost] = useState(false)
   const [scopeLinked, setScopeLinked] = useState(true)
   const [scopeAll, setScopeAll] = useState(true)
   const [note, setNote] = useState('')
@@ -54,6 +56,8 @@ export default function AdminDataLifecycle() {
         start, end,
         include_containers: includeContainers ? '1' : '0',
         include_emoney: includeEmoney ? '1' : '0',
+        include_maintenance: includeMaintenance ? '1' : '0',
+        include_lost: includeLost ? '1' : '0',
         emoney_scope: [scopeLinked && 'linked', scopeAll && 'all'].filter(Boolean).join(','),
       }
       const data = await api.cleanupPreview(params)
@@ -78,6 +82,8 @@ export default function AdminDataLifecycle() {
         start, end,
         include_containers: includeContainers,
         include_emoney: includeEmoney,
+        include_maintenance: includeMaintenance,
+        include_lost: includeLost,
         emoney_scope: [scopeLinked && 'linked', scopeAll && 'all'].filter(Boolean),
         note,
       }
@@ -109,6 +115,12 @@ export default function AdminDataLifecycle() {
             <label style={{marginRight:16}}><input type="checkbox" disabled={!includeEmoney} checked={scopeLinked} onChange={e=>setScopeLinked(e.target.checked)} /> Linked containers only</label>
             <label><input type="checkbox" disabled={!includeEmoney} checked={scopeAll} onChange={e=>setScopeAll(e.target.checked)} /> General (all accounts)</label>
           </div>
+        </div>
+        <div>
+          <label><input type="checkbox" checked={includeMaintenance} onChange={e=>setIncludeMaintenance(e.target.checked)} /> Maintenance: Repair Logs</label>
+        </div>
+        <div>
+          <label><input type="checkbox" checked={includeLost} onChange={e=>setIncludeLost(e.target.checked)} /> Lost Item History</label>
         </div>
         <div>
           <label>Note</label>
