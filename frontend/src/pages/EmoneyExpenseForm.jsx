@@ -25,6 +25,18 @@ export default function EmoneyExpenseForm(){
     if (selected && toCents(amount) > (selected.balance||0)) { alert('Saldo E-Money tidak cukup'); return }
     try{
       await api.addEmoneyTx(eid, { type:'expense', amount, note, container_id: cid })
+      // Refresh selected e-money summary so the saldo/expense updates immediately
+      try {
+        const fresh = await api.getEmoney(eid)
+        setList(prev => prev.map(x => {
+          if (x.id !== eid) return x
+          const patch = {}
+          if (typeof fresh.balance !== 'undefined') patch.balance = fresh.balance
+          if (typeof fresh.tot_expense !== 'undefined') patch.tot_expense = fresh.tot_expense
+          if (typeof fresh.tot_topup !== 'undefined') patch.tot_topup = fresh.tot_topup
+          return { ...x, ...patch }
+        }))
+      } catch {}
       setMsg('Pengeluaran tercatat')
       setAmount(''); setNote('')
     }catch(e){ alert(e.message) }
