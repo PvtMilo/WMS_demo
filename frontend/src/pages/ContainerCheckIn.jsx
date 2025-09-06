@@ -12,7 +12,6 @@ export default function ContainerCheckIn(){
   const [error, setError] = useState('')
   const [scanRet, setScanRet] = useState('')
   const [listIds, setListIds] = useState('')
-  const [retCond, setRetCond] = useState('good')
   const [user, setUser] = useState(null)
   const [closing, setClosing] = useState(false)
   const [reopening, setReopening] = useState(false)
@@ -39,13 +38,6 @@ export default function ContainerCheckIn(){
   useEffect(() => { (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
   useEffect(()=>{ scanRef.current?.focus() }, [])
 
-  // Saat scan ID berubah, set default kondisi return mengikuti kondisi saat checkout
-  useEffect(() => {
-    const id = (scanRet || '').trim()
-    if (!id || !data || !data.batches) return
-    const prev = findPrevCond(data.batches, id)
-    if (prev) setRetCond(prev)
-  }, [scanRet, data])
 
   async function doCheckin(e){
     e.preventDefault()
@@ -55,7 +47,7 @@ export default function ContainerCheckIn(){
     if (!ids.length) return
     try{
       for(const id of ids){
-        await api.checkinItem(cid,{ id_code: id, condition: retCond })
+        await api.checkinItem(cid,{ id_code: id, condition: 'good' })
       }
       setScanRet(''); setListIds('')
       await refresh()
@@ -231,37 +223,6 @@ export default function ContainerCheckIn(){
                 />
               </label>
 
-              <label style={{display: 'grid', gap: 6}}>
-                <span style={{fontWeight: 500, color: '#374151', fontSize: 14}}>
-                  🏷️ Kondisi Return
-                </span>
-                {(() => {
-                  const id = (scanRet || '').trim()
-                  const prev = id && data?.batches ? findPrevCond(data.batches, id) : null
-                  const allow = allowedOptions(prev)
-                  return (
-                    <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={ipt}>
-                      <option value="good" disabled={!allow.has('good')}>✅ Good</option>
-                      <option value="rusak_ringan" disabled={!allow.has('rusak_ringan')}>🟡 Rusak ringan</option>
-                      <option value="rusak_berat" disabled={!allow.has('rusak_berat')}>🔴 Rusak berat</option>
-                    </select>
-                  )
-                })()}
-              </label>
-
-              {retCond !== 'good' && (
-                <label style={{display: 'grid', gap: 6}}>
-                  <span style={{fontWeight: 500, color: '#374151', fontSize: 14}}>
-                    📝 Catatan kerusakan
-                  </span>
-                  <input 
-                    value={retNote} 
-                    onChange={e=>setRetNote(e.target.value)} 
-                    placeholder="Jelaskan kondisi kerusakan..." 
-                    style={ipt}
-                  />
-                </label>
-              )}
             </div>
 
             <button 
@@ -303,7 +264,7 @@ export default function ContainerCheckIn(){
           </h3>
         </div>
         <div style={{padding: 0}}>
-          <ContainerItemsTable batches={data.batches} onVoid={c.status !== 'Closed' ? onVoid : undefined}/>
+          <ContainerItemsTable cid={cid} batches={data.batches} onVoid={c.status !== 'Closed' ? onVoid : undefined} onUpdated={refresh} role={user?.role}/>
         </div>
       </div>
 
@@ -388,21 +349,3 @@ function StatusCard({label, value, color='#F2C14E'}){
     </div>
   )
 }
-
-// Helpers: temukan kondisi saat checkout untuk ID tertentu
-function findPrevCond(batches, id){
-  const keys = Object.keys(batches || {})
-  for (const k of keys){
-    const arr = batches[k] || []
-    const it = arr.find(x => (x.id_code || '').trim().toUpperCase() === id.toUpperCase())
-    if (it) return it.condition || 'good'
-  }
-  return null
-}
-
-function allowedOptions(prev){
-  if (prev === 'rusak_berat') return new Set(['rusak_berat'])
-  if (prev === 'rusak_ringan') return new Set(['rusak_ringan','rusak_berat'])
-  return new Set(['good','rusak_ringan','rusak_berat'])
-}
-
