@@ -95,6 +95,10 @@ export const api = {
   qrUrl(id_code) {
     return `${API_BASE}/items/${encodeURIComponent(id_code)}/qr`
   },
+  // Lost context for item
+  lostContext(id_code) {
+    return request('GET', `/items/${encodeURIComponent(id_code)}/lost_context`)
+  },
 
   // ---------- CONTAINERS / CHECKOUT (Phase 4) ----------
   // payload: {event_name, pic, crew?, location?, start_date?, end_date?}
@@ -161,6 +165,8 @@ export const api = {
   // Bulk update kondisi item (Good / Rusak ringan / Rusak berat)
   bulkUpdateCondition: (payload) =>
     request('POST', '/items/bulk_update_condition', payload),
+  // Tandai item Hilang (Lost) secara manual
+  markLost: (ids) => request('POST', '/items/mark_lost', { ids }),
   // Ringkasan jumlah per kategori
   summaryByCategory: () =>
     request('GET', '/items/summary_by_category'),

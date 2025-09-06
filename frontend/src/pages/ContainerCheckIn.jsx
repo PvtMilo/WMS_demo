@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api, getToken } from '../api.js'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
 
@@ -13,7 +13,7 @@ export default function ContainerCheckIn(){
   const [scanRet, setScanRet] = useState('')
   const [listIds, setListIds] = useState('')
   const [retCond, setRetCond] = useState('good')
-  const [retNote, setRetNote] = useState('')
+  const [user, setUser] = useState(null)
   const [closing, setClosing] = useState(false)
   const [reopening, setReopening] = useState(false)
   const scanRef = useRef(null)
@@ -29,6 +29,7 @@ export default function ContainerCheckIn(){
   }
 
   useEffect(()=>{ refresh() }, [cid])
+  useEffect(() => { (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
   useEffect(()=>{ scanRef.current?.focus() }, [])
 
   // Saat scan ID berubah, set default kondisi return mengikuti kondisi saat checkout
@@ -47,10 +48,9 @@ export default function ContainerCheckIn(){
     if (!ids.length) return
     try{
       for(const id of ids){
-        await api.checkinItem(cid,{ id_code: id, condition: retCond, damage_note: retNote })
+        await api.checkinItem(cid,{ id_code: id, condition: retCond })
       }
-      // jangan auto reset ke 'good' agar tidak memaksa default Good
-      setScanRet(''); setListIds(''); setRetNote('')
+      setScanRet(''); setListIds('')
       await refresh()
       scanRef.current?.focus()
     }catch(err){ alert(err.message) }
@@ -68,7 +68,7 @@ export default function ContainerCheckIn(){
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
   const c = data.container
-  const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, all:0}
+  const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, lost:0, all:0}
 
   return (
     <div style={{padding:24, fontFamily:'sans-serif'}}>
@@ -88,6 +88,7 @@ export default function ContainerCheckIn(){
         <Badge label="Good" value={t.good}/>
         <Badge label="Ringan" value={t.rusak_ringan} color="#b58900"/>
         <Badge label="Berat" value={t.rusak_berat} color="#c1121f"/>
+        <Badge label="Lost" value={t.lost} color="#b00020"/>
         {c.status === 'Sedang Berjalan' && (
           <button
             onClick={async ()=>{
@@ -128,29 +129,14 @@ export default function ContainerCheckIn(){
           <label style={{display:'grid', gap:4}}>Input manual (satu ID per baris)
             <textarea value={listIds} onChange={e=>setListIds(e.target.value)} style={{...ipt, height:120}} placeholder="CAM-70D-002&#10;CAM-70D-003"></textarea>
           </label>
-          {/** Batasi pilihan sesuai kondisi awal (per-scan). Jika tidak terdeteksi, tampilkan semua. */}
-          {(() => {
-            const id = (scanRet || '').trim()
-            const prev = id && data?.batches ? findPrevCond(data.batches, id) : null
-            const allow = allowedOptions(prev)
-            return (
-              <select value={retCond} onChange={e=>setRetCond(e.target.value)} style={ipt}>
-                <option value="good" disabled={!allow.has('good')}>Good</option>
-                <option value="rusak_ringan" disabled={!allow.has('rusak_ringan')}>Rusak ringan</option>
-                <option value="rusak_berat" disabled={!allow.has('rusak_berat')}>Rusak berat</option>
-              </select>
-            )
-          })()}
-          {retCond !== 'good' && (
-            <input value={retNote} onChange={e=>setRetNote(e.target.value)} placeholder="Catatan kerusakan" style={{padding:8, border:'1px solid #ddd', borderRadius:8}}/>
-          )}
+          {/* Default mengikuti kondisi saat checkout. Perubahan dilakukan per-item pada tabel di bawah. */}
           <button style={{padding:'10px 14px'}}>Check-In</button>
         </form>
         </div>
       )}
 
       {/* Tabel item per batch (printable) - live view */}
-      <ContainerItemsTable batches={data.batches} onVoid={c.status !== 'Closed' ? onVoid : undefined}/>
+      <ContainerItemsTable cid={cid} batches={data.batches} role={user?.role} onVoid={(String(user?.role||'').toLowerCase()==='admin' && c.status !== 'Closed') ? onVoid : undefined} onUpdated={refresh}/>
       <div className="noprint" style={{marginTop:12}}>
         <a href={`/containers/${cid}/dn-history`}>Lihat Riwayat Surat Jalan (Audit)</a>
         {c.status === 'Closed' && (

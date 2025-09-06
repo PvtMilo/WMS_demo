@@ -134,7 +134,8 @@ export default function InventoryPage() {
   const selectedIds = useMemo(() => Object.keys(selected), [selected])
   const selectedCount = selectedIds.length
   const allSelectedOnPage = items.length > 0 && items.every(it => selected[it.id_code])
-  const canDelete = String(user?.role||'').toLowerCase()==='admin' || String(user?.role||'').toLowerCase()==='pic'
+  const roleLc = String(user?.role||'').toLowerCase()
+  const canDelete = roleLc==='admin'
 
   function toggleOne(id) {
     setSelected(prev => {
@@ -180,7 +181,6 @@ export default function InventoryPage() {
       setPrintingAll(true)
     } catch (e) {
       alert(e.message)
-    } finally {
       setPrintAllLoading(false)
     }
   }
@@ -188,9 +188,13 @@ export default function InventoryPage() {
   // Trigger print ketika data siap
   useEffect(() => {
     if (printingAll && printAllList.length > 0) {
-      const after = () => { setPrintingAll(false); setPrintAllList([]) }
+      const after = () => {
+        setPrintingAll(false)
+        setPrintAllList([])
+        setPrintAllLoading(false)
+      }
       window.addEventListener('afterprint', after)
-      // beri waktu render
+      // beri waktu render sebelum memicu dialog print
       setTimeout(() => window.print(), 150)
       return () => window.removeEventListener('afterprint', after)
     }
@@ -301,6 +305,8 @@ async function deleteSelected() {
     setPage(1)          // reset ke halaman 1
     refresh({ keepPage: false })
   }
+
+  // (Mark Lost moved to dropdown via bulk update condition)
   function onKeyDownSearch(e){
     if (e.key === 'Enter') { doSearch() }
   }
@@ -331,6 +337,7 @@ async function deleteSelected() {
         <h2>Inventory</h2>
         <div style={{margin:'8px 0 12px', display:'flex', gap:8}}>
           <a href="/inventory/summary" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lihat Stock Summary (Print)</a>
+          <a href="/inventory/lost" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lost Items</a>
         </div>
 
       <div style={{ display: 'grid', gap: 16 }}>
@@ -407,7 +414,10 @@ async function deleteSelected() {
               Cetak QR (Selected)
             </button>
 
-            <span style={{ marginLeft: 12, color: '#666' }}>Ubah status ke:</span>
+
+            {roleLc !== 'operator' && (
+              <>
+                <span style={{ marginLeft: 12, color: '#666' }}>Ubah status ke:</span>
             <select
               value={targetCond}
               onChange={e => setTargetCond(e.target.value)}
@@ -418,6 +428,7 @@ async function deleteSelected() {
               <option value="good">Good</option>
               <option value="rusak_ringan">Rusak ringan</option>
               <option value="rusak_berat">Rusak berat</option>
+              <option value="hilang">Hilang (Lost)</option>
             </select>
             <button
               onClick={applyBulkCondition}
@@ -426,6 +437,8 @@ async function deleteSelected() {
             >
               Submit Perubahan
             </button>
+              </>
+            )}
           </div>
 
           {lastResult && (
@@ -495,6 +508,22 @@ async function deleteSelected() {
         </div>
       )}
 
+      {printAllLoading && (
+        <div
+          className="noprint"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.65)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, flexDirection: 'column', textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 8 }}>
+            Menyiapkan QR…
+          </div>
+          <div style={{ fontSize: 13, color: '#555' }}>Mohon tunggu, sedang memuat semua data dan label.</div>
+        </div>
+      )}
+
       {delLoading && (
         <div
           className="noprint"
@@ -513,5 +542,3 @@ async function deleteSelected() {
     </div>
   )
 }
-
-

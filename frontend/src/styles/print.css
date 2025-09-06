@@ -12,19 +12,38 @@
 }
 
 .label {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px;
+  box-sizing: border-box;
+  width: 2cm;
+  height: 1cm;
+  border: 0;
+  border-radius: 0;
+  padding: 0; /* fit exact size */
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 8px;
+  grid-template-columns: 1cm 1cm; /* QR + meta */
+  grid-template-rows: 1cm;
+  gap: 0;
   font-family: system-ui, sans-serif;
+  overflow: hidden;
 }
 
-.label .id { font-weight: 700; font-size: 13px; line-height: 1.2; }
-.label .name { font-size: 12px; color: #333; line-height: 1.2; }
-.label .rack { font-size: 11px; color: #666; margin-top: 2px; }
-.label .qr { display: grid; place-items: center; }
+.label .qr {
+  width: 1cm;
+  height: 1cm;
+  display: grid;
+  place-items: center;
+}
+
+.label .meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.label .id { font-weight: 700; font-size: 1.2mm; line-height: 1.1; white-space: nowrap; overflow: hidden; width: 100%; }
+.label .name { font-size: 1.8mm; color: #333; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.label .rack { font-size: 1.8mm; color: #666; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .controls { margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -52,6 +71,10 @@
   .page { 
     page-break-inside: avoid; 
     break-inside: avoid; 
+    /* auto-fit 2cm labels per row */
+    grid-template-columns: repeat(auto-fit, 2cm);
+    gap: 1mm;
+    padding: 5mm;
   }
   /* paksa konten fit ke A4 */
   @page {
@@ -66,4 +89,6 @@
   .inv-summary table { width: 100%; border-collapse: collapse; }
   .inv-summary th, .inv-summary td { padding: 4px 6px; }
   .inv-summary thead tr { background: #f6f6f6; }
+  /* For tiny labels, show only the ID to ensure readability */
+  .label .name, .label .rack { display: none; }
 }
