@@ -100,14 +100,11 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           }}
         >
           <div className="flex items-center gap-3">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt="logo"
-                style={{ height: 20, objectFit: "contain" }}
-              />
-            ) : null}
-            <strong>CAPTURE IT PHOTOBOOTH</strong>
+            <img
+              src="/logo_hitam.png"
+              alt="logo"
+              style={{ height: 20, objectFit: "contain" }}
+            />
           </div>
           <div className="text-right">
             <h1 className="sj-title">SURAT JALAN EVENT</h1>
