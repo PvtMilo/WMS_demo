@@ -1,45 +1,138 @@
 /* Persistent layout + responsive tweaks */
 
-.layout-root { overflow: hidden; }
+/* Set root background without affecting other components */
+body {
+  background-color: #eaedf0;
+  margin: 0;
+  padding: 24px;
+}
+
+.layout-root {
+  background-color: #eaedf0;
+}
+
+.layout-content {
+  background-color: #eaedf0;
+}
+
+.layout-root {
+  overflow: hidden;
+}
 
 .sidebar {
   width: 260px;
   transition: width 160ms ease-in-out;
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 .sidebar.collapsed {
   width: 88px;
 }
-.sidebar .logo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sidebar.collapsed .admin-title { display: none; }
+.sidebar .logo {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar.collapsed .admin-title {
+  display: none;
+}
 
-.side-btn-link { display: block; }
+.side-btn-link {
+  display: block;
+}
 .side-btn {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.layout-content { overflow-y: auto; overflow-x: hidden; }
-.layout-content.inventory { overflow-x: hidden; }
+.layout-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Hide scrollbar for webkit browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.layout-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+.layout-content.inventory {
+  overflow-x: hidden;
+}
 
 /* KPI grid responsive columns via CSS variable */
-:root { --kpi-cols: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 1400px) { :root { --kpi-cols: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 900px)  { :root { --kpi-cols: repeat(1, minmax(0, 1fr)); } }
+:root {
+  --kpi-cols: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 1400px) {
+  :root {
+    --kpi-cols: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  :root {
+    --kpi-cols: repeat(1, minmax(0, 1fr));
+  }
+}
 
 /* Inventory grid responsiveness without affecting sidebar */
 @media (max-width: 1200px) {
-  .inv-grid { grid-template-columns: 1fr !important; }
+  .inv-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Minimal utility classes (Tailwind-like used in components) */
-.flex { display: flex; }
-.grid { display: grid; }
-.items-start { align-items: flex-start; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-3 { gap: 12px; }
-.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.mb-2 { margin-bottom: 8px; }
-.mt-2 { margin-top: 8px; }
-.text-right { text-align: right; }
+.flex {
+  display: flex;
+}
+.grid {
+  display: grid;
+}
+.items-start {
+  align-items: flex-start;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-3 {
+  gap: 12px;
+}
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mb-2 {
+  margin-bottom: 8px;
+}
+.mt-2 {
+  margin-top: 8px;
+}
+.text-right {
+  text-align: right;
+}
+
+/* Simple hover effects */
+.kpi-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.kpi-box {
+  transition: all 0.2s ease;
+}
+
+/* Table hover effects */
+.table-row-hover:hover {
+  background-color: #f1f5f9 !important;
+  transform: translateX(2px);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}

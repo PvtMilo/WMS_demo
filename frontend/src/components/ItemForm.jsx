@@ -28,10 +28,10 @@ export default function ItemForm({ onCreated }) {
     }
   }
 
-  const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8, width:'100%' }
+  const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8, width:'100%', backgroundColor: '#f5f5f5' }
 
   return (
-    <form onSubmit={submit} style={{display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
+    <form onSubmit={submit} style={{display:'grid', gap:8, padding:16, border:'1px solid #e5e5e5', borderRadius:12, backgroundColor: 'white', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'}}>
       <h3>Pendaftaran Barang (Batch)</h3>
       <label>Prefix <input value={prefix} onChange={e=>setPrefix(e.target.value)} style={ipt} required/></label>
       <label>Nama <input value={name} onChange={e=>setName(e.target.value)} style={ipt} required/></label>
@@ -42,7 +42,7 @@ export default function ItemForm({ onCreated }) {
         <input type="number" min="1" max="500" value={qty}
                onChange={e=>setQty(e.target.value)} style={ipt} required/>
       </label>
-      <button disabled={loading} style={{padding:'10px 14px', borderRadius:8}}>
+      <button disabled={loading} style={{padding:'10px 14px', borderRadius:8, backgroundColor: '#F2C14E', color: 'white', border: 'none', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1}}>
         {loading ? 'Menyimpan…' : 'Simpan'}
       </button>
       {msg && <div style={{fontSize:13}}>{msg}</div>}

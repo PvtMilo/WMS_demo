@@ -49,6 +49,30 @@ export default function EmoneyHistoryPage(){
   const ipt = { padding:8, border:'1px solid #ddd', borderRadius:8 }
   const th = { textAlign:'left', padding:10, borderBottom:'1px solid #eee' }
   const td = { padding:10, borderBottom:'1px solid #f2f2f2' }
+  
+  // Modern table styles
+  const thModern = { 
+    textAlign: 'left', 
+    padding: '14px 12px', 
+    borderBottom: '2px solid #e5e5e5', 
+    whiteSpace: 'nowrap',
+    fontWeight: 600,
+    fontSize: 14,
+    color: '#374151'
+  }
+  const tdModern = { 
+    padding: '12px', 
+    borderBottom: '1px solid #f1f5f9', 
+    verticalAlign: 'top',
+    fontSize: 14,
+    color: '#1f2937'
+  }
+  const tdMoney = { 
+    ...tdModern, 
+    fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+    fontWeight: 600,
+    color: '#059669'
+  }
 
   async function doFetch(){
     setLoading(true); setErr('')
@@ -111,38 +135,51 @@ export default function EmoneyHistoryPage(){
             <div>Total Topup: <b>{fmtIDR(data.sum_topup)}</b> • Total Expense: <b>{fmtIDR(data.sum_expense)}</b> • Net: <b>{fmtIDR(net)}</b></div>
           </div>
 
-          <div style={{border:'1px solid #eee', borderRadius:12, overflow:'hidden'}}>
+          <div style={{ 
+            overflow: 'auto', 
+            border: '1px solid #e5e5e5', 
+            borderRadius: 12, 
+            backgroundColor: 'white',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          }}>
             <table style={{width:'100%', borderCollapse:'collapse'}}>
               <thead>
-                <tr style={{background:'#fafafa'}}>
-                  <th style={th}>Waktu</th>
-                  <th style={th}>E-Money</th>
-                  <th style={th}>Tipe</th>
-                  <th style={th}>Jumlah</th>
-                  <th style={th}>Container</th>
-                  <th style={th}>Event</th>
-                  <th style={th}>PIC</th>
-                  <th style={th}>Catatan</th>
+                <tr style={{ 
+                  background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                  borderBottom: '2px solid #e5e5e5'
+                }}>
+                  <th style={thModern}>Waktu</th>
+                  <th style={thModern}>E-Money</th>
+                  <th style={thModern}>Tipe</th>
+                  <th style={thModern}>Jumlah</th>
+                  <th style={thModern}>Container</th>
+                  <th style={thModern}>Event</th>
+                  <th style={thModern}>PIC</th>
+                  <th style={thModern}>Catatan</th>
                 </tr>
               </thead>
               <tbody>
-                {data.data && data.data.length ? data.data.map((t) => {
+                {data.data && data.data.length ? data.data.map((t, index) => {
                   const isCF = String(t.note || '').toLowerCase().startsWith('archive_carry_forward')
-                  const rowStyle = isCF ? { background:'#800000', color:'#fff' } : undefined
+                  const baseStyle = {
+                    backgroundColor: index % 2 === 0 ? '#fafbfc' : 'white',
+                    transition: 'background-color 0.2s ease',
+                  }
+                  const rowStyle = isCF ? { ...baseStyle, background:'#800000', color:'#fff' } : baseStyle
                   return (
-                    <tr key={t.id} style={rowStyle}>
-                      <td style={td}>{fmtTS(t.created_at)}</td>
-                      <td style={td}>{(t.emoney_label || '-') + ' (' + t.emoney_id + ')'}</td>
-                      <td style={td}>{t.type}</td>
-                      <td style={td}>{fmtIDR(t.amount_cents)}</td>
-                      <td style={td}>{t.ref_container_id || '-'}</td>
-                      <td style={td}>{t.event_name || '-'}</td>
-                      <td style={td}>{t.pic || '-'}</td>
-                      <td style={td}>{t.note || '-'}</td>
+                    <tr key={t.id} style={rowStyle} className={!isCF ? "table-row-hover" : ""}>
+                      <td style={tdModern}>{fmtTS(t.created_at)}</td>
+                      <td style={tdModern}>{(t.emoney_label || '-') + ' (' + t.emoney_id + ')'}</td>
+                      <td style={tdModern}>{t.type}</td>
+                      <td style={tdMoney}>{fmtIDR(t.amount_cents)}</td>
+                      <td style={tdModern}>{t.ref_container_id || '-'}</td>
+                      <td style={tdModern}>{t.event_name || '-'}</td>
+                      <td style={tdModern}>{t.pic || '-'}</td>
+                      <td style={tdModern}>{t.note || '-'}</td>
                     </tr>
                   )
                 }) : (
-                  <tr><td style={td} colSpan={8}>Tidak ada transaksi pada periode ini</td></tr>
+                  <tr><td style={tdModern} colSpan={8}>Tidak ada transaksi pada periode ini</td></tr>
                 )}
               </tbody>
             </table>

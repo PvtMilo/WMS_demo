@@ -39,6 +39,60 @@ export default function EmoneyPage(){
   const btn = { padding:'8px 12px', border:'1px solid #111', borderRadius:8, background:'#fff', cursor:'pointer' }
   const th = { textAlign:'left', padding:10, borderBottom:'1px solid #eee' }
   const td = { padding:10, borderBottom:'1px solid #f2f2f2' }
+  
+  // Modern table styles
+  const thModern = { 
+    textAlign: 'left', 
+    padding: '14px 12px', 
+    borderBottom: '2px solid #e5e5e5', 
+    whiteSpace: 'nowrap',
+    fontWeight: 600,
+    fontSize: 14,
+    color: '#374151'
+  }
+  const tdModern = { 
+    padding: '12px', 
+    borderBottom: '1px solid #f1f5f9', 
+    verticalAlign: 'top',
+    fontSize: 14,
+    color: '#1f2937'
+  }
+  const tdMono = { 
+    ...tdModern, 
+    fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+    fontWeight: 600,
+    color: '#4f46e5'
+  }
+  const tdMoney = { 
+    ...tdModern, 
+    fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+    fontWeight: 600,
+    color: '#059669'
+  }
+  const btnPrimary = { 
+    padding: '6px 12px', 
+    border: 'none', 
+    borderRadius: 6, 
+    background: '#F2C14E',
+    color: 'white',
+    fontWeight: 500,
+    fontSize: 12,
+    textDecoration: 'none',
+    display: 'inline-block',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
+  }
+  const btnDanger = { 
+    padding: '6px 12px', 
+    border: '1px solid #ef4444', 
+    borderRadius: 6, 
+    background: 'white',
+    color: '#ef4444',
+    fontWeight: 500,
+    fontSize: 12,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
+  }
 
   const pages = Math.max(1, Math.ceil((total||0)/perPage))
 
@@ -80,34 +134,49 @@ export default function EmoneyPage(){
 
       {msg && <div style={{color:'crimson'}}>{msg}</div>}
       {loading ? 'Memuat…' : (
-        <div style={{border:'1px solid #eee', borderRadius:12, overflow:'hidden'}}>
+        <div style={{ 
+          overflow: 'auto', 
+          border: '1px solid #e5e5e5', 
+          borderRadius: 12, 
+          backgroundColor: 'white',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        }}>
           <table style={{width:'100%', borderCollapse:'collapse'}}>
             <thead>
-              <tr style={{background:'#fafafa'}}>
-                <th style={th}>ID</th>
-                <th style={th}>Label</th>
-                <th style={th}>Remaining Balance</th>
-                <th style={th}>Aksi</th>
+              <tr style={{ 
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                borderBottom: '2px solid #e5e5e5'
+              }}>
+                <th style={thModern}>ID</th>
+                <th style={thModern}>Label</th>
+                <th style={thModern}>Remaining Balance</th>
+                <th style={thModern}>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {items.length ? items.map(e => (
-                <tr key={e.id}>
-                  <td style={td}>{e.id}</td>
-                  <td style={td}>{e.label}</td>
-                  <td style={td}>{fmtIDR(e.balance)}</td>
-                  <td style={td}>
-                    <a href={`/emoney/${e.id}`}>Buka</a>
-                    {String(user?.role||'').toLowerCase()==='admin' && (
-                      <>
-                        {' | '}
-                        <button onClick={()=>onDelete(e.id)} style={{...btn, padding:'4px 8px'}}>Delete</button>
-                      </>
-                    )}
+              {items.length ? items.map((e, index) => (
+                <tr 
+                  key={e.id}
+                  style={{
+                    backgroundColor: index % 2 === 0 ? '#fafbfc' : 'white',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                  className="table-row-hover"
+                >
+                  <td style={tdMono}>{e.id}</td>
+                  <td style={tdModern}>{e.label}</td>
+                  <td style={tdMoney}>{fmtIDR(e.balance)}</td>
+                  <td style={tdModern}>
+                    <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                      <a href={`/emoney/${e.id}`} style={btnPrimary}>Buka</a>
+                      {String(user?.role||'').toLowerCase()==='admin' && (
+                        <button onClick={()=>onDelete(e.id)} style={btnDanger}>Delete</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )) : (
-                <tr><td style={td} colSpan={4}>Belum ada data</td></tr>
+                <tr><td style={tdModern} colSpan={4}>Belum ada data</td></tr>
               )}
             </tbody>
           </table>

@@ -24,16 +24,26 @@ export default function ItemTable({
   const safeItems = Array.isArray(items) ? items : []
 
   return (
-    <div style={{ overflow: 'auto', border: '1px solid #eee', borderRadius: 12 }}>
+    <div style={{ 
+      overflow: 'auto', 
+      border: '1px solid #e5e5e5', 
+      borderRadius: 12, 
+      backgroundColor: 'white',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+    }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ background: '#fafafa' }}>
+          <tr style={{ 
+            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+            borderBottom: '2px solid #e5e5e5'
+          }}>
             <th style={th}>
               <input
                 type="checkbox"
                 checked={allSelectedOnPage}
                 onChange={onToggleAllOnPage}
                 aria-label="Select all on this page"
+                style={{ transform: 'scale(1.1)', accentColor: '#F2C14E' }}
               />
             </th>
             <th style={th}>ID</th>
@@ -48,17 +58,25 @@ export default function ItemTable({
 
         <tbody>
           {safeItems.length > 0 ? (
-            safeItems.map((it) => {
+            safeItems.map((it, index) => {
               const picked = !!selected[it.id_code]
               const isKeluar = (it.status || '').toLowerCase() === 'keluar'
               return (
-                <tr key={it.id_code}>
+                <tr 
+                  key={it.id_code}
+                  style={{
+                    backgroundColor: index % 2 === 0 ? '#fafbfc' : 'white',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                  className="table-row-hover"
+                >
                   <td style={td}>
                     <input
                       type="checkbox"
                       checked={picked}
                       onChange={() => onToggleOne?.(it.id_code)}
                       aria-label={`Select ${it.id_code}`}
+                      style={{ transform: 'scale(1.1)', accentColor: '#F2C14E' }}
                     />
                   </td>
                   <td style={tdMono}>{it.id_code}</td>
@@ -72,7 +90,7 @@ export default function ItemTable({
                       <button
                         type="button"
                         onClick={() => onShowQr?.(it.id_code)}
-                        style={btn}
+                        style={btnPrimary}
                         title="Lihat / cetak QR"
                       >
                         QR
@@ -83,9 +101,7 @@ export default function ItemTable({
                           type="button"
                           onClick={() => onDeleteOne?.(it.id_code)}
                           style={{
-                            ...btn,
-                            borderColor: '#c1121f',
-                            color: '#c1121f',
+                            ...btnDanger,
                             opacity: isKeluar ? 0.5 : 1,
                             cursor: isKeluar ? 'not-allowed' : 'pointer',
                           }}
@@ -116,10 +132,50 @@ export default function ItemTable({
 }
 
 /* ====== styles ====== */
-const th = { textAlign: 'left', padding: 10, borderBottom: '1px solid #eee', whiteSpace: 'nowrap' }
-const td = { padding: 10, borderBottom: '1px solid #f2f2f2', verticalAlign: 'top' }
-const tdMono = { ...td, fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }
-const btn = { padding: '6px 10px', border: '1px solid #ddd', borderRadius: 8, background: '#fff' }
+const th = { 
+  textAlign: 'left', 
+  padding: '14px 12px', 
+  borderBottom: '2px solid #e5e5e5', 
+  whiteSpace: 'nowrap',
+  fontWeight: 600,
+  fontSize: 14,
+  color: '#374151'
+}
+const td = { 
+  padding: '12px', 
+  borderBottom: '1px solid #f1f5f9', 
+  verticalAlign: 'top',
+  fontSize: 14,
+  color: '#1f2937'
+}
+const tdMono = { 
+  ...td, 
+  fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+  fontWeight: 600,
+  color: '#4f46e5'
+}
+const btnPrimary = { 
+  padding: '6px 12px', 
+  border: 'none', 
+  borderRadius: 6, 
+  background: '#F2C14E',
+  color: 'white',
+  fontWeight: 500,
+  fontSize: 12,
+  cursor: 'pointer',
+  transition: 'all 0.2s ease'
+}
+const btnDanger = { 
+  padding: '6px 12px', 
+  border: '1px solid #ef4444', 
+  borderRadius: 6, 
+  background: 'white',
+  color: '#ef4444',
+  fontWeight: 500,
+  fontSize: 12,
+  cursor: 'pointer',
+  transition: 'all 0.2s ease'
+}
 
 /* ====== helpers ====== */
 function badge(text, fg, bg) {

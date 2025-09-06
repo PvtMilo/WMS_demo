@@ -328,17 +328,21 @@ async function deleteSelected() {
   return (
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
       <div className="noprint">
-        <h2>Inventory</h2>
-        <div style={{margin:'8px 0 12px', display:'flex', gap:8}}>
-          <a href="/inventory/summary" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lihat Stock Summary (Print)</a>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 style={{ margin: 0 }}>Inventory</h2>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <a href="/inventory/summary" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lihat Stock Summary (Print)</a>
+          </div>
         </div>
 
       <div style={{ display: 'grid', gap: 16 }}>
         <div>
           {!showBatchForm ? (
-            <div style={{ padding: 16, border: '1px solid #eee', borderRadius: 12, background: '#fafafa' }}>
+            <div style={{ padding: 16, border: '1px solid #eee', borderRadius: 12, background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 12, color: '#666' }}>Klik untuk membuka form pendaftaran barang (batch)</div>
+              </div>
               <button style={{ ...btn, borderColor: '#111' }} onClick={() => setShowBatchForm(true)}>+ Batch Item Registration</button>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>Klik untuk membuka form pendaftaran barang (batch)</div>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
