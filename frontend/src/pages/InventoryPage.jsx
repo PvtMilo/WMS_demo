@@ -134,7 +134,8 @@ export default function InventoryPage() {
   const selectedIds = useMemo(() => Object.keys(selected), [selected])
   const selectedCount = selectedIds.length
   const allSelectedOnPage = items.length > 0 && items.every(it => selected[it.id_code])
-  const canDelete = String(user?.role||'').toLowerCase()==='admin' || String(user?.role||'').toLowerCase()==='pic'
+  const roleLc = String(user?.role||'').toLowerCase()
+  const canDelete = roleLc==='admin'
 
   function toggleOne(id) {
     setSelected(prev => {
@@ -304,6 +305,8 @@ async function deleteSelected() {
     setPage(1)          // reset ke halaman 1
     refresh({ keepPage: false })
   }
+
+  // (Mark Lost moved to dropdown via bulk update condition)
   function onKeyDownSearch(e){
     if (e.key === 'Enter') { doSearch() }
   }
@@ -410,6 +413,7 @@ async function deleteSelected() {
               Cetak QR (Selected)
             </button>
 
+
             <span style={{ marginLeft: 12, color: '#666' }}>Ubah status ke:</span>
             <select
               value={targetCond}
@@ -421,6 +425,7 @@ async function deleteSelected() {
               <option value="good">Good</option>
               <option value="rusak_ringan">Rusak ringan</option>
               <option value="rusak_berat">Rusak berat</option>
+              <option value="hilang">Hilang (Lost)</option>
             </select>
             <button
               onClick={applyBulkCondition}
@@ -532,5 +537,3 @@ async function deleteSelected() {
     </div>
   )
 }
-
-

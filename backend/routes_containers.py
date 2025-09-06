@@ -302,7 +302,7 @@ def void_item(cid):
     try:
         row = conn.execute(
             """
-            SELECT id, condition_at_checkout FROM container_item 
+            SELECT id, condition_at_checkout, returned_at, return_condition FROM container_item
             WHERE container_id=? AND id_code=? AND voided_at IS NULL
             """,
             (cid, id_code),
@@ -317,6 +317,7 @@ def void_item(cid):
         )
 
         prev = (row["condition_at_checkout"] or "good").strip()
+        already_returned = bool(row["returned_at"])
         if prev == "good":
             conn.execute(
                 "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
@@ -350,19 +351,19 @@ def void_item(cid):
 def checkin_item(cid):
     b = request.get_json(silent=True) or {}
     id_code = (b.get("id_code") or "").strip()
-    condition = (b.get("condition") or "good").strip()
+    condition = (b.get("condition") or "good").strip().lower()
     note = (b.get("damage_note") or "").strip()
 
     if not id_code:
         return jsonify({"error": True, "message": "id_code wajib"}), 400
-    if condition not in ("good", "rusak_ringan", "rusak_berat"):
+    if condition not in ("good", "rusak_ringan", "rusak_berat", "lost", "hilang"):
         return jsonify({"error": True, "message": "condition tidak valid"}), 400
 
     conn = get_conn()
     try:
         row = conn.execute(
             """
-            SELECT id, condition_at_checkout FROM container_item
+            SELECT id, condition_at_checkout, returned_at, return_condition FROM container_item
             WHERE container_id=? AND id_code=? AND voided_at IS NULL
             """,
             (cid, id_code),
@@ -371,37 +372,72 @@ def checkin_item(cid):
             return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
 
         prev = (row["condition_at_checkout"] or "good").strip()
-        # Allowed transitions at check-in:
-        # - from good: good | rusak_ringan | rusak_berat
-        # - from rusak_ringan: rusak_ringan | rusak_berat (not good)
-        # - from rusak_berat: rusak_berat only
-        allowed = {
-            "good": {"good", "rusak_ringan", "rusak_berat"},
-            "rusak_ringan": {"rusak_ringan", "rusak_berat"},
-            "rusak_berat": {"rusak_berat"},
-        }.get(prev, {"good", "rusak_ringan", "rusak_berat"})
+        already_returned = bool(row["returned_at"])
+        role = str((getattr(request, 'user', {}) or {}).get('role') or '').lower()
+        # Allowed transitions
+        if not already_returned:
+            allowed = set()  # only 'lost' allowed via separate check below
+        else:
+            current = (row["return_condition"] or "good").strip().lower()
+            allowed = {"good", "rusak_ringan", "rusak_berat"}
+            if role in ("pic", "operator"):
+                if current == 'rusak_berat':
+                    allowed = {"rusak_berat"}
+                elif current == 'rusak_ringan':
+                    allowed = {"rusak_ringan", "rusak_berat"}
+                else:  # good
+                    allowed = {"good", "rusak_ringan", "rusak_berat"}
 
-        if condition not in allowed:
+        # Non-returned: only lost is allowed (for all roles)
+        if not already_returned and condition not in ("lost", "hilang"):
+            return jsonify({"error": True, "message": "Item belum kembali. Hanya bisa ditandai Hilang."}), 400
+
+        # Allow 'lost/hilang' regardless of allowed set
+        if condition in ("lost", "hilang"):
+            pass
+        elif condition not in allowed:
             return jsonify({
                 "error": True,
                 "message": f"Perubahan kondisi tidak diizinkan (dari {prev} ke {condition})"
             }), 400
 
-        conn.execute(
-            "UPDATE container_item SET returned_at=?, return_condition=?, damage_note=? WHERE id=?",
-            (now_iso(), condition, note or None, row["id"]),
-        )
+        # Update container_item: for 'lost/hilang' do not set returned_at (keep as Out but marked lost)
+        if condition in ("lost", "hilang"):
+            conn.execute(
+                "UPDATE container_item SET return_condition=?, damage_note=? WHERE id=?",
+                ("hilang", note or None, row["id"]),
+            )
+        else:
+            conn.execute(
+                "UPDATE container_item SET returned_at=?, return_condition=?, damage_note=? WHERE id=?",
+                (now_iso(), condition, note or None, row["id"]),
+            )
+
+        # Role-based guard: PIC/Operator tidak boleh mengubah status item yang sudah 'Hilang' dari Inventory
+        cur_item = conn.execute("SELECT status FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        if role in ("pic", "operator") and cur_item and (cur_item["status"] or "") == "Hilang":
+            return jsonify({"error": True, "message": "Status Hilang hanya bisa diubah oleh admin"}), 403
+
+        # Require reason for rusak/lost unless equal to previous checkout condition (rusak->same rusak)
+        if condition in ("rusak_ringan", "rusak_berat", "lost", "hilang") and not note:
+            if not (condition in ("rusak_ringan", "rusak_berat") and condition == prev):
+                return jsonify({"error": True, "message": "Alasan wajib untuk kondisi rusak/hilang"}), 400
 
         if condition == "good":
             conn.execute(
                 "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
                 (id_code,),
             )
-        else:
+        elif condition in ("rusak_ringan", "rusak_berat"):
             level = "ringan" if condition == "rusak_ringan" else "berat"
             conn.execute(
                 "UPDATE item_unit SET status='Rusak', defect_level=? WHERE id_code=?",
                 (level, id_code),
+            )
+        else:  # lost/hilang
+            conn.execute(
+                "UPDATE item_unit SET status='Hilang', defect_level='none' WHERE id_code=?",
+                (id_code,),
             )
 
         # Jangan auto-close ketika semua sudah returned; penutupan dilakukan manual via tombol di UI

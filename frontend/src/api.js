@@ -161,6 +161,8 @@ export const api = {
   // Bulk update kondisi item (Good / Rusak ringan / Rusak berat)
   bulkUpdateCondition: (payload) =>
     request('POST', '/items/bulk_update_condition', payload),
+  // Tandai item Hilang (Lost) secara manual
+  markLost: (ids) => request('POST', '/items/mark_lost', { ids }),
   // Ringkasan jumlah per kategori
   summaryByCategory: () =>
     request('GET', '/items/summary_by_category'),
