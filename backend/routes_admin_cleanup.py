@@ -115,6 +115,8 @@ def cleanup_run():
         return jsonify({"error": True, "message": "start/end tidak valid"}), 400
     include_containers = bool(b.get("include_containers", True))
     include_emoney = bool(b.get("include_emoney", True))
+    include_maintenance = bool(b.get("include_maintenance", False))
+    include_lost = bool(b.get("include_lost", False))
     scope = b.get("emoney_scope") or []
     if isinstance(scope, str):
         scope = [s.strip() for s in scope.split(",") if s.strip()]
@@ -172,7 +174,7 @@ def cleanup_run():
             "batch_id": b.get("note") or f"batch-{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "snapshot": snap,
             "selected_containers": selected,
-            "deleted": {"containers": 0, "container_items": 0, "dn_snapshots": 0, "emoney_tx_removed": 0},
+            "deleted": {"containers": 0, "container_items": 0, "dn_snapshots": 0, "emoney_tx_removed": 0, "repair_logs": 0, "lost_entries": 0},
             "cf_inserted": 0,
         }
 
@@ -275,6 +277,38 @@ def cleanup_run():
             res["deleted"]["containers"] = int(cur["c"] or 0)
             conn.execute(f"DELETE FROM containers WHERE id IN ({marks})", tuple(selected))
 
+        # Maintenance repair logs cleanup in window
+        if include_maintenance:
+            cur = conn.execute(
+                "SELECT COUNT(*) c FROM item_repair_log WHERE repaired_at>=? AND repaired_at<?",
+                (S, E),
+            ).fetchone()
+            res["deleted"]["repair_logs"] = int(cur["c"] or 0)
+            conn.execute(
+                "DELETE FROM item_repair_log WHERE repaired_at>=? AND repaired_at<?",
+                (S, E),
+            )
+
+        # Lost item history cleanup (container_item rows marked 'hilang')
+        if include_lost:
+            cur = conn.execute(
+                """
+                SELECT COUNT(*) c FROM container_item
+                WHERE voided_at IS NULL AND LOWER(COALESCE(return_condition,''))='hilang'
+                  AND added_at>=? AND added_at<?
+                """,
+                (S, E),
+            ).fetchone()
+            res["deleted"]["lost_entries"] = int(cur["c"] or 0)
+            conn.execute(
+                """
+                DELETE FROM container_item
+                WHERE voided_at IS NULL AND LOWER(COALESCE(return_condition,''))='hilang'
+                  AND added_at>=? AND added_at<?
+                """,
+                (S, E),
+            )
+
         # Persist batch manifest for Archive Browser
         try:
             snap_dir = _ensure_snapshots_dir()
@@ -286,6 +320,8 @@ def cleanup_run():
                 "scopes": {
                     "include_containers": include_containers,
                     "include_emoney": include_emoney,
+                    "include_maintenance": include_maintenance,
+                    "include_lost": include_lost,
                     "emoney_scope": sorted(list(scope)),
                 },
                 "selected_containers": selected,

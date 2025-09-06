@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api, getToken } from '../api.js'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
 
@@ -13,7 +13,7 @@ export default function ContainerCheckIn(){
   const [scanRet, setScanRet] = useState('')
   const [listIds, setListIds] = useState('')
   const [retCond, setRetCond] = useState('good')
-  const [retNote, setRetNote] = useState('')
+  const [user, setUser] = useState(null)
   const [closing, setClosing] = useState(false)
   const [reopening, setReopening] = useState(false)
   const scanRef = useRef(null)
@@ -36,6 +36,7 @@ export default function ContainerCheckIn(){
   }
 
   useEffect(()=>{ refresh() }, [cid])
+  useEffect(() => { (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
   useEffect(()=>{ scanRef.current?.focus() }, [])
 
   // Saat scan ID berubah, set default kondisi return mengikuti kondisi saat checkout
@@ -54,10 +55,9 @@ export default function ContainerCheckIn(){
     if (!ids.length) return
     try{
       for(const id of ids){
-        await api.checkinItem(cid,{ id_code: id, condition: retCond, damage_note: retNote })
+        await api.checkinItem(cid,{ id_code: id, condition: retCond })
       }
-      // jangan auto reset ke 'good' agar tidak memaksa default Good
-      setScanRet(''); setListIds(''); setRetNote('')
+      setScanRet(''); setListIds('')
       await refresh()
       scanRef.current?.focus()
     }catch(err){ alert(err.message) }
@@ -75,7 +75,7 @@ export default function ContainerCheckIn(){
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
   const c = data.container
-  const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, all:0}
+  const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, lost:0, all:0}
 
   return (
     <div style={{fontFamily:'sans-serif'}}>
@@ -110,6 +110,7 @@ export default function ContainerCheckIn(){
           <StatusCard label="Good" value={t.good} color="#059669"/>
           <StatusCard label="Rusak Ringan" value={t.rusak_ringan} color="#d97706"/>
           <StatusCard label="Rusak Berat" value={t.rusak_berat} color="#dc2626"/>
+          <StatusCard label="Lost" value={t.lost} color="#b00020"/>
         </div>
 
         {/* Action Buttons */}

@@ -87,15 +87,6 @@ export default function ItemTable({
                   <td style={td}>{badgeStatus(it.status, it.defect_level)}</td>
                   <td style={td}>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        onClick={() => onShowQr?.(it.id_code)}
-                        style={btnPrimary}
-                        title="Lihat / cetak QR"
-                      >
-                        QR
-                      </button>
-
                       {canDelete && (
                         <button
                           type="button"

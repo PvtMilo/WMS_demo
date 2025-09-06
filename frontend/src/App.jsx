@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
 import InventorySummary from './pages/InventorySummary.jsx'
+import LostItemsPage from './pages/LostItemsPage.jsx'
 // import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
 import ContainersPage from './pages/ContainersPage.jsx'
 import ContainerCheckout from './pages/ContainerCheckout.jsx'
@@ -30,6 +31,7 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/inventory" element={<Dashboard><InventoryPage /></Dashboard>} />
       <Route path="/inventory/summary" element={<Dashboard><InventorySummary /></Dashboard>} />
+      <Route path="/inventory/lost" element={<Dashboard><LostItemsPage /></Dashboard>} />
       {/* <Route path="/print-labels" element={<PrintLabelsPage />} /> */}
       <Route path="/containers" element={<Dashboard><ContainersPage /></Dashboard>} />
       <Route path="/checkin" element={<Dashboard><CheckInList /></Dashboard>} />

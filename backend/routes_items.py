@@ -445,7 +445,7 @@ from db import get_conn
 
 @bp.delete("/<id_code>")   # ✅ benar → akan menjadi /items/<id_code>
 @auth_required
-@require_roles('admin','pic')
+@require_roles('admin')
 def delete_item(id_code):
     id_code = (id_code or "").strip()
     if not id_code:
@@ -457,8 +457,9 @@ def delete_item(id_code):
         if not row:
             return jsonify({"error": True, "message": "Item tidak ditemukan"}), 404
 
-        # TOLAK jika sedang Keluar
-        if (row["status"] or "").lower() == "keluar":
+        # TOLAK jika sedang Keluar (kecuali admin)
+        role = str((getattr(request, 'user', {}) or {}).get('role') or '').lower()
+        if (row["status"] or "").lower() == "keluar" and role != 'admin':
             return jsonify({"error": True, "message": "Item sedang dibawa event (status Keluar) — tidak bisa dihapus."}), 400
 
         # TOLAK jika masih tercatat aktif di kontainer (belum void)
@@ -493,16 +494,22 @@ def bulk_update_condition():
 
     if not ids or not isinstance(ids, list):
         return jsonify({"error": True, "message": "ids (list) wajib"}), 400
-    if condition not in ("good", "rusak_ringan", "rusak_berat"):
+    if condition not in ("good", "rusak_ringan", "rusak_berat", "hilang", "lost"):
         return jsonify({"error": True, "message": "condition tidak valid"}), 400
 
     # mapping condition -> (status, defect_level)
+    # normalize alias
+    if condition == "lost":
+        condition = "hilang"
+
     if condition == "good":
         target_status, target_defect = "Good", "none"
     elif condition == "rusak_ringan":
         target_status, target_defect = "Rusak", "ringan"
-    else:
+    elif condition == "rusak_berat":
         target_status, target_defect = "Rusak", "berat"
+    else:  # hilang
+        target_status, target_defect = "Hilang", "none"
 
     conn = get_conn()
     try:
@@ -526,6 +533,18 @@ def bulk_update_condition():
                 skipped.append({"id_code": id_code, "reason": "Sedang Keluar (ada di kontainer)"})
                 continue
 
+            # PIC/Operator tidak boleh ubah status dari Hilang (admin boleh)
+            role = str((getattr(request, 'user', {}) or {}).get('role') or '').lower()
+            if role in ("pic", "operator") and (row["status"] or "") == "Hilang":
+                skipped.append({"id_code": id_code, "reason": "Status Hilang hanya bisa diubah oleh admin"})
+                continue
+
+            # PIC/Operator boleh set Hilang hanya dari status Keluar (admin bebas)
+            role = str((getattr(request, 'user', {}) or {}).get('role') or '').lower()
+            if target_status == 'Hilang' and role in ("pic", "operator") and (row["status"] or '') != 'Keluar':
+                skipped.append({"id_code": id_code, "reason": "Hilang hanya dari status Keluar (non-admin)"})
+                continue
+
             # lakukan update
             conn.execute("""
               UPDATE item_unit SET status=?, defect_level=? WHERE id_code=?
@@ -540,5 +559,102 @@ def bulk_update_condition():
             "counts": {"updated": len(updated), "skipped": len(skipped)},
             "applied_condition": condition
         })
+    finally:
+        conn.close()
+
+
+@bp.post("/mark_lost")
+@auth_required
+@require_roles('admin','pic','operator')
+def mark_lost():
+    """
+    Tandai item sebagai Hilang secara manual dari Inventory.
+    Aturan:
+      - Hanya untuk status saat ini 'Keluar'.
+      - Role: admin/pic/operator boleh menandai Hilang.
+      - Tidak memodifikasi container_item; pengelolaan kontainer dilakukan terpisah.
+
+    Payload: { ids: [id_code, ...] }
+    """
+    b = request.get_json(silent=True) or {}
+    ids = b.get('ids') or []
+    if not ids or not isinstance(ids, list):
+        return jsonify({"error": True, "message": "ids (list) wajib"}), 400
+
+    conn = get_conn()
+    try:
+        updated, skipped = [], []
+        for raw_id in ids:
+            id_code = (raw_id or '').strip()
+            if not id_code:
+                continue
+            row = conn.execute("SELECT status FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+            if not row:
+                skipped.append({"id_code": id_code, "reason": "Item tidak ditemukan"})
+                continue
+            cur = (row["status"] or '').strip()
+            if cur != 'Keluar':
+                skipped.append({"id_code": id_code, "reason": f"Status sekarang {cur or '-'} (hanya bisa dari Keluar)"})
+                continue
+            conn.execute("UPDATE item_unit SET status='Hilang', defect_level='none' WHERE id_code=?", (id_code,))
+            updated.append(id_code)
+        conn.commit()
+        return jsonify({
+            "ok": True,
+            "updated": updated,
+            "skipped": skipped,
+            "counts": {"updated": len(updated), "skipped": len(skipped)}
+        })
+    finally:
+        conn.close()
+
+
+@bp.get("/<id_code>/lost_context")
+@auth_required
+def lost_context(id_code):
+    """
+    Kembalikan konteks kehilangan untuk item:
+    - Kontainer terakhir tempat item aktif/lost
+    - PIC, event, waktu out, catatan alasan jika ada
+    """
+    id_code = (id_code or '').strip()
+    if not id_code:
+        return jsonify({"error": True, "message": "id_code kosong"}), 400
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT ci.container_id, ci.added_at, ci.returned_at, ci.return_condition, ci.damage_note,
+                   c.pic, c.event_name
+            FROM container_item ci
+            JOIN containers c ON c.id = ci.container_id
+            WHERE ci.id_code=? AND ci.voided_at IS NULL
+            ORDER BY ci.id DESC
+            """,
+            (id_code,),
+        ).fetchall()
+        if not rows:
+            return jsonify({"error": True, "message": "Tidak ada riwayat kontainer untuk item ini"}), 404
+        # Prioritas: explicit lost -> active (returned_at IS NULL) -> latest
+        pick = None
+        for r in rows:
+            if str((r["return_condition"] or '')).lower() == 'hilang':
+                pick = r; break
+        if not pick:
+            for r in rows:
+                if not r["returned_at"]:
+                    pick = r; break
+        if not pick:
+            pick = rows[0]
+        data = {
+            "container_id": pick["container_id"],
+            "pic": pick["pic"],
+            "event_name": pick["event_name"],
+            "added_at": pick["added_at"],
+            "returned_at": pick["returned_at"],
+            "return_condition": pick["return_condition"],
+            "damage_note": pick["damage_note"],
+        }
+        return jsonify(data)
     finally:
         conn.close()
