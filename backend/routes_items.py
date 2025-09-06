@@ -607,3 +607,54 @@ def mark_lost():
         })
     finally:
         conn.close()
+
+
+@bp.get("/<id_code>/lost_context")
+@auth_required
+def lost_context(id_code):
+    """
+    Kembalikan konteks kehilangan untuk item:
+    - Kontainer terakhir tempat item aktif/lost
+    - PIC, event, waktu out, catatan alasan jika ada
+    """
+    id_code = (id_code or '').strip()
+    if not id_code:
+        return jsonify({"error": True, "message": "id_code kosong"}), 400
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT ci.container_id, ci.added_at, ci.returned_at, ci.return_condition, ci.damage_note,
+                   c.pic, c.event_name
+            FROM container_item ci
+            JOIN containers c ON c.id = ci.container_id
+            WHERE ci.id_code=? AND ci.voided_at IS NULL
+            ORDER BY ci.id DESC
+            """,
+            (id_code,),
+        ).fetchall()
+        if not rows:
+            return jsonify({"error": True, "message": "Tidak ada riwayat kontainer untuk item ini"}), 404
+        # Prioritas: explicit lost -> active (returned_at IS NULL) -> latest
+        pick = None
+        for r in rows:
+            if str((r["return_condition"] or '')).lower() == 'hilang':
+                pick = r; break
+        if not pick:
+            for r in rows:
+                if not r["returned_at"]:
+                    pick = r; break
+        if not pick:
+            pick = rows[0]
+        data = {
+            "container_id": pick["container_id"],
+            "pic": pick["pic"],
+            "event_name": pick["event_name"],
+            "added_at": pick["added_at"],
+            "returned_at": pick["returned_at"],
+            "return_condition": pick["return_condition"],
+            "damage_note": pick["damage_note"],
+        }
+        return jsonify(data)
+    finally:
+        conn.close()

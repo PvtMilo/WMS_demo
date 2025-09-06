@@ -139,7 +139,7 @@ def _build_detail(conn, cid):
         ORDER BY ci.added_at ASC, ci.id ASC
     """, (cid,)).fetchall()
 
-    batches, totals = {}, {"returned":0, "good":0, "rusak_ringan":0, "rusak_berat":0, "all":0}
+    batches, totals = {}, {"returned":0, "good":0, "rusak_ringan":0, "rusak_berat":0, "lost":0, "all":0}
     for r in rows:
         d = dict(r)
         if d["voided_at"]:
@@ -168,6 +168,11 @@ def _build_detail(conn, cid):
             rc = d.get("return_condition") or "good"
             if rc in totals:
                 totals[rc] += 1
+        else:
+            # not returned; if marked lost, count it
+            rc = (d.get("return_condition") or '').lower()
+            if rc == 'hilang':
+                totals["lost"] += 1
 
     return dict(c), batches, totals
 
@@ -376,7 +381,12 @@ def checkin_item(cid):
         role = str((getattr(request, 'user', {}) or {}).get('role') or '').lower()
         # Allowed transitions
         if not already_returned:
-            allowed = set()  # only 'lost' allowed via separate check below
+            # Item belum kembali: PIC/Operator hanya boleh validasi ke kondisi awal (prev),
+            # admin boleh ke kondisi apapun (Lost ditangani khusus di bawah)
+            if role in ("pic", "operator"):
+                allowed = {prev}
+            else:
+                allowed = {"good", "rusak_ringan", "rusak_berat"}
         else:
             current = (row["return_condition"] or "good").strip().lower()
             allowed = {"good", "rusak_ringan", "rusak_berat"}
@@ -388,9 +398,6 @@ def checkin_item(cid):
                 else:  # good
                     allowed = {"good", "rusak_ringan", "rusak_berat"}
 
-        # Non-returned: only lost is allowed (for all roles)
-        if not already_returned and condition not in ("lost", "hilang"):
-            return jsonify({"error": True, "message": "Item belum kembali. Hanya bisa ditandai Hilang."}), 400
 
         # Allow 'lost/hilang' regardless of allowed set
         if condition in ("lost", "hilang"):
@@ -564,7 +571,8 @@ def set_status(cid):
         if status == "Closed":
             left = conn.execute(
                 """SELECT COUNT(*) c FROM container_item
-                    WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL""",
+                    WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL
+                      AND (return_condition IS NULL OR LOWER(return_condition) <> 'hilang')""",
                 (cid,),
             ).fetchone()["c"]
             if left > 0:

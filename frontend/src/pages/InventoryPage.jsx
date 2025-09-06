@@ -337,6 +337,7 @@ async function deleteSelected() {
         <h2>Inventory</h2>
         <div style={{margin:'8px 0 12px', display:'flex', gap:8}}>
           <a href="/inventory/summary" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lihat Stock Summary (Print)</a>
+          <a href="/inventory/lost" style={{ ...linkBtn, textDecoration:'none', display:'inline-block' }}>Lost Items</a>
         </div>
 
       <div style={{ display: 'grid', gap: 16 }}>
@@ -414,7 +415,9 @@ async function deleteSelected() {
             </button>
 
 
-            <span style={{ marginLeft: 12, color: '#666' }}>Ubah status ke:</span>
+            {roleLc !== 'operator' && (
+              <>
+                <span style={{ marginLeft: 12, color: '#666' }}>Ubah status ke:</span>
             <select
               value={targetCond}
               onChange={e => setTargetCond(e.target.value)}
@@ -434,6 +437,8 @@ async function deleteSelected() {
             >
               Submit Perubahan
             </button>
+              </>
+            )}
           </div>
 
           {lastResult && (

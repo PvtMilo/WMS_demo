@@ -95,6 +95,10 @@ export const api = {
   qrUrl(id_code) {
     return `${API_BASE}/items/${encodeURIComponent(id_code)}/qr`
   },
+  // Lost context for item
+  lostContext(id_code) {
+    return request('GET', `/items/${encodeURIComponent(id_code)}/lost_context`)
+  },
 
   // ---------- CONTAINERS / CHECKOUT (Phase 4) ----------
   // payload: {event_name, pic, crew?, location?, start_date?, end_date?}
