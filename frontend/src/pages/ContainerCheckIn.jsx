@@ -67,6 +67,8 @@ export default function ContainerCheckIn(){
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
   const c = data.container
+  const roleLc = String(user?.role || '').toLowerCase()
+  const canVoid = roleLc === 'admin' // Batalkan hanya untuk admin
   const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, lost:0, all:0}
 
   return (
@@ -264,7 +266,13 @@ export default function ContainerCheckIn(){
           </h3>
         </div>
         <div style={{padding: 0}}>
-          <ContainerItemsTable cid={cid} batches={data.batches} onVoid={c.status !== 'Closed' ? onVoid : undefined} onUpdated={refresh} role={user?.role}/>
+          <ContainerItemsTable
+            cid={cid}
+            batches={data.batches}
+            onVoid={canVoid && c.status !== 'Closed' ? onVoid : undefined}
+            onUpdated={refresh}
+            role={user?.role}
+          />
         </div>
       </div>
 
