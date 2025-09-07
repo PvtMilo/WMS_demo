@@ -58,10 +58,10 @@ export default function ContainerItemsTable({ cid, batches = {}, onVoid, onUpdat
                         const allow = allowedByPrev(prev, !!it.returned_at, it.return_condition)
                         return (
                           <select defaultValue={(it.return_condition || it.condition || 'good')} data-id={it.id_code} style={{padding:6, border:'1px solid #ddd', borderRadius:6}}>
-                            <option value="good" disabled={!allow.has('good')}>Good</option>
-                            <option value="rusak_ringan" disabled={!allow.has('rusak_ringan')}>Rusak ringan</option>
-                            <option value="rusak_berat" disabled={!allow.has('rusak_berat')}>Rusak berat</option>
-                            <option value="lost" disabled={!allow.has('lost')}>Hilang</option>
+                            <option value="good" disabled={isAdmin ? false : !allow.has('good')}>Good</option>
+                            <option value="rusak_ringan" disabled={isAdmin ? false : !allow.has('rusak_ringan')}>Rusak ringan</option>
+                            <option value="rusak_berat" disabled={isAdmin ? false : !allow.has('rusak_berat')}>Rusak berat</option>
+                            <option value="lost" disabled={isAdmin ? false : !allow.has('lost')}>Hilang</option>
                           </select>
                         )
                       })()
@@ -88,8 +88,12 @@ export default function ContainerItemsTable({ cid, batches = {}, onVoid, onUpdat
                             const note = (noteEl?.value || '').trim()
                             const prev = it.returned_at ? (it.return_condition || 'good') : (it.condition || 'good')
                             const allow = allowedByPrev(prev, !!it.returned_at, it.return_condition)
-                            if (!it.returned_at && cond !== 'lost') { alert('Item belum kembali. Hanya bisa ditandai Hilang.'); return }
-                            if (!allow.has(cond)) {
+                            let adminOverride = false
+                            if (!it.returned_at && cond !== 'lost') {
+                              if (isAdmin) { alert('this is admin previleges'); adminOverride = true }
+                              else { alert('Item belum kembali. Hanya bisa ditandai Hilang.'); return }
+                            }
+                            if (!allow.has(cond) && !adminOverride) {
                               if (isAdmin) { if (!confirm('Perubahan ini di luar SOP (admin override). Lanjutkan?')) return }
                               else { alert('Perubahan status tidak diizinkan untuk role Anda.'); return }
                             }
