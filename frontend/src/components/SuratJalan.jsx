@@ -67,7 +67,10 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         /* SIGN SECTION: rapi di bagian bawah dokumen */
         .sj-sign { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .sj-sign .slot { text-align: center; page-break-inside: avoid; break-inside: avoid; }
-        .sj-sign .line { margin-top: 48px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; color: #000; min-height: 56px; }
+        .sj-sign .lbl { font-weight: 600; }
+        .sj-sign .role { margin-top: 2px; font-size: 12px; }
+        .sj-sign .sign-space { height: 36px; }
+        .sj-sign .line { margin-top: 4px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; color: #000; }
 
         /* Pemakaian & Kendaraan block (2 columns, ample write space) */
         .sj-3col {
@@ -356,14 +359,16 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           <h3 className="sj-h3">Tanda Tangan</h3>
           <div className="sj-sign">
             {[
-              { label: "Arranged by,", role: "Kepala Gudang" },
-              { label: "Received by,", role: "PIC Crew" },
-              { label: "Returned by,", role: "Kepala Gudang" },
-              { label: "Received by,", role: "PIC Crew" },
+              { label: "Arranged by", role: "Gudang" },
+              { label: "Received by", role: "PIC Crew" },
+              { label: "Returned by", role: "Gudang" },
+              { label: "Received by", role: "PIC Crew" },
             ].map((s, i) => (
               <div className="slot" key={i}>
-                <div>{s.label}</div>
-                <div className="line">{s.role}</div>
+                <div className="lbl">{s.label}</div>
+                <div className="role">{s.role}</div>
+                <div className="sign-space" />
+                <div className="line"></div>
               </div>
             ))}
           </div>
