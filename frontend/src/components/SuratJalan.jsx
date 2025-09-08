@@ -84,8 +84,8 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           gap: 2px 6px;
         }
         .sj-fill { border: 1px dashed #000; min-height: 20px; padding: 3px 4px; color: #000; background: transparent; }
-        /* No boxes inside Pemakaian & Kendaraan; keep space for handwriting */
-        .sj-3col .sj-fill { border: none; padding: 0; min-height: var(--sj-row-space-h); }
+        /* Show boxes for handwriting in Pemakaian & Kendaraan */
+        .sj-3col .sj-fill { border: 1px dashed #000; padding: 2px 3px; min-height: var(--sj-row-space-h); }
 
         /* Force black output for Surat Jalan only (screen and print) */
         .sj-root, .sj-root * { color: #000 !important; background: transparent !important; }
