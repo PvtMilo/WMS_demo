@@ -268,12 +268,12 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
               <th>Item Code</th>
               <th>Alasan</th>
               <th>
-                Entry Description <br />
-                <small>OUT / IN</small>
+                Status <br />
+                <small>OUT</small>
               </th>
               <th>
-                Exit Description <br />
-                <small>OUT / IN</small>
+                Status <br />
+                <small>IN</small>
               </th>
             </tr>
           </thead>
