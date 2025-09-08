@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { api, getToken } from '../api.js'
 import ItemForm from '../components/ItemForm.jsx'
 import ItemTable from '../components/ItemTable.jsx'
+import UniversalItemForm from '../components/UniversalItemForm.jsx'
 import QrModal from '../components/QrModal.jsx'
 import CategorySummary from '../components/CategorySummary.jsx'
 import QrLabelCard from '../components/QrLabelCard.jsx'
@@ -15,6 +16,7 @@ export default function InventoryPage() {
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
   const [showBatchForm, setShowBatchForm] = useState(false)
+  const [showUniversalForm, setShowUniversalForm] = useState(false)
 
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
@@ -342,12 +344,22 @@ async function deleteSelected() {
 
       <div style={{ display: 'grid', gap: 16 }}>
         <div>
-          {!showBatchForm ? (
+          {(!showBatchForm && !showUniversalForm) ? (
             <div style={{ padding: 16, border: '1px solid #eee', borderRadius: 12, background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: 12, color: '#666' }}>Klik untuk membuka form pendaftaran barang (batch)</div>
+                <div style={{ fontSize: 12, color: '#666' }}>Klik untuk membuka form pendaftaran barang (universal/batch)</div>
               </div>
-              <button style={{ ...btn, borderColor: '#111' }} onClick={() => setShowBatchForm(true)}>+ Batch Item Registration</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button style={{ ...btn, borderColor: '#111' }} onClick={() => { setShowUniversalForm(true); setShowBatchForm(false) }}>Universal Item Registration</button>
+                <button style={{ ...btn, borderColor: '#111' }} onClick={() => { setShowBatchForm(true); setShowUniversalForm(false) }}>+ Batch Item Registration</button>
+              </div>
+            </div>
+          ) : showUniversalForm ? (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button style={btn} onClick={() => setShowUniversalForm(false)}>Tutup</button>
+              </div>
+              <UniversalItemForm onCreated={async () => { setShowUniversalForm(false); await refresh({ keepPage: true }); await loadSummary() }} />
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>

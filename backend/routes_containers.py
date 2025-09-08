@@ -132,7 +132,7 @@ def _build_detail(conn, cid):
         SELECT ci.id, ci.id_code, ci.added_at, ci.batch_label, ci.condition_at_checkout,
                ci.override_reason, ci.amend_reason, ci.voided_at,
                ci.returned_at, ci.return_condition, ci.damage_note,
-               iu.name, iu.model, iu.rack, iu.category
+               iu.name, iu.model, iu.rack, iu.category, iu.is_universal
         FROM container_item ci
         LEFT JOIN item_unit iu ON iu.id_code = ci.id_code
         WHERE ci.container_id=?
@@ -160,6 +160,7 @@ def _build_detail(conn, cid):
             "returned_at": d.get("returned_at"),
             "return_condition": d.get("return_condition"),
             "damage_note": d.get("damage_note"),
+            "is_universal": int(d.get("is_universal") or 0),
         })
 
         totals["all"] += 1
@@ -235,13 +236,14 @@ def add_items(cid):
                 skipped.append({"id_code": id_code, "reason": "Sudah ada di kontainer"})
                 continue
 
-            row = conn.execute("SELECT status, defect_level FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+            row = conn.execute("SELECT status, defect_level, is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
             if not row:
                 skipped.append({"id_code": id_code, "reason": "Item tidak ditemukan"})
                 continue
 
             status = row["status"]
             defect = (row["defect_level"] or "none")
+            is_univ = int(row["is_universal"] or 0)
 
             # status rules
             if status in ("Hilang", "Afkir"):
@@ -277,8 +279,9 @@ def add_items(cid):
                 (amend_reason if is_amend else None),
             ))
 
-            # set status item -> Keluar
-            conn.execute("UPDATE item_unit SET status='Keluar' WHERE id_code=?", (id_code,))
+            # set status item -> Keluar (non-universal only)
+            if not is_univ:
+                conn.execute("UPDATE item_unit SET status='Keluar' WHERE id_code=?", (id_code,))
             added.append({"id_code": id_code, "condition": condition})
 
         conn.commit()
@@ -315,35 +318,43 @@ def void_item(cid):
         if not row:
             return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
 
+        # Check universal flag
+        uni = conn.execute("SELECT is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        is_univ = int(uni["is_universal"] or 0) if uni else 0
+
         # Void entry & revert item_unit status to condition before checkout
         conn.execute(
             "UPDATE container_item SET voided_at=?, void_reason=? WHERE id=?",
             (now_iso(), reason, row["id"]),
         )
 
-        prev = (row["condition_at_checkout"] or "good").strip()
-        already_returned = bool(row["returned_at"])
-        if prev == "good":
-            conn.execute(
-                "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
-                (id_code,),
-            )
-        elif prev == "rusak_ringan":
-            conn.execute(
-                "UPDATE item_unit SET status='Rusak', defect_level='ringan' WHERE id_code=?",
-                (id_code,),
-            )
-        elif prev == "rusak_berat":
-            conn.execute(
-                "UPDATE item_unit SET status='Rusak', defect_level='berat' WHERE id_code=?",
-                (id_code,),
-            )
-        else:
-            # fallback: jaga-jaga jika ada nilai lain, anggap Good
-            conn.execute(
-                "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
-                (id_code,),
-            )
+        # For universal items, global status was never changed; skip reverting global status
+        uni = conn.execute("SELECT is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        is_univ = int(uni["is_universal"] or 0) if uni else 0
+        if not is_univ:
+            prev = (row["condition_at_checkout"] or "good").strip()
+            already_returned = bool(row["returned_at"])
+            if prev == "good":
+                conn.execute(
+                    "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+                    (id_code,),
+                )
+            elif prev == "rusak_ringan":
+                conn.execute(
+                    "UPDATE item_unit SET status='Rusak', defect_level='ringan' WHERE id_code=?",
+                    (id_code,),
+                )
+            elif prev == "rusak_berat":
+                conn.execute(
+                    "UPDATE item_unit SET status='Rusak', defect_level='berat' WHERE id_code=?",
+                    (id_code,),
+                )
+            else:
+                # fallback: jaga-jaga jika ada nilai lain, anggap Good
+                conn.execute(
+                    "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+                    (id_code,),
+                )
 
         conn.commit()
         return jsonify({"ok": True})
@@ -375,6 +386,10 @@ def checkin_item(cid):
         ).fetchone()
         if not row:
             return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
+
+        # Determine if this item is universal (doesn't change global status)
+        uni = conn.execute("SELECT is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
+        is_univ = int(uni["is_universal"] or 0) if uni else 0
 
         prev = (row["condition_at_checkout"] or "good").strip()
         already_returned = bool(row["returned_at"])
@@ -430,22 +445,23 @@ def checkin_item(cid):
             if not (condition in ("rusak_ringan", "rusak_berat") and condition == prev):
                 return jsonify({"error": True, "message": "Alasan wajib untuk kondisi rusak/hilang"}), 400
 
-        if condition == "good":
-            conn.execute(
-                "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
-                (id_code,),
-            )
-        elif condition in ("rusak_ringan", "rusak_berat"):
-            level = "ringan" if condition == "rusak_ringan" else "berat"
-            conn.execute(
-                "UPDATE item_unit SET status='Rusak', defect_level=? WHERE id_code=?",
-                (level, id_code),
-            )
-        else:  # lost/hilang
-            conn.execute(
-                "UPDATE item_unit SET status='Hilang', defect_level='none' WHERE id_code=?",
-                (id_code,),
-            )
+        if not is_univ:
+            if condition == "good":
+                conn.execute(
+                    "UPDATE item_unit SET status='Good', defect_level='none' WHERE id_code=?",
+                    (id_code,),
+                )
+            elif condition in ("rusak_ringan", "rusak_berat"):
+                level = "ringan" if condition == "rusak_ringan" else "berat"
+                conn.execute(
+                    "UPDATE item_unit SET status='Rusak', defect_level=? WHERE id_code=?",
+                    (level, id_code),
+                )
+            else:  # lost/hilang
+                conn.execute(
+                    "UPDATE item_unit SET status='Hilang', defect_level='none' WHERE id_code=?",
+                    (id_code,),
+                )
 
         # Jangan auto-close ketika semua sudah returned; penutupan dilakukan manual via tombol di UI
 
@@ -570,9 +586,12 @@ def set_status(cid):
         # If closing, ensure all returned
         if status == "Closed":
             left = conn.execute(
-                """SELECT COUNT(*) c FROM container_item
-                    WHERE container_id=? AND voided_at IS NULL AND returned_at IS NULL
-                      AND (return_condition IS NULL OR LOWER(return_condition) <> 'hilang')""",
+                """SELECT COUNT(*) c FROM container_item ci
+                        JOIN item_unit iu ON iu.id_code = ci.id_code
+                    WHERE ci.container_id=? AND ci.voided_at IS NULL AND ci.returned_at IS NULL
+                      AND (ci.return_condition IS NULL OR LOWER(ci.return_condition) <> 'hilang')
+                      AND (iu.is_universal IS NULL OR iu.is_universal=0)
+                """,
                 (cid,),
             ).fetchone()["c"]
             if left > 0:

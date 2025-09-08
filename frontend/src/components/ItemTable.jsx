@@ -80,7 +80,14 @@ export default function ItemTable({
                     />
                   </td>
                   <td style={tdMono}>{it.id_code}</td>
-                  <td style={td}>{it.name}</td>
+                  <td style={td}>
+                    {it.name}
+                    {it.is_universal ? (
+                      <span style={{ marginLeft: 8 }}>
+                        {badge('Universal', '#1e40af', '#eff6ff')}
+                      </span>
+                    ) : null}
+                  </td>
                   <td style={td}>{it.category}</td>
                   <td style={td}>{it.model}</td>
                   <td style={td}>{it.rack}</td>

@@ -34,6 +34,7 @@ def batch_create():
     model = body.get("model") or ""
     rack = body.get("rack") or ""
     qty = int(body.get("qty") or 0)
+    is_universal = 1 if (body.get("is_universal") in (True, 1, "1", "true", "TRUE", "True")) else 0
     if not all([prefix, name, category, model, rack]) or qty < 1 or qty > 500:
         return jsonify({"error": True, "message": "Data tidak lengkap atau qty tidak valid (1-500)"}), 400
 
@@ -49,9 +50,9 @@ def batch_create():
             if cur.fetchone():
                 return jsonify({"error": True, "message": f"Duplikat ID {id_code}, batalkan."}), 409
             cur.execute("""
-              INSERT INTO item_unit (id_code, name, category, model, rack, status, defect_level, serial, created_at)
-              VALUES (?, ?, ?, ?, ?, 'Good', 'none', NULL, ?)
-            """, (id_code, name, category, _sanitize_code(model), rack, now_iso()))
+              INSERT INTO item_unit (id_code, name, category, model, rack, status, defect_level, serial, created_at, is_universal)
+              VALUES (?, ?, ?, ?, ?, 'Good', 'none', NULL, ?, ?)
+            """, (id_code, name, category, _sanitize_code(model), rack, now_iso(), is_universal))
             codes.append(id_code)
         conn.commit()
         return jsonify({"ok": True, "created": codes}), 201
@@ -109,7 +110,7 @@ def list_items():
         # ambil page
         offset = (page - 1) * per_page
         rows = conn.execute(f"""
-            SELECT id_code, name, category, model, rack, status, defect_level, created_at
+            SELECT id_code, name, category, model, rack, status, defect_level, created_at, is_universal
             FROM item_unit
             {where_sql}
             ORDER BY created_at DESC

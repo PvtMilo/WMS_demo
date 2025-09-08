@@ -43,7 +43,8 @@ def init_db():
         status TEXT NOT NULL DEFAULT 'Good',     -- Good | Keluar | Rusak | Hilang | Afkir
         defect_level TEXT DEFAULT 'none',        -- none | ringan | berat
         serial TEXT,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        is_universal INTEGER NOT NULL DEFAULT 0  -- 1 jika universal (tidak mengunci saat checkout)
     );
     """)
 
@@ -126,6 +127,10 @@ def init_db():
     ON dn_snapshots(container_id, version);
     """)
     
+    # Tambahkan kolom untuk DB lama (backward compatible)
+    if not _column_exists(cur, "item_unit", "is_universal"):
+        cur.execute("ALTER TABLE item_unit ADD COLUMN is_universal INTEGER NOT NULL DEFAULT 0;")
+
     # ==== Index untuk performa list & summary ====
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_created_at ON item_unit(created_at);")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_category   ON item_unit(category);")
@@ -133,6 +138,7 @@ def init_db():
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_model      ON item_unit(model);")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_rack       ON item_unit(rack);")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_item_name       ON item_unit(name);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_item_universal  ON item_unit(is_universal);")
 
     # ==== Maintenance / Repair logs ====
     cur.execute("""
