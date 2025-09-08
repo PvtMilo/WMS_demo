@@ -34,7 +34,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
     <div className="sj-root">
       {/* Print page setup & anti-berantakan rules */}
       <style>{`
-        @page { size: A4; margin: 6mm; }
+        @page { size: A4; margin: 0mm; }
         @media print {
           html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
@@ -103,8 +103,8 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           className="flex items-start justify-between gap-3"
           style={{
             borderBottom: "1px solid #000",
-            paddingBottom: 8,
-            marginBottom: 8,
+            paddingBottom: 0,
+            marginBottom: 0,
           }}
         >
           <div className="flex items-center gap-3">

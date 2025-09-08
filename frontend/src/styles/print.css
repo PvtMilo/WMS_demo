@@ -48,7 +48,9 @@
 .controls { margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; }
 
 @media print {
-  body { margin: 0; background: #fff !important; color: #000; }
+  body { margin: 0; padding: 0 !important; background: #fff !important; color: #000; }
+  /* Ensure app containers don't add grey background, padding, or shadows */
+  #root, .layout-root, .layout-content { background: #fff !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; }
   .noprint { display: none !important; }
 
   /* Hide app chrome/navigation during print */
