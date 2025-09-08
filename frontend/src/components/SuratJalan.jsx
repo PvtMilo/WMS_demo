@@ -40,34 +40,34 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         }
         .sj-page { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif; font-size: 12px; }
         .sj-pad { padding: 8mm 8mm 8mm; }
-        .sj-k { color: #555; }
-        .sj-line { border: 1px solid rgba(0,0,0,.15); }
-        .sj-dash { border: 1px dashed rgba(0,0,0,.25); }
+        .sj-k { color: #000; }
+        .sj-line { border: 1px solid #000; }
+        .sj-dash { border: 1px dashed #000; }
         .sj-h3 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
         .sj-title { margin: 0; font-size: 15px; letter-spacing: .4px; }
 
         table { border-collapse: collapse; width: 100%; table-layout: fixed; }
         .sj-table { font-size: 12px; }
-        th, td { border: 1px solid rgba(0,0,0,.15); padding: 3px 4px; vertical-align: top; }
-        th { background: #f6f6f6; font-weight: 600; }
+        th, td { border: 1px solid #000; padding: 3px 4px; vertical-align: top; color: #000; background: transparent; }
+        th { background: transparent; font-weight: 700; }
         thead { display: table-header-group; }    /* header ulang tiap halaman */
         tfoot { display: table-footer-group; }    /* bisa dipakai kalau perlu footer */
         tr { page-break-inside: avoid; break-inside: avoid; }  /* jangan belah baris */
         td.wrap { word-break: break-word; }
         td.nowrap { white-space: nowrap; }
-        .sj-reason { font-size: 11px; color: #444; }
+        .sj-reason { font-size: 11px; color: #000; }
 
         /* Utility grid */
         .grid2 { display: grid; grid-template-columns: 120px 1fr; gap: 2px 6px; }
-        .grid2 .k { color: #555; }
+        .grid2 .k { color: #000; }
 
         /* Section cards */
-        .sj-card { border: 1px solid rgba(0,0,0,.15); border-radius: 6px; padding: 6px; min-height: auto; }
+        .sj-card { border: 1px solid #000; border-radius: 6px; padding: 6px; min-height: auto; }
 
         /* SIGN SECTION: rapi di bagian bawah dokumen */
         .sj-sign { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .sj-sign .slot { text-align: center; page-break-inside: avoid; break-inside: avoid; }
-        .sj-sign .line { margin-top: 48px; border-top: 1px solid rgba(0,0,0,.2); padding-top: 4px; font-size: 12px; color: #555; min-height: 56px; }
+        .sj-sign .line { margin-top: 48px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; color: #000; min-height: 56px; }
 
         /* Pemakaian & Kendaraan block (2 columns, ample write space) */
         .sj-3col {
@@ -83,9 +83,17 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           align-items: start;
           gap: 2px 6px;
         }
-        .sj-fill { border: 1px dashed rgba(0,0,0,.25); min-height: 20px; padding: 3px 4px; }
+        .sj-fill { border: 1px dashed #000; min-height: 20px; padding: 3px 4px; color: #000; background: transparent; }
         /* No boxes inside Pemakaian & Kendaraan; keep space for handwriting */
         .sj-3col .sj-fill { border: none; padding: 0; min-height: var(--sj-row-space-h); }
+
+        /* Force black output for Surat Jalan only (screen and print) */
+        .sj-root, .sj-root * { color: #000 !important; background: transparent !important; }
+        .sj-root th, .sj-root td, .sj-root .sj-card, .sj-root .sj-line, .sj-root .sj-dash { border-color: #000 !important; }
+        @media print {
+          .sj-root, .sj-root * { color: #000 !important; background: transparent !important; }
+          .sj-root th, .sj-root td, .sj-root .sj-card, .sj-root .sj-line, .sj-root .sj-dash { border-color: #000 !important; }
+        }
       `}</style>
 
       {/* PAGE 1..N: Header + Meta + Table + Blocks */}
@@ -94,7 +102,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         <header
           className="flex items-start justify-between gap-3"
           style={{
-            borderBottom: "1px solid rgba(0,0,0,.1)",
+            borderBottom: "1px solid #000",
             paddingBottom: 8,
             marginBottom: 8,
           }}
@@ -108,7 +116,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           </div>
           <div className="text-right">
             <h1 className="sj-title">SURAT JALAN EVENT</h1>
-            <div style={{ color: "#555" }}>
+            <div style={{ color: "#000" }}>
               Nomor: {safe(dn?.number) || "____/CIP/EVT/____"}
             </div>
           </div>
