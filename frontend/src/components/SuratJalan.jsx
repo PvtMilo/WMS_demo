@@ -176,13 +176,13 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
                 <div className="row">
                   <div className="k">E‑Money Awal/Akhir</div>
                   <div className="sj-fill">
-                    {safe(dn?.car?.emoney_start)} – {safe(dn?.car?.emoney_end)}
+                    {safe(dn?.car?.emoney_start)} {safe(dn?.car?.emoney_end)}
                   </div>
                 </div>
                 <div className="row">
                   <div className="k">KM Awal/Akhir</div>
                   <div className="sj-fill">
-                    {safe(dn?.car?.km_start)} – {safe(dn?.car?.km_end)}
+                    {safe(dn?.car?.km_start)} {safe(dn?.car?.km_end)}
                   </div>
                 </div>
                 <div className="row">

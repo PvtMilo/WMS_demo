@@ -8,9 +8,9 @@ FRONTEND_ORIGIN = "http://localhost:5173"
 # Login plaintext users (HOME SERVER ONLY)
 # Roles: 'admin' | 'pic' | 'operator'
 USERS = [
-    {"email": "admin@wms.local",   "password": "Admin123!", "id": "admin", "name": "Admin",         "role": "admin"},
-    {"email": "pic@wms.local",     "password": "Pic123!",   "id": "pic-001","name": "PIC Gudang",    "role": "pic"},
-    {"email": "op@wms.local",      "password": "Op123!",    "id": "op-001", "name": "Operator",      "role": "operator"},
+    {"email": "admin@wms.ci",   "password": "adminci", "id": "admin", "name": "Admin",         "role": "admin"},
+    {"email": "pic@wms.ci",     "password": "picci",   "id": "pic-001","name": "PIC Gudang",    "role": "pic"},
+    {"email": "op@wms.ci",      "password": "opci!",    "id": "op-001", "name": "Operator",      "role": "operator"},
 ]
 
 # Backward compatibility (if some code still references ADMIN_*)
