@@ -60,12 +60,57 @@ export default function ContainerForm({ onCreated }) {
 
   async function submit(e){
     e.preventDefault()
-    setMsg(''); setLoading(true)
+    setMsg('')
+
+    // Client-side validation: require all fields completed
+    const missing = []
+    if (!event_name.trim()) missing.push('Event')
+    if (!pic.trim()) missing.push('PIC')
+    if (!crew.trim()) missing.push('Crew')
+    if (!location.trim()) missing.push('Lokasi')
+    if (!startDateStr.trim()) missing.push('Tanggal Mulai')
+    if (!startTime.trim()) missing.push('Jam Mulai')
+    if (!endDateStr.trim()) missing.push('Tanggal Selesai')
+    if (!endTime.trim()) missing.push('Jam Selesai')
+
+    const invalids = []
+    const sd = parseDDMMYY(startDateStr)
+    const ed = parseDDMMYY(endDateStr)
+    const hhmm = /^\d{2}:\d{2}$/
+    if (startDateStr && !sd) invalids.push('Tanggal Mulai (format dd/mm/yy)')
+    if (endDateStr && !ed) invalids.push('Tanggal Selesai (format dd/mm/yy)')
+    if (startTime && !hhmm.test(startTime)) invalids.push('Jam Mulai (format HH:mm)')
+    if (endTime && !hhmm.test(endTime)) invalids.push('Jam Selesai (format HH:mm)')
+
+    if (missing.length || invalids.length) {
+      alert(
+        'Harap lengkapi form sebelum menyimpan.\n' +
+        (missing.length ? ('- Kosong: ' + missing.join(', ') + '\n') : '') +
+        (invalids.length ? ('- Format salah: ' + invalids.join(', ')) : '')
+      )
+      return
+    }
+
+    const startIso = composeIso(startDateStr, startTime)
+    const endIso = composeIso(endDateStr, endTime)
+    if (!startIso || !endIso) {
+      alert('Tanggal/Jam tidak valid. Periksa kembali.')
+      return
+    }
+    if (new Date(startIso) > new Date(endIso)) {
+      alert('Tanggal/Waktu selesai harus lebih besar atau sama dengan mulai.')
+      return
+    }
+
+    setLoading(true)
     try {
       const payload = {
-        event_name, pic, crew, location,
-        start_date: composeIso(startDateStr, startTime) || undefined,
-        end_date: composeIso(endDateStr, endTime) || undefined,
+        event_name: event_name.trim(),
+        pic: pic.trim(),
+        crew: crew.trim(),
+        location: location.trim(),
+        start_date: startIso,
+        end_date: endIso,
       }
       const out = await api.createContainer(payload)
       setMsg(`Berhasil buat kontainer: ${out.id}`)
@@ -87,13 +132,13 @@ export default function ContainerForm({ onCreated }) {
       <h3>Buat Kontainer / Event</h3>
       <label>Event <input value={event_name} onChange={e=>setEventName(e.target.value)} style={ipt} required/></label>
       <label>PIC <input value={pic} onChange={e=>setPic(e.target.value)} style={ipt} required/></label>
-      <label>Crew <input value={crew} onChange={e=>setCrew(e.target.value)} style={ipt}/></label>
-      <label>Lokasi <input value={location} onChange={e=>setLocation(e.target.value)} style={ipt}/></label>
+      <label>Crew <input value={crew} onChange={e=>setCrew(e.target.value)} style={ipt} required/></label>
+      <label>Lokasi <input value={location} onChange={e=>setLocation(e.target.value)} style={ipt} required/></label>
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
         <div style={group}>
           <div style={label}>Mulai</div>
           <div style={row}>
-            <input placeholder="dd/mm/yy" value={startDateStr} onChange={e=>setStartDateStr(e.target.value)} style={{...ipt, flex:1}}/>
+            <input placeholder="dd/mm/yy" value={startDateStr} onChange={e=>setStartDateStr(e.target.value)} style={{...ipt, flex:1}} required/>
             <button type="button" onClick={()=>pickDate(startDatePickerRef, setStartDateStr)} title="Pilih tanggal" style={tinyBtn}>📅</button>
             <button type="button" onClick={()=>setStartDateStr(todayDDMMYY())} title="Set hari ini" style={tinyBtn}>Today</button>
             {/* hidden native date input for picker */}
@@ -106,7 +151,7 @@ export default function ContainerForm({ onCreated }) {
             }} />
           </div>
           <div style={row}>
-            <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} style={{...ipt, flex:1}}/>
+            <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} style={{...ipt, flex:1}} required/>
             <select value={startTime} onChange={e=>setStartTime(e.target.value)} style={ipt}>
               <option value="">Pilih jam cepat…</option>
               <option>08:00</option>
@@ -123,7 +168,7 @@ export default function ContainerForm({ onCreated }) {
         <div style={group}>
           <div style={label}>Selesai</div>
           <div style={row}>
-            <input placeholder="dd/mm/yy" value={endDateStr} onChange={e=>setEndDateStr(e.target.value)} style={{...ipt, flex:1}}/>
+            <input placeholder="dd/mm/yy" value={endDateStr} onChange={e=>setEndDateStr(e.target.value)} style={{...ipt, flex:1}} required/>
             <button type="button" onClick={()=>pickDate(endDatePickerRef, setEndDateStr)} title="Pilih tanggal" style={tinyBtn}>📅</button>
             <button type="button" onClick={()=>setEndDateStr(todayDDMMYY())} title="Set hari ini" style={tinyBtn}>Today</button>
             {/* hidden native date input for picker */}
@@ -136,7 +181,7 @@ export default function ContainerForm({ onCreated }) {
             }} />
           </div>
           <div style={row}>
-            <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} style={{...ipt, flex:1}}/>
+            <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} style={{...ipt, flex:1}} required/>
             <select value={endTime} onChange={e=>setEndTime(e.target.value)} style={ipt}>
               <option value="">Pilih jam cepat…</option>
               <option>08:00</option>
