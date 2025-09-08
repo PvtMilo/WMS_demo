@@ -63,14 +63,15 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
 
         /* Section cards */
         .sj-card { border: 1px solid #000; border-radius: 6px; padding: 6px; min-height: auto; }
+        .sj-card.no-border { border: 0 !important; }
 
         /* SIGN SECTION: rapi di bagian bawah dokumen */
         .sj-sign { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .sj-sign .slot { text-align: center; page-break-inside: avoid; break-inside: avoid; }
         .sj-sign .lbl { font-weight: 600; }
-        .sj-sign .role { margin-top: 2px; font-size: 12px; }
+        .sj-sign .role { margin-top: 2px; font-size: 12px; min-height: 16px; }
         .sj-sign .sign-space { height: 36px; }
-        .sj-sign .line { margin-top: 4px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; color: #000; }
+        .sj-sign .line { margin-top: 30px; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; color: #000; }
 
         /* Pemakaian & Kendaraan block (2 columns, ample write space) */
         .sj-3col {
@@ -106,8 +107,8 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           className="flex items-start justify-between gap-3"
           style={{
             borderBottom: "1px solid #000",
-            paddingBottom: 0,
-            marginBottom: 0,
+            paddingBottom: 10,
+            marginBottom: 10,
           }}
         >
           <div className="flex items-center gap-3">
@@ -127,7 +128,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
 
         {/* Meta boxes */}
         <div className="grid grid-cols-2 gap-3 mb-2">
-          <div className="sj-card">
+          <div className="sj-card no-border">
             <h3 className="sj-h3">Detail Event</h3>
             <div className="grid2">
               <div className="k">Nama Event</div>
@@ -360,9 +361,9 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           <div className="sj-sign">
             {[
               { label: "Arranged by", role: "Gudang" },
-              { label: "Received by", role: "PIC Crew" },
+              { label: "Received by", role: "" },
               { label: "Returned by", role: "Gudang" },
-              { label: "Received by", role: "PIC Crew" },
+              { label: "Received by", role: "" },
             ].map((s, i) => (
               <div className="slot" key={i}>
                 <div className="lbl">{s.label}</div>
