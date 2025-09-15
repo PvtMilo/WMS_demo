@@ -75,6 +75,7 @@ export default function Dashboard({ children }) {
         <SideButton to="/containers" label="CONTAINER" />
         <SideButton to="/checkout" label="CHECK OUT" />
         <SideButton to="/checkin" label="CHECK IN" />
+        <SideButton to="/general-checkin" label="GENERAL CHECK-IN" />
         <SideButton to="/maintenance" label="MAINTENANCE" />
         <SideButton to="/emoney" label="EMONEY" />
 

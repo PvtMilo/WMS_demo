@@ -21,6 +21,7 @@ import EmoneyContainerHistory from './pages/EmoneyContainerHistory.jsx'
 import EmoneyHistoryPage from './pages/EmoneyHistoryPage.jsx'
 import AdminDataLifecycle from './pages/AdminDataLifecycle.jsx'
 import AdminArchive from './pages/AdminArchive.jsx'
+import GeneralCheckIn from './pages/GeneralCheckIn.jsx'
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
       <Route path="/checkout" element={<Dashboard><CheckoutList /></Dashboard>} />
       <Route path="/containers/:cid/checkout" element={<Dashboard><ContainerCheckout /></Dashboard>} />
       <Route path="/containers/:cid/checkin" element={<Dashboard><ContainerCheckIn /></Dashboard>} />
+      <Route path="/general-checkin" element={<Dashboard><GeneralCheckIn /></Dashboard>} />
       <Route path="/containers/:cid/surat-jalan" element={<Dashboard><SuratJalanPage /></Dashboard>} />
       <Route path="/containers/:cid/surat-jalan/v/:ver" element={<Dashboard><SuratJalanPage /></Dashboard>} />
       <Route path="/containers/:cid/dn-history" element={<Dashboard><SuratJalanHistory /></Dashboard>} />
