@@ -105,16 +105,19 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         {/* Header */}
         <header
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
-            alignItems: 'start',
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            alignItems: "start",
             borderBottom: "1px solid #000",
             paddingBottom: 10,
             marginBottom: 10,
           }}
         >
           {/* Left: Logo */}
-          <div className="flex items-center gap-3" style={{ justifySelf: 'start' }}>
+          <div
+            className="flex items-center gap-3"
+            style={{ justifySelf: "start" }}
+          >
             <img
               src="/logo_hitam.png"
               alt="logo"
@@ -122,16 +125,17 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
             />
           </div>
           {/* Center: Snapshot DN Versi X (if available) */}
-          <div style={{ textAlign: 'center', alignSelf: 'start' }}>
+          <div style={{ textAlign: "center", alignSelf: "start" }}>
             {(() => {
-              const v = dn?.version || (String(dn?.number || '').match(/\/V(\d+)/i)?.[1]);
+              const v =
+                dn?.version || String(dn?.number || "").match(/\/V(\d+)/i)?.[1];
               return v ? (
                 <div style={{ fontWeight: 700 }}>Snapshot DN Versi {v}</div>
-              ) : null
+              ) : null;
             })()}
           </div>
           {/* Right: Title + Number */}
-          <div className="text-right" style={{ justifySelf: 'end' }}>
+          <div className="text-right" style={{ justifySelf: "end" }}>
             <h1 className="sj-title">SURAT JALAN EVENT</h1>
             <div style={{ color: "#000" }}>
               Nomor: {safe(dn?.number) || "____/CIP/EVT/____"}
@@ -222,11 +226,9 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
                   <div className="k">Total Biaya Tol</div>
                   <div className="sj-fill">{safe(dn?.car?.toll_total)}</div>
                 </div>
-              </div>
-              {/* Full-width row: Report Mobil (plain text) below Total Biaya Tol */}
-              <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'var(--sj-row-label-w) 1fr', gap: '2px 6px' }}>
-                <div className="k">Report Mobil</div>
-                <div>{safe(dn?.car_report || dn?.car_end_report)}</div>
+                <div className="row">
+                  <div className="k">Report Mobil</div>
+                </div>
               </div>
             </div>
             <div className="grid2" style={{ display: "none" }}>
@@ -337,11 +339,6 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         <div className="sj-card" style={{ marginTop: 8 }}>
           <h3 className="sj-h3">Note untuk Gudang</h3>
           <div>{safe(dn?.warehouse_note)}</div>
-        </div>
-
-        <div className="sj-card" style={{ marginTop: 8 }}>
-          <strong>Note:</strong>
-          <div>{safe(dn?.note)}</div>
         </div>
         {/* Tanda Tangan: rapi di bagian akhir (tidak dipaksa halaman baru) */}
         <div style={{ marginTop: 16 }}>
