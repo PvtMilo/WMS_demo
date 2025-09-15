@@ -146,22 +146,23 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         {/* Meta boxes */}
         <div className="grid grid-cols-2 gap-3 mb-2">
           <div className="sj-card no-border">
-            <h3 className="sj-h3">Detail Event</h3>
+            <h3 className="sj-h3">Detail Event :</h3>
             <div className="grid2">
-              <div className="k">Nama Event</div>
+              <div className="k">Nama Event :</div>
               <div>{safe(dn?.event_name)}</div>
-              <div className="k">Tanggal & Jam Event</div>
+              <div className="k">Tanggal & Jam Event :</div>
               <div>{safe(dn?.event_dt)}</div>
-              <div className="k">Tanggal & Jam Loading</div>
+              <div className="k">Tanggal & Jam Loading :</div>
               <div>{safe(dn?.loading_dt)}</div>
-              <div className="k">Lokasi Event</div>
+              <div className="k">Lokasi Event : </div>
               <div>{safe(dn?.location)}</div>
-              <div className="k">Nama Sales</div>
+              <div className="k">Nama Sales :</div>
               <div>{safe(dn?.sales)}</div>
-              <div className="k">PIC Crew</div>
+              <div className="k">PIC Crew :</div>
               <div>{safe(dn?.pic)}</div>
-              <div className="k">Crew</div>
+              <div className="k">Crew :</div>
               <div>{crewStr}</div>
+              <div className="k">Order :</div>
             </div>
           </div>
           <div className="sj-card">
