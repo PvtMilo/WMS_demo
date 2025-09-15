@@ -104,21 +104,34 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
       <div className="sj-page sj-pad">
         {/* Header */}
         <header
-          className="flex items-start justify-between gap-3"
           style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            alignItems: 'start',
             borderBottom: "1px solid #000",
             paddingBottom: 10,
             marginBottom: 10,
           }}
         >
-          <div className="flex items-center gap-3">
+          {/* Left: Logo */}
+          <div className="flex items-center gap-3" style={{ justifySelf: 'start' }}>
             <img
               src="/logo_hitam.png"
               alt="logo"
               style={{ height: 20, objectFit: "contain" }}
             />
           </div>
-          <div className="text-right">
+          {/* Center: Snapshot DN Versi X (if available) */}
+          <div style={{ textAlign: 'center', alignSelf: 'start' }}>
+            {(() => {
+              const v = dn?.version || (String(dn?.number || '').match(/\/V(\d+)/i)?.[1]);
+              return v ? (
+                <div style={{ fontWeight: 700 }}>Snapshot DN Versi {v}</div>
+              ) : null
+            })()}
+          </div>
+          {/* Right: Title + Number */}
+          <div className="text-right" style={{ justifySelf: 'end' }}>
             <h1 className="sj-title">SURAT JALAN EVENT</h1>
             <div style={{ color: "#000" }}>
               Nomor: {safe(dn?.number) || "____/CIP/EVT/____"}
@@ -209,6 +222,11 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
                   <div className="k">Total Biaya Tol</div>
                   <div className="sj-fill">{safe(dn?.car?.toll_total)}</div>
                 </div>
+              </div>
+              {/* Full-width row: Report Mobil (plain text) below Total Biaya Tol */}
+              <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'var(--sj-row-label-w) 1fr', gap: '2px 6px' }}>
+                <div className="k">Report Mobil</div>
+                <div>{safe(dn?.car_report || dn?.car_end_report)}</div>
               </div>
             </div>
             <div className="grid2" style={{ display: "none" }}>
@@ -311,44 +329,14 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
           }
         `}</style>
 
-        {/* Car condition + status/report */}
-        <div className="grid grid-cols-2 gap-3 mt-2">
-          <div className="sj-card">
-            <h3 className="sj-h3">Kondisi Mobil</h3>
-            <div className="grid2">
-              <div className="k">Depan</div>
-              <div className="sj-fill">{safe(dn?.car_condition?.front)}</div>
-              <div className="k">Belakang</div>
-              <div className="sj-fill">{safe(dn?.car_condition?.back)}</div>
-              <div className="k">Kanan</div>
-              <div className="sj-fill">{safe(dn?.car_condition?.right)}</div>
-              <div className="k">Kiri</div>
-              <div className="sj-fill">{safe(dn?.car_condition?.left)}</div>
-            </div>
-          </div>
-          <div className="sj-card">
-            <h3 className="sj-h3">Status Pembayaran Mobil</h3>
-            <div className="sj-fill" style={{ minHeight: 28 }}>
-              {safe(dn?.car_payment_status)}
-            </div>
-            <h3 className="sj-h3" style={{ marginTop: 8 }}>
-              Report Pemakaian Akhir Mobil
-            </h3>
-            <div className="sj-fill" style={{ minHeight: 56 }}>
-              {safe(dn?.car_end_report)}
-            </div>
-          </div>
+        {/* Stacked: Report Event and Note untuk Gudang */}
+        <div className="sj-card" style={{ marginTop: 8 }}>
+          <h3 className="sj-h3">Report Event</h3>
+          <div>{safe(dn?.event_report)}</div>
         </div>
-
-        <div className="grid grid-cols-2 gap-3 mt-2">
-          <div className="sj-card">
-            <h3 className="sj-h3">Report Event</h3>
-            <div>{safe(dn?.event_report)}</div>
-          </div>
-          <div className="sj-card">
-            <h3 className="sj-h3">Note untuk Gudang</h3>
-            <div>{safe(dn?.warehouse_note)}</div>
-          </div>
+        <div className="sj-card" style={{ marginTop: 8 }}>
+          <h3 className="sj-h3">Note untuk Gudang</h3>
+          <div>{safe(dn?.warehouse_note)}</div>
         </div>
 
         <div className="sj-card" style={{ marginTop: 8 }}>
