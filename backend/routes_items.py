@@ -467,14 +467,21 @@ def delete_item(id_code):
         if (row["status"] or "").lower() == "hilang" and role != 'admin':
             return jsonify({"error": True, "message": "Item status Hilang hanya bisa dihapus oleh admin"}), 403
 
-        # TOLAK jika masih tercatat aktif di kontainer (belum void)
-        active = conn.execute("""
+        # TOLAK jika masih tercatat aktif di kontainer (belum void dan belum returned)
+        active = conn.execute(
+            """
             SELECT 1 FROM container_item
-            WHERE id_code=? AND voided_at IS NULL
+            WHERE id_code=? AND voided_at IS NULL AND returned_at IS NULL
             LIMIT 1
-        """, (id_code,)).fetchone()
+            """,
+            (id_code,),
+        ).fetchone()
         if active:
-            return jsonify({"error": True, "message": "Item tercatat aktif di kontainer — tidak bisa dihapus."}), 400
+            # Admin boleh menghapus jika status item adalah Hilang
+            if (row["status"] or "").lower() == "hilang" and role == 'admin':
+                pass
+            else:
+                return jsonify({"error": True, "message": "Item tercatat aktif di kontainer — tidak bisa dihapus."}), 400
 
         conn.execute("DELETE FROM item_unit WHERE id_code=?", (id_code,))
         conn.commit()
