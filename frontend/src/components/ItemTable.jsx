@@ -20,6 +20,7 @@ export default function ItemTable({
   onShowQr,
   onDeleteOne,
   canDelete = true,
+  isAdmin = false,
 }) {
   const safeItems = Array.isArray(items) ? items : []
 
@@ -60,7 +61,15 @@ export default function ItemTable({
           {safeItems.length > 0 ? (
             safeItems.map((it, index) => {
               const picked = !!selected[it.id_code]
-              const isKeluar = (it.status || '').toLowerCase() === 'keluar'
+              const statusLc = (it.status || '').toLowerCase()
+              const isKeluar = statusLc === 'keluar'
+              const isHilang = statusLc === 'hilang'
+              const delDisabled = isKeluar || (isHilang && !isAdmin)
+              const delTitle = isKeluar
+                ? 'Tidak bisa hapus: barang sedang dibawa event (status Keluar)'
+                : (isHilang && !isAdmin
+                    ? 'Tidak bisa hapus: hanya admin yang boleh menghapus item Hilang'
+                    : 'Hapus item')
               return (
                 <tr 
                   key={it.id_code}
@@ -100,15 +109,11 @@ export default function ItemTable({
                           onClick={() => onDeleteOne?.(it.id_code)}
                           style={{
                             ...btnDanger,
-                            opacity: isKeluar ? 0.5 : 1,
-                            cursor: isKeluar ? 'not-allowed' : 'pointer',
+                            opacity: delDisabled ? 0.5 : 1,
+                            cursor: delDisabled ? 'not-allowed' : 'pointer',
                           }}
-                          disabled={isKeluar}
-                          title={
-                            isKeluar
-                              ? 'Tidak bisa hapus: barang sedang dibawa event (status Keluar)'
-                              : 'Hapus item'
-                          }
+                          disabled={delDisabled}
+                          title={delTitle}
                         >
                           Delete
                         </button>

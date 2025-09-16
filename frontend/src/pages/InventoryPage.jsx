@@ -478,6 +478,7 @@ async function deleteSelected() {
                 onShowQr={setQrId}
                 onDeleteOne={canDelete ? deleteOne : undefined}
                 canDelete={canDelete}
+                isAdmin={roleLc==='admin'}
               />
 
               {/* Pagination */}

@@ -463,6 +463,10 @@ def delete_item(id_code):
         if (row["status"] or "").lower() == "keluar" and role != 'admin':
             return jsonify({"error": True, "message": "Item sedang dibawa event (status Keluar) — tidak bisa dihapus."}), 400
 
+        # TOLAK jika status Hilang (Lost) kecuali admin
+        if (row["status"] or "").lower() == "hilang" and role != 'admin':
+            return jsonify({"error": True, "message": "Item status Hilang hanya bisa dihapus oleh admin"}), 403
+
         # TOLAK jika masih tercatat aktif di kontainer (belum void)
         active = conn.execute("""
             SELECT 1 FROM container_item
