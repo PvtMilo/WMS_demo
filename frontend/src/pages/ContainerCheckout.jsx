@@ -78,6 +78,7 @@ export default function ContainerCheckout(){
             <div style={{display: 'grid', gap: 8, color: '#374151'}}>
               <div><span style={{fontWeight: 600, color: '#6b7280'}}>Event:</span> {c.event_name}</div>
               <div><span style={{fontWeight: 600, color: '#6b7280'}}>PIC:</span> {c.pic}</div>
+              <div><span style={{fontWeight: 600, color: '#6b7280'}}>Order:</span> {c.order_title || '-'}</div>
               <div><span style={{fontWeight: 600, color: '#6b7280'}}>Crew:</span> {c.crew || '-'}</div>
               <div><span style={{fontWeight: 600, color: '#6b7280'}}>Lokasi:</span> {c.location || '-'}</div>
               <div><span style={{fontWeight: 600, color: '#6b7280'}}>Jadwal:</span> {formatDateTime(c.start_date)} - {formatDateTime(c.end_date)}</div>
