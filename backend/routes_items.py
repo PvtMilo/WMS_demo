@@ -446,7 +446,7 @@ from db import get_conn
 
 @bp.delete("/<id_code>")   # ✅ benar → akan menjadi /items/<id_code>
 @auth_required
-@require_roles('admin')
+@require_roles('admin','pic')
 def delete_item(id_code):
     id_code = (id_code or "").strip()
     if not id_code:

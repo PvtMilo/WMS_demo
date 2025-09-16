@@ -137,7 +137,7 @@ export default function InventoryPage() {
   const selectedCount = selectedIds.length
   const allSelectedOnPage = items.length > 0 && items.every(it => selected[it.id_code])
   const roleLc = String(user?.role||'').toLowerCase()
-  const canDelete = roleLc==='admin'
+  const canDelete = roleLc==='admin' || roleLc==='pic'
 
   function toggleOne(id) {
     setSelected(prev => {
