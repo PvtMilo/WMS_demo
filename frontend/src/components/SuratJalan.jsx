@@ -272,11 +272,11 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
         <h3 style={{ margin: "6px 0" }}>List of Delivered Order</h3>
         <table className="sj-table">
           <colgroup>
-            <col style={{ width: "20px" }} />
-            <col style={{ width: "300px" }} />
+            <col style={{ width: "30px" }} />
+            <col style={{ width: "200px" }} />
             <col style={{ width: "90px" }} />
             <col style={{ width: "50px" }} />
-            <col style={{ width: "70px" }} />
+            <col style={{ width: "150px" }} />
             <col style={{ width: "100px" }} />
             <col style={{ width: "56px" }} />
             <col style={{ width: "56px" }} />
