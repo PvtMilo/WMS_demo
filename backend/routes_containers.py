@@ -19,8 +19,8 @@ def create_container():
     conn = get_conn()
     try:
         conn.execute("""
-          INSERT INTO containers (id, event_name, pic, crew, location, start_date, end_date, status, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, 'Open', ?)
+          INSERT INTO containers (id, event_name, pic, crew, location, start_date, end_date, order_title, status, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Open', ?)
         """, (
             cid,
             (b.get("event_name") or "").strip(),
@@ -29,6 +29,7 @@ def create_container():
             (b.get("location") or "").strip(),
             (b.get("start_date") or "").strip(),
             (b.get("end_date") or "").strip(),
+            ((b.get("order_title") or b.get("order") or "").strip() or None),
             now_iso(),
         ))
         conn.commit()
@@ -102,7 +103,7 @@ def list_containers():
     where_sql = " WHERE " + " AND ".join(filters) if filters else ""
 
     sql = (
-        "SELECT id, event_name, pic, crew, location, start_date, end_date, status, created_at, "
+        "SELECT id, event_name, pic, crew, location, start_date, end_date, order_title, status, created_at, "
         "(SELECT COUNT(*) FROM emoney_tx t WHERE t.ref_container_id=containers.id AND t.type='expense') AS emoney_expenses "
         + base
         + where_sql
@@ -487,6 +488,7 @@ def submit_dn(cid):
             "container": {
                 "id": c["id"], "event_name": c["event_name"], "pic": c["pic"], "crew": c["crew"],
                 "location": c["location"], "start_date": c["start_date"], "end_date": c["end_date"],
+                "order_title": c.get("order_title"),
                 "status": c["status"], "created_at": c["created_at"]
             },
             "batches": batches,

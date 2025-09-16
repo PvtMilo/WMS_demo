@@ -163,6 +163,7 @@ export default function SuratJalan({ dn, items = [], logoUrl }) {
               <div className="k">Crew :</div>
               <div>{crewStr}</div>
               <div className="k">Order :</div>
+              <div>{safe(dn?.order)}</div>
             </div>
           </div>
           <div className="sj-card">

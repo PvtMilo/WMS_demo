@@ -68,6 +68,7 @@ export default function SuratJalanPage() {
       sales: '',
       pic: c.pic,
       crew: c.crew,
+      order: c.order_title || '',
 
       ribbon_start: '',
       ribbon_end: '',

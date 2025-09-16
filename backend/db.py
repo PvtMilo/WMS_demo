@@ -58,10 +58,15 @@ def init_db():
         location TEXT,
         start_date TEXT,
         end_date TEXT,
+        order_title TEXT,                        -- optional: Order label/title for DN
         status TEXT NOT NULL DEFAULT 'Open',     -- Open | Closed
         created_at TEXT NOT NULL
     );
     """)
+
+    # Backfill missing columns for older DBs
+    if not _column_exists(cur, "containers", "order_title"):
+        cur.execute("ALTER TABLE containers ADD COLUMN order_title TEXT;")
 
     # ==== Container items (new) ====
     cur.execute("""

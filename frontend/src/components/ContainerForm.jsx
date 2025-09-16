@@ -6,6 +6,7 @@ export default function ContainerForm({ onCreated }) {
   const [pic, setPic] = useState('')
   const [crew, setCrew] = useState('')
   const [location, setLocation] = useState('')
+  const [order, setOrder] = useState('')
   // Input tanggal/waktu terpisah agar mudah mengetik dd/mm/yy
   const [startDateStr, setStartDateStr] = useState('')   // dd/mm/yy atau dd/mm/yyyy
   const [startTime, setStartTime] = useState('')         // HH:mm
@@ -109,13 +110,14 @@ export default function ContainerForm({ onCreated }) {
         pic: pic.trim(),
         crew: crew.trim(),
         location: location.trim(),
+        order_title: order.trim() || undefined,
         start_date: startIso,
         end_date: endIso,
       }
       const out = await api.createContainer(payload)
       setMsg(`Berhasil buat kontainer: ${out.id}`)
       onCreated?.(out.id)
-      setEventName(''); setPic(''); setCrew(''); setLocation('')
+      setEventName(''); setPic(''); setCrew(''); setLocation(''); setOrder('')
       setStartDateStr(''); setStartTime(''); setEndDateStr(''); setEndTime('')
     } catch (e) { setMsg(e.message) }
     finally { setLoading(false) }
@@ -134,6 +136,7 @@ export default function ContainerForm({ onCreated }) {
       <label>PIC <input value={pic} onChange={e=>setPic(e.target.value)} style={ipt} required/></label>
       <label>Crew <input value={crew} onChange={e=>setCrew(e.target.value)} style={ipt} required/></label>
       <label>Lokasi <input value={location} onChange={e=>setLocation(e.target.value)} style={ipt} required/></label>
+      <label>Order <input value={order} onChange={e=>setOrder(e.target.value)} style={ipt} placeholder="Nama/No. Order"/></label>
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
         <div style={group}>
           <div style={label}>Mulai</div>
