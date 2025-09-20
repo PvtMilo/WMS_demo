@@ -70,6 +70,44 @@ def containers_metrics():
     finally:
         conn.close()
 
+# ---------- Outstanding items (still out) ----------
+@bp.get("/outstanding_items")
+@auth_required
+def outstanding_items():
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT ci.id_code, ci.container_id, ci.added_at, ci.batch_label,
+                   ci.condition_at_checkout, ci.return_condition,
+                   c.event_name, c.pic,
+                   iu.name, iu.category, iu.model
+            FROM container_item ci
+            JOIN containers c ON c.id = ci.container_id
+            LEFT JOIN item_unit iu ON iu.id_code = ci.id_code
+            WHERE ci.voided_at IS NULL
+              AND ci.returned_at IS NULL
+              AND (ci.return_condition IS NULL OR LOWER(ci.return_condition) <> 'hilang')
+            ORDER BY ci.added_at DESC
+            """
+        ).fetchall()
+        data = []
+        for r in rows:
+            data.append({
+                "id_code": r["id_code"],
+                "name": (r["name"] or r["id_code"]),
+                "category": r["category"],
+                "model": r["model"],
+                "container_id": r["container_id"],
+                "event_name": r["event_name"],
+                "pic": r["pic"],
+                "batch_label": r["batch_label"],
+                "condition_at_checkout": r["condition_at_checkout"],
+                "added_at": r["added_at"],
+            })
+        return jsonify({"data": data, "total": len(data)})
+    finally:
+        conn.close()
 # ---------- List containers ----------
 @bp.get("")
 @auth_required

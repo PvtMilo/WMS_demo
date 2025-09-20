@@ -3,18 +3,54 @@ import { api } from '../api.js'
 
 export default function GeneralCheckIn(){
   const [scanCode, setScanCode] = useState('')
-  const [rows, setRows] = useState([]) // { id_code, name, event_name, pic, container_id, ts }
+  const [rows, setRows] = useState([])
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [busy, setBusy] = useState(false)
+  const [loading, setLoading] = useState(true)
   const scanRef = useRef(null)
   const lastScanRef = useRef({ code: '', at: 0 })
+  const aliveRef = useRef(true)
 
-  useEffect(()=>{ scanRef.current?.focus() }, [])
+  useEffect(()=>{
+    aliveRef.current = true
+    scanRef.current?.focus()
+    return ()=>{ aliveRef.current = false }
+  }, [])
+
+  useEffect(()=>{ loadOutstanding().catch(()=>{}) }, [])
+
+  async function loadOutstanding(opts = {}){
+    const { quiet = false } = opts
+    if (!quiet) setLoading(true)
+    try{
+      const res = await api.outstandingItems()
+      if (!aliveRef.current) return
+      const data = (res?.data || []).map(item => ({
+        id_code: item.id_code,
+        name: item.name || item.id_code,
+        event_name: item.event_name || '-',
+        pic: item.pic || '-',
+        container_id: item.container_id,
+        added_at: item.added_at,
+        condition_at_checkout: item.condition_at_checkout || 'good',
+        batch_label: item.batch_label || '',
+      }))
+      setRows(data)
+      setPage(1)
+    } catch (err) {
+      console.error(err)
+      if (!quiet && aliveRef.current){
+        alert(err?.message || 'Gagal memuat daftar outstanding')
+      }
+      throw err
+    } finally {
+      if (!quiet && aliveRef.current) setLoading(false)
+    }
+  }
 
   function resetFocus(){
     setScanCode('')
-    // allow next tick so value clears before focusing
     requestAnimationFrame(()=> scanRef.current?.focus())
   }
 
@@ -37,7 +73,6 @@ export default function GeneralCheckIn(){
 
     setBusy(true)
     try{
-      // 1) Verify item exists (for user-friendly error: "Item tidak dikenal")
       let item
       try {
         item = await api.getItem(code)
@@ -46,7 +81,6 @@ export default function GeneralCheckIn(){
         return
       }
 
-      // 2) Resolve active container context
       let ctx
       try {
         ctx = await api.lostContext(code)
@@ -55,7 +89,6 @@ export default function GeneralCheckIn(){
         return
       }
 
-      // Must be actively OUT: returned_at must be null/empty and not lost/hilang
       const returnedAt = (ctx.returned_at || '').trim()
       const rc = String(ctx.return_condition || '').toLowerCase()
       if (returnedAt || rc === 'hilang'){
@@ -69,7 +102,6 @@ export default function GeneralCheckIn(){
         return
       }
 
-      // 3) Perform check-in on the related container
       try {
         await api.checkinItem(cid, { id_code: code, condition: 'good' })
       } catch (e) {
@@ -77,18 +109,8 @@ export default function GeneralCheckIn(){
         return
       }
 
-      // 4) Append to session table (newest on top)
-      const row = {
-        id_code: code,
-        name: item?.name || code,
-        event_name: ctx.event_name || '-',
-        pic: ctx.pic || '-',
-        container_id: cid,
-        ts: Date.now(),
-      }
-      setRows(prev => [row, ...prev])
-      // Keep current page at 1 to show newest first by default
-      setPage(1)
+      setRows(prev => prev.filter(r => !(r.id_code === code && r.container_id === cid)))
+      await loadOutstanding({ quiet: true }).catch(()=>{})
     } finally {
       setBusy(false)
       resetFocus()
@@ -141,10 +163,9 @@ export default function GeneralCheckIn(){
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       <div style={{display:'flex', alignItems:'baseline', gap:12, marginBottom: 16}}>
         <h2 style={{margin:0}}>General Check-In</h2>
-        <span style={{color:'#666'}}>Scan item OUT untuk dikembalikan</span>
+        <span style={{color:'#666'}}>Daftar semua item yang masih OUT. Scan untuk mengembalikan.</span>
       </div>
 
-      {/* Scanner input */}
       <div style={{
         marginBottom: 16,
         background: 'white',
@@ -175,8 +196,8 @@ export default function GeneralCheckIn(){
           <button onClick={doScan} disabled={busy} style={{padding:'8px 12px', border:'none', borderRadius:6, background:'#059669', color:'white', fontWeight:600}}>
             {busy ? 'Memproses...' : 'Check-In'}
           </button>
-          <button onClick={()=>{ setRows([]); setPage(1); scanRef.current?.focus() }} style={{padding:'8px 12px', border:'1px solid #ddd', borderRadius:6, background:'white'}}>
-            Delete All
+          <button onClick={()=> loadOutstanding().catch(()=>{})} disabled={loading} style={{padding:'8px 12px', border:'1px solid #ddd', borderRadius:6, background:'white'}}>
+            {loading ? 'Memuat...' : 'Refresh'}
           </button>
           <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:8}}>
             <span style={{fontSize:12, color:'#666'}}>Per halaman:</span>
@@ -189,7 +210,6 @@ export default function GeneralCheckIn(){
         </div>
       </div>
 
-      {/* Returned items table */}
       <div style={{
         overflow: 'auto',
         border: '1px solid #e5e5e5',
@@ -208,29 +228,35 @@ export default function GeneralCheckIn(){
             </tr>
           </thead>
           <tbody>
-            {paged.length ? paged.map((r, idx)=> (
-              <tr key={r.ts + '-' + r.id_code} style={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
-                <td style={td}>{r.name}</td>
-                <td style={td}>{r.event_name}</td>
-                <td style={td}>{r.pic}</td>
-                <td style={tdMono}>{r.container_id}</td>
-                <td style={td}><a href={`/containers/${r.container_id}/checkin`} style={btn}>Buka</a></td>
-              </tr>
-            )) : (
-              <tr><td style={td} colSpan={5}>Belum ada item yang dikembalikan</td></tr>
+            {rows.length === 0 && loading ? (
+              <tr><td style={td} colSpan={5}>Memuat daftar item OUT...</td></tr>
+            ) : paged.length ? (
+              paged.map((r, idx)=> (
+                <tr key={r.container_id + '-' + r.id_code} style={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
+                  <td style={td}>
+                    <div style={{fontWeight:600}}>{r.name}</div>
+                    <div style={{fontSize:12, color:'#6b7280'}}>{r.id_code}</div>
+                    {r.batch_label ? <div style={{fontSize:11, color:'#9ca3af'}}>Batch {r.batch_label}</div> : null}
+                  </td>
+                  <td style={td}>{r.event_name}</td>
+                  <td style={td}>{r.pic}</td>
+                  <td style={tdMono}>{r.container_id}</td>
+                  <td style={td}><a href={`/containers/${r.container_id}/checkin`} style={btn}>Buka</a></td>
+                </tr>
+              ))
+            ) : (
+              <tr><td style={td} colSpan={5}>Semua item sudah kembali</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination controls */}
       <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:12 }}>
         <button onClick={()=>{ setPage(p=>Math.max(1, p-1)); scanRef.current?.focus() }} disabled={pageSafe <= 1} style={{padding:'6px 10px', border:'1px solid #ddd', borderRadius:6, background:'white'}}>Previous</button>
         <span style={{fontSize:13, color:'#555'}}>Page {pageSafe} / {totalPages}</span>
         <button onClick={()=>{ setPage(p=>Math.min(totalPages, p+1)); scanRef.current?.focus() }} disabled={pageSafe >= totalPages} style={{padding:'6px 10px', border:'1px solid #ddd', borderRadius:6, background:'white'}}>Next</button>
-        <div style={{marginLeft:'auto', fontSize:12, color:'#666'}}>Total: {rows.length}</div>
+        <div style={{marginLeft:'auto', fontSize:12, color:'#666'}}>Total OUT: {rows.length}</div>
       </div>
     </div>
   )
 }
-

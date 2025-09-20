@@ -106,6 +106,9 @@ export const api = {
     return request('POST', '/containers', payload)
   },
 
+  outstandingItems() {
+    return request('GET', '/containers/outstanding_items')
+  },
   listContainers(params = {}) {
     const qs = new URLSearchParams(params).toString()
     return request('GET', '/containers' + (qs ? `?${qs}` : ''))
@@ -145,7 +148,7 @@ export const api = {
     return request('POST', `/containers/${encodeURIComponent(cid)}/checkin`, payload)
   },
 
-  // Submit DN → buat snapshot versi (V1, V2, ...)
+  // Submit DN -> buat snapshot versi (V1, V2, ...)
   submitDN(cid) {
     return request('POST', `/containers/${encodeURIComponent(cid)}/submit_dn`)
   },
