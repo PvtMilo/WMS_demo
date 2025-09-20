@@ -163,7 +163,7 @@ export default function GeneralCheckIn(){
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       <div style={{display:'flex', alignItems:'baseline', gap:12, marginBottom: 16}}>
         <h2 style={{margin:0}}>General Check-In</h2>
-        <span style={{color:'#666'}}>Daftar semua item yang masih OUT. Scan untuk mengembalikan.</span>
+        <span style={{color:'#666'}}>Item OUT dari kontainer yang sudah Sedang Berjalan. Scan untuk mengembalikan.</span>
       </div>
 
       <div style={{

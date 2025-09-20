@@ -88,6 +88,7 @@ def outstanding_items():
             WHERE ci.voided_at IS NULL
               AND ci.returned_at IS NULL
               AND (ci.return_condition IS NULL OR LOWER(ci.return_condition) <> 'hilang')
+              AND c.status='Sedang Berjalan'
             ORDER BY ci.added_at DESC
             """
         ).fetchall()
