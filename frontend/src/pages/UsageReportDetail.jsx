@@ -229,7 +229,7 @@ export default function UsageReportDetail() {
                           <option value="">-- pilih stok --</option>
                           {stockOptions.map((s) => (
                             <option key={s.id} value={s.id}>
-                              {s.name} ({s.category}) — stok {s.qty}
+                              {s.name} ({s.category}) - stok {s.qty}
                             </option>
                           ))}
                         </select>
