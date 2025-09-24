@@ -156,3 +156,54 @@ def update_item(item_id: int):
         return jsonify({'ok': True, 'id': item_id, 'qty': qty, 'name': new_name, 'category': new_category})
     finally:
         conn.close()
+
+@bp.delete('/<int:item_id>')
+@auth_required
+@require_roles('admin', 'pic', 'operator')
+def delete_item(item_id: int):
+    conn = get_conn()
+    try:
+        row = conn.execute('SELECT id FROM stock_item WHERE id=?', (item_id,)).fetchone()
+        if not row:
+            return jsonify({'error': True, 'message': 'Stock tidak ditemukan'}), 404
+        conn.execute('DELETE FROM stock_item WHERE id=?', (item_id,))
+        conn.commit()
+        return jsonify({'ok': True, 'id': item_id})
+    finally:
+        conn.close()
+
+@bp.post('/bulk_delete')
+@auth_required
+@require_roles('admin', 'pic', 'operator')
+def bulk_delete():
+    body = request.get_json(silent=True) or {}
+    ids_raw = body.get('ids')
+    if not isinstance(ids_raw, list) or not ids_raw:
+        return jsonify({'error': True, 'message': 'ids (list) wajib'}), 400
+
+    ids = []
+    for val in ids_raw:
+        try:
+            num = int(val)
+        except (TypeError, ValueError):
+            continue
+        if num > 0:
+            ids.append(num)
+
+    if not ids:
+        return jsonify({'error': True, 'message': 'Tidak ada id valid'}), 400
+
+    ids = sorted(set(ids))
+    placeholders = ','.join(['?'] * len(ids))
+
+    conn = get_conn()
+    try:
+        rows = conn.execute(f'SELECT id FROM stock_item WHERE id IN ({placeholders})', ids).fetchall()
+        found = [row['id'] for row in rows]
+        if not found:
+            return jsonify({'ok': True, 'requested': len(ids), 'deleted': 0})
+        conn.execute(f'DELETE FROM stock_item WHERE id IN ({placeholders})', ids)
+        conn.commit()
+        return jsonify({'ok': True, 'requested': len(ids), 'deleted': len(found)})
+    finally:
+        conn.close()

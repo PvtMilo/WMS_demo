@@ -199,6 +199,8 @@ export const api = {
   createStock: (payload) => request('POST', '/stock', payload),
   restockStock: (id, payload) => request('POST', `/stock/${encodeURIComponent(id)}/restock`, payload),
   updateStock: (id, payload) => request('PUT', `/stock/${encodeURIComponent(id)}`, payload),
+  deleteStock: (id) => request('DELETE', `/stock/${encodeURIComponent(id)}`),
+  deleteStockBulk: (ids) => request('POST', '/stock/bulk_delete', { ids }),
   // ---------- E-MONEY ----------
   // Create emoney account
   createEmoney: (payload) => request('POST', '/emoney', payload),

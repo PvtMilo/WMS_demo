@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api.js'
 
 const initialForm = { name: '', category: '', qty: '' }
@@ -20,10 +20,14 @@ export default function StockPage() {
   const [searchInput, setSearchInput] = useState('')
   const [appliedSearch, setAppliedSearch] = useState('')
   const [totals, setTotals] = useState({ count: 0, qty: 0 })
-  const [action, setAction] = useState(null) // { type: 'restock' | 'edit', item }
+  const [action, setAction] = useState(null)
   const [actionQty, setActionQty] = useState('')
   const [actionError, setActionError] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [selected, setSelected] = useState({})
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const headerCheckboxRef = useRef(null)
 
   const loadStock = useCallback(async (q = appliedSearch) => {
     setLoading(true)
@@ -33,6 +37,7 @@ export default function StockPage() {
       const res = await api.listStock(params)
       const data = Array.isArray(res.data) ? res.data : []
       setRows(data)
+      setSelected({})
       setTotals({
         count: typeof res.total_count === 'number' ? res.total_count : data.length,
         qty: typeof res.total_qty === 'number' ? res.total_qty : data.reduce((sum, item) => sum + Number(item.qty || 0), 0),
@@ -40,6 +45,7 @@ export default function StockPage() {
     } catch (e) {
       setError(e.message || 'Gagal memuat data stock')
       setRows([])
+      setSelected({})
       setTotals({ count: 0, qty: 0 })
     } finally {
       setLoading(false)
@@ -55,6 +61,14 @@ export default function StockPage() {
     const tid = setTimeout(() => setInfo(''), 4000)
     return () => clearTimeout(tid)
   }, [info])
+
+  const selectedIds = Object.keys(selected)
+  const selectedCount = selectedIds.length
+
+  useEffect(() => {
+    if (!headerCheckboxRef.current) return
+    headerCheckboxRef.current.indeterminate = selectedCount > 0 && selectedCount < rows.length
+  }, [selectedCount, rows.length])
 
   function onChangeForm(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -96,6 +110,34 @@ export default function StockPage() {
   function resetSearch() {
     setSearchInput('')
     setAppliedSearch('')
+  }
+
+  function toggleOne(id) {
+    const key = String(id)
+    setSelected(prev => {
+      const next = { ...prev }
+      if (next[key]) {
+        delete next[key]
+      } else {
+        next[key] = true
+      }
+      return next
+    })
+  }
+
+  function toggleAllOnPage() {
+    setSelected(prev => {
+      if (!rows.length) return {}
+      const currentlyAll = rows.every(item => prev[String(item.id)])
+      if (currentlyAll) {
+        const next = { ...prev }
+        rows.forEach(item => { delete next[String(item.id)] })
+        return next
+      }
+      const next = { ...prev }
+      rows.forEach(item => { next[String(item.id)] = true })
+      return next
+    })
   }
 
   function openRestock(item) {
@@ -158,6 +200,39 @@ export default function StockPage() {
     }
   }
 
+  const hasSelection = selectedCount > 0
+  const deleteDisabled = !hasSelection || deleteLoading
+
+  async function handleDeleteSelected() {
+    if (deleteDisabled) return
+    const ids = selectedIds.map(id => Number(id)).filter(id => Number.isInteger(id) && id > 0)
+    if (!ids.length) return
+    const confirmMsg = ids.length === 1
+      ? 'Hapus 1 data stock?'
+      : `Hapus ${ids.length} data stock?`
+    if (!window.confirm(confirmMsg)) return
+
+    setDeleteLoading(true)
+    setError('')
+    setInfo('')
+    try {
+      const res = await api.deleteStockBulk(ids)
+      const deleted = typeof res.deleted === 'number' ? res.deleted : ids.length
+      const requested = typeof res.requested === 'number' ? res.requested : ids.length
+      if (deleted === requested) {
+        setInfo(`Berhasil menghapus ${deleted} data stock`)
+      } else {
+        setError(`Terhapus ${deleted} dari ${requested} data stock (cek ulang data).`)
+      }
+      setSelected({})
+      await loadStock()
+    } catch (e) {
+      setError(e.message || 'Gagal menghapus stock')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -188,7 +263,7 @@ export default function StockPage() {
         </div>
       </form>
 
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           value={searchInput}
           onChange={e => setSearchInput(e.target.value)}
@@ -197,7 +272,20 @@ export default function StockPage() {
         />
         <button type="submit" style={buttonStyle}>Cari</button>
         <button type="button" onClick={resetSearch} style={{ ...buttonStyle, background: 'white', color: '#333', border: '1px solid #ccc' }}>Reset</button>
+        <button
+          type="button"
+          onClick={handleDeleteSelected}
+          disabled={deleteDisabled}
+          style={{
+            ...dangerButtonStyle,
+            opacity: deleteDisabled ? 0.6 : 1,
+            cursor: deleteDisabled ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {deleteLoading ? 'Menghapus...' : `Delete (${selectedCount})`}
+        </button>
         {appliedSearch && <span style={{ fontSize: 13, color: '#666' }}>Filter aktif: "{appliedSearch}"</span>}
+        {hasSelection && <span style={{ fontSize: 13, color: '#2563eb' }}>{selectedCount} dipilih</span>}
       </form>
 
       {info && (
@@ -215,6 +303,15 @@ export default function StockPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f8f9fa', textAlign: 'left' }}>
+              <th style={{ ...thStyle, width: 48 }}>
+                <input
+                  ref={headerCheckboxRef}
+                  type="checkbox"
+                  checked={rows.length > 0 && rows.every(item => selected[String(item.id)])}
+                  onChange={toggleAllOnPage}
+                  style={{ transform: 'scale(1.05)' }}
+                />
+              </th>
               <th style={thStyle}>Nama</th>
               <th style={thStyle}>Kategori</th>
               <th style={thStyle}>Qty</th>
@@ -225,15 +322,23 @@ export default function StockPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td style={tdStyle} colSpan={5}>Memuat data...</td>
+                <td style={tdStyle} colSpan={6}>Memuat data...</td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td style={tdStyle} colSpan={5}>Belum ada data stock</td>
+                <td style={tdStyle} colSpan={6}>Belum ada data stock</td>
               </tr>
             ) : (
               rows.map((item, idx) => (
                 <tr key={item.id} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                  <td style={tdStyle}>
+                    <input
+                      type="checkbox"
+                      checked={!!selected[String(item.id)]}
+                      onChange={() => toggleOne(item.id)}
+                      style={{ transform: 'scale(1.05)' }}
+                    />
+                  </td>
                   <td style={tdStyle}>{item.name}</td>
                   <td style={tdStyle}>{item.category}</td>
                   <td style={{ ...tdStyle, fontWeight: 600 }}>{item.qty}</td>
@@ -311,6 +416,11 @@ const buttonStyle = {
   fontWeight: 600,
   cursor: 'pointer',
   fontSize: 14,
+}
+
+const dangerButtonStyle = {
+  ...buttonStyle,
+  background: '#b91c1c',
 }
 
 const thStyle = {
