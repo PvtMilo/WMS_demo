@@ -257,12 +257,8 @@ export default function StockPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div>
         <h2 style={{ margin: 0 }}>Stock</h2>
-        <div style={{ textAlign: 'right', fontSize: 13 }}>
-          <div>Total jenis: <b>{totals.count}</b></div>
-          <div>Total qty: <b>{totals.qty}</b></div>
-        </div>
       </div>
 
       <CategorySummary data={catSummary} />
