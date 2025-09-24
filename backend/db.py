@@ -75,6 +75,7 @@ def init_db():
         end_date TEXT,
         order_title TEXT,                        -- optional: Order label/title for DN
         status TEXT NOT NULL DEFAULT 'Open',     -- Open | Closed
+        usage_report_status TEXT NOT NULL DEFAULT 'pending',  -- pending | done usage report state
         created_at TEXT NOT NULL
     );
     """)
@@ -82,6 +83,10 @@ def init_db():
     # Backfill missing columns for older DBs
     if not _column_exists(cur, "containers", "order_title"):
         cur.execute("ALTER TABLE containers ADD COLUMN order_title TEXT;")
+
+    if not _column_exists(cur, "containers", "usage_report_status"):
+        cur.execute("ALTER TABLE containers ADD COLUMN usage_report_status TEXT NOT NULL DEFAULT 'pending';")
+        cur.execute("UPDATE containers SET usage_report_status='pending' WHERE usage_report_status IS NULL OR usage_report_status='';")
 
     # ==== Container items (new) ====
     cur.execute("""
@@ -131,7 +136,40 @@ def init_db():
     WHERE voided_at IS NULL;
     """)
 
-    # ==== DN Snapshots ====
+    # ==== Container usage reports ====
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS container_usage_report (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        container_id TEXT NOT NULL UNIQUE,
+        vehicle TEXT,
+        special_note TEXT,
+        submitted_by TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(container_id) REFERENCES containers(id)
+    );
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS container_usage_item (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_id INTEGER NOT NULL,
+        stock_id INTEGER NOT NULL,
+        stock_name TEXT NOT NULL,
+        stock_category TEXT,
+        qty_before INTEGER NOT NULL,
+        qty_used INTEGER NOT NULL,
+        qty_after INTEGER NOT NULL,
+        note TEXT,
+        FOREIGN KEY(report_id) REFERENCES container_usage_report(id),
+        FOREIGN KEY(stock_id) REFERENCES stock_item(id)
+    );
+    """)
+
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_usage_report_container ON container_usage_report(container_id);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_usage_item_report ON container_usage_item(report_id);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_usage_item_stock ON container_usage_item(stock_id);")
+# ==== DN Snapshots ====
     cur.execute("""
     CREATE TABLE IF NOT EXISTS dn_snapshots (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

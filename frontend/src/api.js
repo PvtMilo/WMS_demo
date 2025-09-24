@@ -202,7 +202,33 @@ export const api = {
   updateStock: (id, payload) => request('PUT', `/stock/${encodeURIComponent(id)}`, payload),
   deleteStock: (id) => request('DELETE', `/stock/${encodeURIComponent(id)}`),
   deleteStockBulk: (ids) => request('POST', '/stock/bulk_delete', { ids }),
-  // ---------- E-MONEY ----------
+
+        // ---------- USAGE REPORTS ----------
+  usageReportList: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/usage_reports' + (qs ? '?' + qs : ''))
+  },
+  usageReportDetail: (cid) => request('GET', '/usage_reports/' + encodeURIComponent(cid)),
+  saveUsageReport: (cid, payload) => request('POST', '/usage_reports/' + encodeURIComponent(cid), payload),
+  exportUsageReport: async (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    const tok = getToken()
+    const res = await fetch(API_BASE + '/usage_reports/export' + (qs ? '?' + qs : ''), {
+      method: 'GET',
+      headers: tok ? { 'Authorization': 'Token ' + tok } : {},
+    })
+    if (!res.ok) {
+      let msg = 'Gagal mengunduh laporan usage'
+      try {
+        const data = await res.json()
+        msg = (data && data.message) || msg
+      } catch (_) {}
+      throw new Error(msg)
+    }
+    return res.blob()
+  },
+
+// ---------- E-MONEY ----------
   // Create emoney account
   createEmoney: (payload) => request('POST', '/emoney', payload),
   // List emoney

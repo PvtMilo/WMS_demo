@@ -319,15 +319,18 @@ export default function ContainersPage() {
                   </thead>
                   <tbody>
                     {items.length ? (
-                      items.map((c, index) => (
-                        <tr
+                      items.map((c, index) => {
+                        const usageStatus = String(c.usage_report_status || 'pending').toLowerCase()
+                        const usagePending = usageStatus !== 'done'
+                        return (
+                          <tr
                           key={c.id}
                           style={{
                             backgroundColor:
                               index % 2 === 0 ? "#fafbfc" : "white",
                             transition: "background-color 0.2s ease",
                           }}
-                          className="table-row-hover"
+                            className="table-row-hover"
                         >
                           {isAdmin && (
                             <td style={td}>
@@ -360,6 +363,21 @@ export default function ContainersPage() {
                               : ""}
                           </td>
                           <td style={td}>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                padding: "4px 10px",
+                                borderRadius: 999,
+                                background: usagePending ? "#fee2e2" : "#dcfce7",
+                                color: usagePending ? "#b91c1c" : "#15803d",
+                                fontWeight: 600,
+                                fontSize: 12,
+                              }}
+                            >
+                              {usagePending ? "Report Needed!" : "Done"}
+                            </span>
+                          </td>
+                          <td style={td}>
                             {(c.emoney_expenses || 0) > 0
                               ? "Recorded"
                               : "Pending"}
@@ -374,7 +392,7 @@ export default function ContainersPage() {
                             >
                               {c.status === "Open" && (
                                 <a
-                                  href={`/containers/${c.id}/checkout`}
+                                  href={"/containers/" + c.id + "/checkout"}
                                   style={btnPrimary}
                                 >
                                   Checkout
@@ -382,22 +400,28 @@ export default function ContainersPage() {
                               )}
                               {c.status === "Sedang Berjalan" && (
                                 <a
-                                  href={`/containers/${c.id}/checkin`}
+                                  href={"/containers/" + c.id + "/checkin"}
                                   style={btnPrimary}
                                 >
                                   Check-In
                                 </a>
                               )}
+                              <a
+                                href={"/reports/usage/" + c.id}
+                                style={btnSecondary}
+                              >
+                                Report Pemakaian
+                              </a>
                               {c.status === "Closed" && (
                                 <>
                                   <a
-                                    href={`/containers/${c.id}/checkin`}
+                                    href={"/containers/" + c.id + "/checkin"}
                                     style={btnSecondary}
                                   >
                                     Lihat
                                   </a>
                                   <a
-                                    href={`/emoney/expense/${c.id}`}
+                                    href={"/emoney/expense/" + c.id}
                                     style={{
                                       ...((c.emoney_expenses || 0) > 0
                                         ? btnSecondary
@@ -412,7 +436,7 @@ export default function ContainersPage() {
                                     Input E-Money
                                   </a>
                                   <a
-                                    href={`/emoney/history/${c.id}`}
+                                    href={"/emoney/history/" + c.id}
                                     style={btnSecondary}
                                   >
                                     History E-Money
@@ -422,7 +446,8 @@ export default function ContainersPage() {
                             </div>
                           </td>
                         </tr>
-                      ))
+                      )
+                    })
                     ) : (
                       <tr>
                         <td style={td} colSpan={isAdmin ? 10 : 9}>

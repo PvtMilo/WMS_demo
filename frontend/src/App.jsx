@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
 import StockPage from './pages/StockPage.jsx'
 import InventorySummary from './pages/InventorySummary.jsx'
+import UsageReportPage from './pages/UsageReportPage.jsx'
+import UsageReportDetail from './pages/UsageReportDetail.jsx'
 import LostItemsPage from './pages/LostItemsPage.jsx'
 // import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
 import ContainersPage from './pages/ContainersPage.jsx'
@@ -33,6 +35,8 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/inventory" element={<Dashboard><InventoryPage /></Dashboard>} />
       <Route path="/stock" element={<Dashboard><StockPage /></Dashboard>} />
+      <Route path="/reports/usage" element={<Dashboard><UsageReportPage /></Dashboard>} />
+      <Route path="/reports/usage/:cid" element={<Dashboard><UsageReportDetail /></Dashboard>} />
       <Route path="/inventory/summary" element={<Dashboard><InventorySummary /></Dashboard>} />
       <Route path="/inventory/lost" element={<Dashboard><LostItemsPage /></Dashboard>} />
       {/* <Route path="/print-labels" element={<PrintLabelsPage />} /> */}

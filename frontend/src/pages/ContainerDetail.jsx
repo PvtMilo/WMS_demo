@@ -81,6 +81,7 @@ export default function ContainerDetail(){
   if (!data) return <div style={{padding:24}}>Tidak ada data</div>
 
   const c = data.container
+  const usageStatus = String(c.usage_report_status || 'pending').toLowerCase()
   const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, lost:0, all:0}
 
   return (

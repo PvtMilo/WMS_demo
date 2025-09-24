@@ -142,7 +142,7 @@ def list_containers():
     where_sql = " WHERE " + " AND ".join(filters) if filters else ""
 
     sql = (
-        "SELECT id, event_name, pic, crew, location, start_date, end_date, order_title, status, created_at, "
+        "SELECT id, event_name, pic, crew, location, start_date, end_date, order_title, status, usage_report_status, created_at, "
         "(SELECT COUNT(*) FROM emoney_tx t WHERE t.ref_container_id=containers.id AND t.type='expense') AS emoney_expenses "
         + base
         + where_sql
