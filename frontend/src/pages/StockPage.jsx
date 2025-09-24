@@ -11,37 +11,18 @@ function formatTs(ts) {
   return d.toLocaleString()
 }
 
-function buildCategorySummary(list) {
-  const grouped = new Map()
-  for (const raw of list) {
-    const name = typeof raw?.name === 'string' ? raw.name.trim() : ''
-    const category = typeof raw?.category === 'string' ? raw.category.trim() : ''
-    const qty = Number(raw?.qty || 0) || 0
-    const safeCategory = category || '(Tanpa kategori)'
-    const safeName = name || '(Tanpa nama)'
-    if (!grouped.has(safeCategory)) {
-      grouped.set(safeCategory, {
-        category: safeCategory,
-        total: 0,
-        items: [],
-      })
-    }
-    const entry = grouped.get(safeCategory)
-    entry.total += qty
-    entry.items.push({
-      label: `${safeName} (${safeCategory})`,
-      qty,
+function buildItemSummary(list) {
+  return list
+    .map((raw) => {
+      const name = typeof raw?.name === 'string' ? raw.name.trim() : ''
+      const category = typeof raw?.category === 'string' ? raw.category.trim() : ''
+      const qty = Number(raw?.qty || 0) || 0
+      const safeCategory = category || '(Tanpa kategori)'
+      const safeName = name || '(Tanpa nama)'
+      const label = safeCategory ? `${safeName} (${safeCategory})` : safeName
+      return { label, qty }
     })
-  }
-  const summary = Array.from(grouped.values()).map((entry) => ({
-    ...entry,
-    items: entry.items.sort((a, b) => a.label.localeCompare(b.label)),
-  }))
-  summary.sort((a, b) => {
-    if (b.total !== a.total) return b.total - a.total
-    return a.category.localeCompare(b.category)
-  })
-  return summary
+    .sort((a, b) => a.label.localeCompare(b.label))
 }
 
 export default function StockPage() {
@@ -77,7 +58,7 @@ export default function StockPage() {
         count: typeof res.total_count === 'number' ? res.total_count : data.length,
         qty: typeof res.total_qty === 'number' ? res.total_qty : data.reduce((sum, item) => sum + Number(item.qty || 0), 0),
       })
-      setCatSummary(buildCategorySummary(data))
+      setCatSummary(buildItemSummary(data))
     } catch (e) {
       setError(e.message || 'Gagal memuat data stock')
       setRows([])
