@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api.js'
+import CategorySummary from '../components/CategorySummary.jsx'
 
 const initialForm = { name: '', category: '', qty: '' }
 
@@ -20,6 +21,7 @@ export default function StockPage() {
   const [searchInput, setSearchInput] = useState('')
   const [appliedSearch, setAppliedSearch] = useState('')
   const [totals, setTotals] = useState({ count: 0, qty: 0 })
+  const [catSummary, setCatSummary] = useState([])
   const [action, setAction] = useState(null)
   const [actionQty, setActionQty] = useState('')
   const [actionError, setActionError] = useState('')
@@ -28,6 +30,25 @@ export default function StockPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const headerCheckboxRef = useRef(null)
+
+  const loadSummary = useCallback(async () => {
+    try {
+      const res = await api.stockSummary()
+      const raw = Array.isArray(res.data) ? res.data : []
+      const normalized = raw.map(item => {
+        const rawCategory = typeof item?.category === 'string' ? item.category.trim() : ''
+        const category = rawCategory || '(Tanpa kategori)'
+        return {
+          category,
+          total: Number(item?.total ?? item?.total_qty ?? 0) || 0,
+          item_count: Number(item?.item_count ?? item?.item_types ?? item?.count ?? 0) || 0,
+        }
+      })
+      setCatSummary(normalized)
+    } catch {
+      // abaikan ringkasan jika gagal agar tabel utama tetap berjalan
+    }
+  }, [])
 
   const loadStock = useCallback(async (q = appliedSearch) => {
     setLoading(true)
@@ -55,6 +76,10 @@ export default function StockPage() {
   useEffect(() => {
     loadStock()
   }, [loadStock])
+
+  useEffect(() => {
+    loadSummary()
+  }, [loadSummary])
 
   useEffect(() => {
     if (!info) return
@@ -95,6 +120,7 @@ export default function StockPage() {
       setForm(initialForm)
       setInfo('Stok berhasil dicatat')
       await loadStock()
+      await loadSummary()
     } catch (e) {
       setError(e.message || 'Gagal menyimpan stok')
     } finally {
@@ -128,8 +154,8 @@ export default function StockPage() {
   function toggleAllOnPage() {
     setSelected(prev => {
       if (!rows.length) return {}
-      const currentlyAll = rows.every(item => prev[String(item.id)])
-      if (currentlyAll) {
+      const allSelected = rows.every(item => prev[String(item.id)])
+      if (allSelected) {
         const next = { ...prev }
         rows.forEach(item => { delete next[String(item.id)] })
         return next
@@ -193,6 +219,7 @@ export default function StockPage() {
       }
       closeAction()
       await loadStock()
+      await loadSummary()
     } catch (e) {
       setActionError(e.message || 'Gagal menyimpan perubahan')
     } finally {
@@ -205,8 +232,11 @@ export default function StockPage() {
 
   async function handleDeleteSelected() {
     if (deleteDisabled) return
-    const ids = selectedIds.map(id => Number(id)).filter(id => Number.isInteger(id) && id > 0)
+    const ids = selectedIds
+      .map(id => Number(id))
+      .filter(id => Number.isInteger(id) && id > 0)
     if (!ids.length) return
+
     const confirmMsg = ids.length === 1
       ? 'Hapus 1 data stock?'
       : `Hapus ${ids.length} data stock?`
@@ -217,8 +247,8 @@ export default function StockPage() {
     setInfo('')
     try {
       const res = await api.deleteStockBulk(ids)
-      const deleted = typeof res.deleted === 'number' ? res.deleted : ids.length
-      const requested = typeof res.requested === 'number' ? res.requested : ids.length
+      const deleted = typeof res?.deleted === 'number' ? res.deleted : ids.length
+      const requested = typeof res?.requested === 'number' ? res.requested : ids.length
       if (deleted === requested) {
         setInfo(`Berhasil menghapus ${deleted} data stock`)
       } else {
@@ -226,6 +256,7 @@ export default function StockPage() {
       }
       setSelected({})
       await loadStock()
+      await loadSummary()
     } catch (e) {
       setError(e.message || 'Gagal menghapus stock')
     } finally {
@@ -242,6 +273,8 @@ export default function StockPage() {
           <div>Total qty: <b>{totals.qty}</b></div>
         </div>
       </div>
+
+      <CategorySummary data={catSummary} />
 
       <form onSubmit={handleCreate} style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', background: 'white', padding: 16, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e5e5' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

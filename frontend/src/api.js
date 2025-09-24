@@ -196,6 +196,7 @@ export const api = {
     const qs = new URLSearchParams(params).toString()
     return request('GET', '/stock' + (qs ? `?${qs}` : ''))
   },
+  stockSummary: () => request('GET', '/stock/summary_by_category'),
   createStock: (payload) => request('POST', '/stock', payload),
   restockStock: (id, payload) => request('POST', `/stock/${encodeURIComponent(id)}/restock`, payload),
   updateStock: (id, payload) => request('PUT', `/stock/${encodeURIComponent(id)}`, payload),

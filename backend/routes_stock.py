@@ -51,6 +51,37 @@ def list_stock():
         conn.close()
 
 
+@bp.get('/summary_by_category')
+@auth_required
+def summary_by_category():
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT category, SUM(qty) AS total_qty, COUNT(*) AS item_types
+            FROM stock_item
+            GROUP BY category
+            ORDER BY total_qty DESC, LOWER(category)
+            """
+        ).fetchall()
+        data = []
+        total_qty = 0
+        for row in rows:
+            qty = int(row['total_qty'] or 0)
+            total_qty += qty
+            data.append({
+                'category': row['category'],
+                'total': qty,
+                'item_count': int(row['item_types'] or 0),
+            })
+        return jsonify({
+            'data': data,
+            'total_categories': len(data),
+            'total_qty': total_qty,
+        })
+    finally:
+        conn.close()
+
 @bp.post('')
 @auth_required
 @require_roles('admin', 'pic', 'operator')
