@@ -313,6 +313,7 @@ export default function ContainersPage() {
                       <th style={th}>Mulai</th>
                       <th style={th}>Selesai</th>
                       <th style={th}>Status</th>
+                      <th style={th}>Report Status</th>
                       <th style={th}>E-Money</th>
                       <th style={th}>Aksi</th>
                     </tr>
@@ -322,6 +323,7 @@ export default function ContainersPage() {
                       items.map((c, index) => {
                         const usageStatus = String(c.usage_report_status || 'pending').toLowerCase()
                         const usagePending = usageStatus !== 'done'
+                        const emoneyDone = (c.emoney_expenses || 0) > 0
                         return (
                           <tr
                           key={c.id}
@@ -378,16 +380,26 @@ export default function ContainersPage() {
                             </span>
                           </td>
                           <td style={td}>
-                            {(c.emoney_expenses || 0) > 0
-                              ? "Recorded"
-                              : "Pending"}
+                            <span
+                              style={{
+                                display: "inline-block",
+                                padding: "4px 10px",
+                                borderRadius: 999,
+                                background: emoneyDone ? "#dcfce7" : "#fee2e2",
+                                color: emoneyDone ? "#15803d" : "#b91c1c",
+                                fontWeight: 600,
+                                fontSize: 12,
+                              }}
+                            >
+                              {emoneyDone ? "Recorded" : "Pending"}
+                            </span>
                           </td>
                           <td style={td}>
                             <div
                               style={{
-                                display: "flex",
+                                display: "grid",
                                 gap: 8,
-                                flexWrap: "wrap",
+                                justifyItems: "start",
                               }}
                             >
                               {c.status === "Open" && (
@@ -423,15 +435,9 @@ export default function ContainersPage() {
                                   <a
                                     href={"/emoney/expense/" + c.id}
                                     style={{
-                                      ...((c.emoney_expenses || 0) > 0
-                                        ? btnSecondary
-                                        : btnDanger),
+                                      ...(emoneyDone ? btnSecondary : btnDanger),
                                     }}
-                                    title={
-                                      (c.emoney_expenses || 0) > 0
-                                        ? "Sudah ada pengeluaran"
-                                        : ""
-                                    }
+                                    title={emoneyDone ? "Sudah ada pengeluaran" : ""}
                                   >
                                     Input E-Money
                                   </a>
@@ -450,7 +456,7 @@ export default function ContainersPage() {
                     })
                     ) : (
                       <tr>
-                        <td style={td} colSpan={isAdmin ? 10 : 9}>
+                        <td style={td} colSpan={isAdmin ? 11 : 10}>
                           Belum ada kontainer
                         </td>
                       </tr>
