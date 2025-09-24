@@ -48,6 +48,21 @@ def init_db():
     );
     """)
 
+    # ==== Stock items ====
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS stock_item (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        qty INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE(name, category)
+    );
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_stock_name ON stock_item(name);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_stock_category ON stock_item(category);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_stock_updated ON stock_item(updated_at);")
     # ==== Containers (new) ====
     cur.execute("""
     CREATE TABLE IF NOT EXISTS containers (

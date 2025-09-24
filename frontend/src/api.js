@@ -191,6 +191,14 @@ export const api = {
     return request('GET', '/items/repair_history' + (qs ? `?${qs}` : ''))
   },
 
+  // ---------- STOCK ----------
+  listStock: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request('GET', '/stock' + (qs ? `?${qs}` : ''))
+  },
+  createStock: (payload) => request('POST', '/stock', payload),
+  restockStock: (id, payload) => request('POST', `/stock/${encodeURIComponent(id)}/restock`, payload),
+  updateStock: (id, payload) => request('PUT', `/stock/${encodeURIComponent(id)}`, payload),
   // ---------- E-MONEY ----------
   // Create emoney account
   createEmoney: (payload) => request('POST', '/emoney', payload),

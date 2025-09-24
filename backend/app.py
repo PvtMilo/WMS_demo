@@ -6,6 +6,7 @@ from routes_auth import bp as auth_bp
 from routes_items import bp as items_bp
 from routes_containers import bp as containers_bp   # NEW
 from routes_emoney import bp as emoney_bp           # NEW
+from routes_stock import bp as stock_bp            # NEW
 from db import init_db
 
 def create_app():
@@ -25,6 +26,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(items_bp)
     app.register_blueprint(containers_bp)            # NEW
+    app.register_blueprint(stock_bp)                 # NEW
     app.register_blueprint(emoney_bp)               # NEW
     try:
         from routes_admin_cleanup import bp as admin_cleanup_bp

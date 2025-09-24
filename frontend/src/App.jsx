@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
+import StockPage from './pages/StockPage.jsx'
 import InventorySummary from './pages/InventorySummary.jsx'
 import LostItemsPage from './pages/LostItemsPage.jsx'
 // import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
@@ -31,6 +32,7 @@ export default function App() {
       {/* Dashboard layout renders persistent sidebar; children render into content area */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/inventory" element={<Dashboard><InventoryPage /></Dashboard>} />
+      <Route path="/stock" element={<Dashboard><StockPage /></Dashboard>} />
       <Route path="/inventory/summary" element={<Dashboard><InventorySummary /></Dashboard>} />
       <Route path="/inventory/lost" element={<Dashboard><LostItemsPage /></Dashboard>} />
       {/* <Route path="/print-labels" element={<PrintLabelsPage />} /> */}
