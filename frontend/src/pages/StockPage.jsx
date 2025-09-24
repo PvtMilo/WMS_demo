@@ -11,6 +11,39 @@ function formatTs(ts) {
   return d.toLocaleString()
 }
 
+function buildCategorySummary(list) {
+  const grouped = new Map()
+  for (const raw of list) {
+    const name = typeof raw?.name === 'string' ? raw.name.trim() : ''
+    const category = typeof raw?.category === 'string' ? raw.category.trim() : ''
+    const qty = Number(raw?.qty || 0) || 0
+    const safeCategory = category || '(Tanpa kategori)'
+    const safeName = name || '(Tanpa nama)'
+    if (!grouped.has(safeCategory)) {
+      grouped.set(safeCategory, {
+        category: safeCategory,
+        total: 0,
+        items: [],
+      })
+    }
+    const entry = grouped.get(safeCategory)
+    entry.total += qty
+    entry.items.push({
+      label: `${safeName} (${safeCategory})`,
+      qty,
+    })
+  }
+  const summary = Array.from(grouped.values()).map((entry) => ({
+    ...entry,
+    items: entry.items.sort((a, b) => a.label.localeCompare(b.label)),
+  }))
+  summary.sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total
+    return a.category.localeCompare(b.category)
+  })
+  return summary
+}
+
 export default function StockPage() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
@@ -31,25 +64,6 @@ export default function StockPage() {
 
   const headerCheckboxRef = useRef(null)
 
-  const loadSummary = useCallback(async () => {
-    try {
-      const res = await api.stockSummary()
-      const raw = Array.isArray(res.data) ? res.data : []
-      const normalized = raw.map(item => {
-        const rawCategory = typeof item?.category === 'string' ? item.category.trim() : ''
-        const category = rawCategory || '(Tanpa kategori)'
-        return {
-          category,
-          total: Number(item?.total ?? item?.total_qty ?? 0) || 0,
-          item_count: Number(item?.item_count ?? item?.item_types ?? item?.count ?? 0) || 0,
-        }
-      })
-      setCatSummary(normalized)
-    } catch {
-      // abaikan ringkasan jika gagal agar tabel utama tetap berjalan
-    }
-  }, [])
-
   const loadStock = useCallback(async (q = appliedSearch) => {
     setLoading(true)
     setError('')
@@ -63,11 +77,13 @@ export default function StockPage() {
         count: typeof res.total_count === 'number' ? res.total_count : data.length,
         qty: typeof res.total_qty === 'number' ? res.total_qty : data.reduce((sum, item) => sum + Number(item.qty || 0), 0),
       })
+      setCatSummary(buildCategorySummary(data))
     } catch (e) {
       setError(e.message || 'Gagal memuat data stock')
       setRows([])
       setSelected({})
       setTotals({ count: 0, qty: 0 })
+      setCatSummary([])
     } finally {
       setLoading(false)
     }
@@ -77,9 +93,6 @@ export default function StockPage() {
     loadStock()
   }, [loadStock])
 
-  useEffect(() => {
-    loadSummary()
-  }, [loadSummary])
 
   useEffect(() => {
     if (!info) return
@@ -120,7 +133,6 @@ export default function StockPage() {
       setForm(initialForm)
       setInfo('Stok berhasil dicatat')
       await loadStock()
-      await loadSummary()
     } catch (e) {
       setError(e.message || 'Gagal menyimpan stok')
     } finally {
@@ -219,7 +231,6 @@ export default function StockPage() {
       }
       closeAction()
       await loadStock()
-      await loadSummary()
     } catch (e) {
       setActionError(e.message || 'Gagal menyimpan perubahan')
     } finally {
@@ -256,7 +267,6 @@ export default function StockPage() {
       }
       setSelected({})
       await loadStock()
-      await loadSummary()
     } catch (e) {
       setError(e.message || 'Gagal menghapus stock')
     } finally {

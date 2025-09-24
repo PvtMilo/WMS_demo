@@ -150,7 +150,12 @@ export default function UsageReportPage() {
 
   return (
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
-      <h2>Report Pemakaian</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <h2 style={{ margin: 0 }}>Report Pemakaian</h2>
+        <button style={{ ...btn, background: '#0f172a', color: '#fff' }} onClick={handleExport}>
+          Export Excel
+        </button>
+      </div>
       <p style={{ maxWidth: 720, color: '#4b5563', lineHeight: 1.5 }}>
         Catat pemakaian stok untuk setiap event agar stok gudang tetap akurat. Kontainer dengan status
         <b> Report Needed!</b> wajib dilengkapi sebelum proses selesai.
@@ -193,9 +198,6 @@ export default function UsageReportPage() {
             style={{ ...ipt, width: '100%' }}
           />
         </label>
-        <button style={{ ...btn, background: '#0f172a', color: '#fff' }} onClick={handleExport}>
-          Export Excel
-        </button>
       </div>
 
       {info && (
