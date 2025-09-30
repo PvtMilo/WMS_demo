@@ -25,6 +25,8 @@ export default function ContainerCheckIn(){
     transition: 'border-color 0.2s ease'
   }
 
+  const hideManualInput = (user?.email || '').toLowerCase() === 'op@wms.ci'
+
   async function refresh(){
     setLoading(true); setError('')
     try{
@@ -38,10 +40,15 @@ export default function ContainerCheckIn(){
   useEffect(() => { (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
   useEffect(()=>{ scanRef.current?.focus() }, [])
 
+  useEffect(() => {
+    if (hideManualInput) setListIds('')
+  }, [hideManualInput])
+
 
   async function doCheckin(e){
     e.preventDefault()
-    const ids = [scanRet, ...listIds.split(/\r?\n/)]
+    const manualEntries = hideManualInput ? [] : listIds.split(/\r?\n/)
+    const ids = [scanRet, ...manualEntries]
       .map(s => (s || '').trim())
       .filter(Boolean)
     if (!ids.length) return
@@ -70,7 +77,6 @@ export default function ContainerCheckIn(){
   const roleLc = String(user?.role || '').toLowerCase()
   const canVoid = roleLc === 'admin' // Batalkan hanya untuk admin
   const t = data.totals || {returned:0, good:0, rusak_ringan:0, rusak_berat:0, lost:0, all:0}
-
   return (
     <div style={{fontFamily:'sans-serif'}}>
       {/* Header Section */}
@@ -214,17 +220,23 @@ export default function ContainerCheckIn(){
                 />
               </label>
               
-              <label style={{display: 'grid', gap: 6}}>
-                <span style={{fontWeight: 500, color: '#374151', fontSize: 14}}>
-                  ✏️ Input manual (satu ID per baris)
-                </span>
-                <textarea 
-                  value={listIds} 
-                  onChange={e=>setListIds(e.target.value)} 
-                  style={{...ipt, height:120, resize: 'vertical'}} 
-                  placeholder="CAM-70D-002&#10;CAM-70D-003"
-                />
-              </label>
+              {!hideManualInput ? (
+                <label style={{display: 'grid', gap: 6}}>
+                  <span style={{fontWeight: 500, color: '#374151', fontSize: 14}}>
+                    ✏️ Input manual (satu ID per baris)
+                  </span>
+                  <textarea
+                    value={listIds}
+                    onChange={e=>setListIds(e.target.value)}
+                    style={{...ipt, height:120, resize: 'vertical'}}
+                    placeholder="CAM-70D-002&#10;CAM-70D-003"
+                  />
+                </label>
+              ) : (
+                <div style={{ fontSize: 13, color: '#6b7280', padding: '12px 0' }}>
+                  Manual input dinonaktifkan untuk akun ini. Gunakan scanner.
+                </div>
+              )}
 
             </div>
 

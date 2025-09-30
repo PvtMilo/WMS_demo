@@ -4,7 +4,6 @@ import ItemForm from '../components/ItemForm.jsx'
 import ItemTable from '../components/ItemTable.jsx'
 import UniversalItemForm from '../components/UniversalItemForm.jsx'
 import QrModal from '../components/QrModal.jsx'
-import CategorySummary from '../components/CategorySummary.jsx'
 import QrLabelCard from '../components/QrLabelCard.jsx'
 import '../styles/print.css'
 
@@ -36,18 +35,6 @@ export default function InventoryPage() {
   const [printSelList, setPrintSelList] = useState([])
   const [printingSel, setPrintingSel] = useState(false)
 
-  // Ringkasan kategori (cepat, tidak ikut filter search)
-  const [catSummary, setCatSummary] = useState([])
-
-  async function loadSummary() {
-    try {
-      const res = await api.summaryByCategory()
-      setCatSummary(res.data || [])
-    } catch {
-      // abaikan kalau gagal
-    }
-  }
-
   async function refresh({ keepPage = true } = {}) {
     setLoading(true); setError('')
     const currentPage = keepPage ? page : 1
@@ -63,10 +50,9 @@ export default function InventoryPage() {
     }
   }
 
-  // --- INIT: muat data & ringkasan pertama kali
+  // --- INIT: muat data pertama kali
   useEffect(() => {
     refresh({ keepPage: false })
-    loadSummary()
   }, [])
   useEffect(() => { (async()=>{ try{ if(getToken()){ const me=await api.me(); setUser(me.user) } }catch{} })() }, [])
 
@@ -238,7 +224,6 @@ async function deleteOne(id) {
     await api.deleteItem(id)
     setSelected(prev => { const n = { ...prev }; delete n[id]; return n })
     await refresh({ keepPage: true })
-    await loadSummary()
   } catch (e) { alert(e.message) }
 }
 
@@ -272,7 +257,6 @@ async function deleteSelected() {
     }
     setSelected({})
     await refresh({ keepPage: true })
-    await loadSummary()
   } catch (e) {
     alert(e.message)
   } finally {
@@ -299,8 +283,7 @@ async function deleteSelected() {
       setSelected({})
       setTargetCond('')
       await refresh({ keepPage: true })
-      await loadSummary()
-    } catch (e) { alert(e.message) }
+      } catch (e) { alert(e.message) }
   }
 
   function doSearch() {
@@ -359,20 +342,17 @@ async function deleteSelected() {
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button style={btn} onClick={() => setShowUniversalForm(false)}>Tutup</button>
               </div>
-              <UniversalItemForm onCreated={async () => { setShowUniversalForm(false); await refresh({ keepPage: true }); await loadSummary() }} />
+              <UniversalItemForm onCreated={async () => { setShowUniversalForm(false); await refresh({ keepPage: true }) }} />
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button style={btn} onClick={() => setShowBatchForm(false)}>Tutup</button>
               </div>
-              <ItemForm onCreated={async () => { setShowBatchForm(false); await refresh({ keepPage: true }); await loadSummary() }} />
+              <ItemForm onCreated={async () => { setShowBatchForm(false); await refresh({ keepPage: true }) }} />
             </div>
           )}
         </div>
-
-        {/* Ringkasan kategori (cepat) */}
-        <CategorySummary data={catSummary} />
 
         <div>
           {/* toolbar pencarian */}

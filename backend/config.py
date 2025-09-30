@@ -10,7 +10,7 @@ FRONTEND_ORIGIN = "http://localhost:5173"
 USERS = [
     {"email": "admin@wms.ci",   "password": "adminci", "id": "admin", "name": "Admin",         "role": "admin"},
     {"email": "pic@wms.ci",     "password": "picci",   "id": "pic-001","name": "PIC Gudang",    "role": "pic"},
-    {"email": "op@wms.ci",      "password": "opci!",    "id": "op-001", "name": "Operator",      "role": "operator"},
+    {"email": "op@wms.ci",      "password": "opci",    "id": "op-001", "name": "Operator",      "role": "operator"},
 ]
 
 # Backward compatibility (if some code still references ADMIN_*)
