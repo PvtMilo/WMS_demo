@@ -605,6 +605,97 @@ def dn_list(cid):
     finally:
         conn.close()
 
+# ---------- Update container metadata ----------
+@bp.post("/<cid>/update_meta")
+@auth_required
+def update_container_meta(cid):
+    payload = request.get_json(silent=True) or {}
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            """
+            SELECT id, event_name, pic, crew, location, start_date, end_date, order_title, status, usage_report_status, created_at
+              FROM containers WHERE id=?
+            """,
+            (cid,),
+        ).fetchone()
+        if not row:
+            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+
+        def _clean_str(key, fallback=""):
+            if key not in payload or payload.get(key) is None:
+                return fallback
+            val = payload.get(key)
+            if isinstance(val, str):
+                val = val.strip()
+            return val or ""
+
+        event_name = _clean_str("event_name", row["event_name"] or "")
+        pic = _clean_str("pic", row["pic"] or "")
+        crew = _clean_str("crew", row["crew"] or "")
+        location = _clean_str("location", row["location"] or "")
+        start_date = _clean_str("start_date", row["start_date"] or "")
+        end_date = _clean_str("end_date", row["end_date"] or "")
+        order_title = payload.get("order_title", payload.get("order"))
+        if order_title is None:
+            order_title = row["order_title"]
+        else:
+            order_title = (order_title or "").strip() or None
+
+        if not event_name or not pic or not crew or not location:
+            return jsonify({"error": True, "message": "Event, PIC, Crew, dan Lokasi wajib diisi"}), 400
+
+        if not start_date or not end_date:
+            return jsonify({"error": True, "message": "Tanggal mulai dan selesai wajib diisi"}), 400
+
+        try:
+            sd = datetime.fromisoformat(start_date)
+            ed = datetime.fromisoformat(end_date)
+        except ValueError:
+            return jsonify({"error": True, "message": "Format tanggal tidak valid"}), 400
+
+        if sd > ed:
+            return jsonify({"error": True, "message": "Tanggal selesai harus setelah tanggal mulai"}), 400
+
+        conn.execute(
+            """
+            UPDATE containers
+               SET event_name=?, pic=?, crew=?, location=?, start_date=?, end_date=?, order_title=?
+             WHERE id=?
+            """,
+            (event_name, pic, crew, location, start_date, end_date, order_title, cid),
+        )
+        conn.commit()
+
+        updated = conn.execute(
+            """
+            SELECT id, event_name, pic, crew, location, start_date, end_date, order_title, status, usage_report_status, created_at
+              FROM containers WHERE id=?
+            """,
+            (cid,),
+        ).fetchone()
+
+        return jsonify(
+            {
+                "ok": True,
+                "container": {
+                    "id": updated["id"],
+                    "event_name": updated["event_name"],
+                    "pic": updated["pic"],
+                    "crew": updated["crew"],
+                    "location": updated["location"],
+                    "start_date": updated["start_date"],
+                    "end_date": updated["end_date"],
+                    "order_title": updated["order_title"],
+                    "status": updated["status"],
+                    "usage_report_status": updated["usage_report_status"],
+                    "created_at": updated["created_at"],
+                },
+            }
+        )
+    finally:
+        conn.close()
+
 # ---------- Set container status ----------
 @bp.post("/<cid>/set_status")
 @auth_required

@@ -118,6 +118,10 @@ export const api = {
     return request('GET', `/containers/${encodeURIComponent(cid)}`)
   },
 
+  updateContainer(cid, payload) {
+    return request('POST', `/containers/${encodeURIComponent(cid)}/update_meta`, payload)
+  },
+
   // Containers metrics for dashboard KPIs
   containerMetrics() {
     return request('GET', '/containers/metrics')

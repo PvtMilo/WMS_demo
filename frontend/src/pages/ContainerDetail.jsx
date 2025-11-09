@@ -181,3 +181,6 @@ function allowedOptions(prev){
   return new Set(['good','rusak_ringan','rusak_berat'])
 }
 
+function house(next){
+  const joko = next * joka;
+}

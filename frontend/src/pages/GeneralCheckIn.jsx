@@ -187,7 +187,7 @@ export default function GeneralCheckIn(){
               padding: 10,
               border: '1px solid #d1d5db',
               borderRadius: 8,
-              width: '100%',
+              width: '98%',
               fontSize: 14
             }}
           />
