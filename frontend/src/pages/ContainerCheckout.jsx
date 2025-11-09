@@ -312,6 +312,10 @@ export default function ContainerCheckout(){
           {c.status === 'Open' && (
             <button
               onClick={async () => {
+                if (isEditing) {
+                  alert('Harap selesaikan mode edit terlebih dahulu (Simpan atau Batal).');
+                  return;
+                }
                 try { await api.getLatestDN(cid) } catch { alert('Harap buat Surat Jalan (Delivery Note) terlebih dahulu.'); return }
                 if (!confirm('Ubah status menjadi Sedang Berjalan?')) return
                 setUpdatingStatus(true)
@@ -328,13 +332,13 @@ export default function ContainerCheckout(){
                 padding: '10px 20px',
                 border: 'none',
                 borderRadius: 8,
-                background: updatingStatus || !hasDN ? '#9ca3af' : '#F2C14E',
+                background: updatingStatus || !hasDN || isEditing ? '#9ca3af' : '#F2C14E',
                 color: 'white',
                 fontWeight: 600,
-                cursor: updatingStatus || !hasDN ? 'not-allowed' : 'pointer',
+                cursor: updatingStatus || !hasDN || isEditing ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease'
               }}
-              disabled={updatingStatus || !hasDN}
+              disabled={updatingStatus || !hasDN || isEditing}
             >
               {updatingStatus ? '⏳ Memproses…' : '▶️ Ubah ke Sedang Berjalan'}
             </button>
