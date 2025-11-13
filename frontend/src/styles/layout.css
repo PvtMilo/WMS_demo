@@ -1,10 +1,16 @@
 /* Persistent layout + responsive tweaks */
 
 /* Set root background without affecting other components */
+html,
+body {
+  height: 100%;
+}
+
 body {
   background-color: #eaedf0;
   margin: 0;
-  padding: 24px;
+  padding: 0;
+  overflow: hidden;
 }
 
 .layout-root {

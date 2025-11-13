@@ -48,7 +48,15 @@ export default function Dashboard({ children }) {
   return (
     <div
       className="layout-root"
-      style={{ display: "flex", minHeight: "100vh", fontFamily: "sans-serif" }}
+      style={{
+        display: "flex",
+        height: "100vh",
+        fontFamily: "sans-serif",
+        padding: 24,
+        boxSizing: "border-box",
+        width: "100%",
+        overflow: "hidden",
+      }}
     >
       {/* Left Sidebar */}
       <div
@@ -56,19 +64,23 @@ export default function Dashboard({ children }) {
         style={{
           background: "white",
           color: black,
-          padding: "16px 16px 28px 16px",
+          padding: "12px 14px 20px 14px",
           display: "flex",
           flexDirection: "column",
-          gap: 12,
-          height: "100vh",
-          overflowY: "auto",
+          gap: 10,
+          height: "100%",
+          overflow: "hidden",
           flexShrink: 0,
           boxSizing: "border-box",
           borderRadius: "12px",
         }}
       >
-        <div className="logo" style={{ margin: "8px 0", textAlign: "left", background: "white" }}>
-          <img src="/logo_hitam.png" alt="Logo" style={{ height: "21px", background: "transparent" }} />
+        <div className="logo" style={{ margin: "4px 0 10px", textAlign: "left", background: "white" }}>
+          <img
+            src="/logo_hitam.png"
+            alt="Logo"
+            style={{ display: "block", height: "24px", maxWidth: "100%", objectFit: "contain" }}
+          />
         </div>
         <SideButton to="/dashboard" label="DASHBOARD" />
         <SideButton to="/inventory" label="INVENTORY" />
@@ -124,7 +136,7 @@ export default function Dashboard({ children }) {
         style={{
           flex: 1,
           padding: 24,
-          height: "100vh",
+          height: "100%",
           boxSizing: "border-box",
           overflowY: "auto",
           overflowX: "hidden",
@@ -187,10 +199,11 @@ function SideButton({ to, label }) {
         style={{
           background: "white",
           color: black,
-          padding: "10px 12px",
+          padding: "8px 10px",
           textAlign: "left",
           fontWeight: 600,
-          fontSize: "14px",
+          fontSize: "13px",
+          letterSpacing: "0.02em",
           borderBottom: "1px solid #ddd",
         }}
       >
