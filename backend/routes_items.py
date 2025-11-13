@@ -242,7 +242,27 @@ def maintenance_list():
                 WHERE ci.id_code = iu.id_code AND ci.returned_at IS NOT NULL
                 ORDER BY ci.returned_at DESC, ci.id DESC
                 LIMIT 1
-              ) AS last_returned_at
+              ) AS last_returned_at,
+              (
+                SELECT c.pic
+                FROM container_item ci
+                JOIN containers c ON c.id = ci.container_id
+                WHERE ci.id_code = iu.id_code
+                  AND LOWER(COALESCE(ci.return_condition,'')) IN ('rusak_ringan','rusak_berat')
+                  AND c.status = 'Closed'
+                ORDER BY ci.returned_at DESC, ci.id DESC
+                LIMIT 1
+              ) AS responsible_pic,
+              (
+                SELECT ci.container_id
+                FROM container_item ci
+                JOIN containers c ON c.id = ci.container_id
+                WHERE ci.id_code = iu.id_code
+                  AND LOWER(COALESCE(ci.return_condition,'')) IN ('rusak_ringan','rusak_berat')
+                  AND c.status = 'Closed'
+                ORDER BY ci.returned_at DESC, ci.id DESC
+                LIMIT 1
+              ) AS responsible_container_id
             FROM item_unit iu
             {where_sql}
         """

@@ -100,6 +100,11 @@ export default function MaintenancePage() {
     cursor: "pointer",
   };
   const ipt = { padding: 8, border: "1px solid #ddd", borderRadius: 8 };
+  const linkStyle = {
+    color: "#1d4ed8",
+    textDecoration: "underline",
+    fontWeight: 600,
+  };
 
   // Modern table styles
   const thModern = {
@@ -168,6 +173,17 @@ export default function MaintenancePage() {
       opts.push({ v: "ringan", label: "Jadikan Rusak ringan" });
     opts.push({ v: "broken", label: "Tandai Broken (Afkir)" });
     return opts;
+  }
+
+  function responsibleLink(it) {
+    const pic = (it.responsible_pic || "").trim();
+    const cid = (it.responsible_container_id || "").trim();
+    if (!pic || !cid) return "-";
+    return (
+      <a href={`/containers/${cid}/checkin`} style={linkStyle}>
+        {pic}
+      </a>
+    );
   }
 
   function toggleRowSelect(id_code, checked) {
@@ -243,6 +259,7 @@ export default function MaintenancePage() {
         "Rak",
         "Level",
         "Kerusakan Terakhir",
+        "Penanggungjawab",
       ];
       const maintenanceRows = maintenanceData.map((it) => [
         it.id_code || "",
@@ -252,6 +269,9 @@ export default function MaintenancePage() {
         it.rack || "",
         it.defect_level || "",
         it.last_damage_note || "-",
+        it.responsible_pic && it.responsible_container_id
+          ? `${it.responsible_pic} (${it.responsible_container_id})`
+          : "-",
       ]);
 
       const historyHeaders = [
@@ -469,6 +489,7 @@ export default function MaintenancePage() {
                 <th style={thModern}>Rak</th>
                 <th style={thModern}>Level</th>
                 <th style={thModern}>Kerusakan Terakhir</th>
+                <th style={thModern}>Penanggungjawab</th>
                 <th style={thModern}>Aksi</th>
               </tr>
             </thead>
@@ -493,6 +514,7 @@ export default function MaintenancePage() {
                     <td style={tdModern}>{it.rack}</td>
                     <td style={tdModern}>{it.defect_level}</td>
                     <td style={tdModern}>{it.last_damage_note || "-"}</td>
+                    <td style={tdModern}>{responsibleLink(it)}</td>
                     <td style={tdModern}>
                       <div style={{ display: "grid", gap: 6 }}>
                         <div
@@ -538,7 +560,7 @@ export default function MaintenancePage() {
                 ))
               ) : (
                 <tr>
-                  <td style={tdModern} colSpan={9}>
+                  <td style={tdModern} colSpan={10}>
                     Tidak ada barang Rusak
                   </td>
                 </tr>
