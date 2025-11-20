@@ -246,5 +246,29 @@ def init_db():
     cur.execute("CREATE INDEX IF NOT EXISTS ix_emoney_tx_eid ON emoney_tx(emoney_id, created_at);")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_emoney_tx_container ON emoney_tx(ref_container_id);")
 
+    # ==== Users (new) ====
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    );
+    """)
+    
+    # Seed default users if empty
+    cur.execute("SELECT count(*) FROM users")
+    if cur.fetchone()[0] == 0:
+        import config
+        now = now_iso()
+        for u in config.USERS:
+            cur.execute("""
+            INSERT INTO users (id, email, password, name, role, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (u["id"], u["email"], u["password"], u["name"], u["role"], now))
+        print(f"[INFO] Seeded {len(config.USERS)} default users.")
+
     conn.commit()
     conn.close()

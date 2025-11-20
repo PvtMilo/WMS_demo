@@ -14,6 +14,7 @@ export default function Dashboard({ children }) {
   const n = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [adminExpanded, setAdminExpanded] = useState(false);
 
   useEffect(() => {
     if (!getToken()) {
@@ -104,31 +105,8 @@ export default function Dashboard({ children }) {
         <SideButton to="/general-checkin" label="GENERAL CHECK-IN" />
         <SideButton to="/maintenance" label="MAINTENANCE" />
         <SideButton to="/emoney" label="EMONEY" />
-        <SideButton to="/admin" label="ADMIN" />
 
-        {isAdmin(user) && (
-          <div style={{ marginTop: 24, background: "white" }}>
-            <div
-              style={{ fontWeight: 700, marginBottom: 8, background: "white" }}
-            >
-              ADMIN
-            </div>
-            <div style={{ display: "grid", gap: 8, background: "white" }}>
-              <div style={{ fontSize: 13, background: "white" }}>
-                •{" "}
-                <Link style={{ color: black }} to="/admin/data-lifecycle">
-                  Admin: Data Lifecycle
-                </Link>
-              </div>
-              <div style={{ fontSize: 13, background: "white" }}>
-                •{" "}
-                <Link style={{ color: black }} to="/admin/archive">
-                  Admin: Archived Browser
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        {isAdmin(user) && <SideButton to="/admin" label="ADMIN" />}
 
         <button
           onClick={doLogout}

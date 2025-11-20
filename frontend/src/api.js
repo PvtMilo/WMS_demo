@@ -345,6 +345,12 @@ export const api = {
     const qs = new URLSearchParams(params).toString();
     return request("GET", "/admin/archive/emoney/tx" + (qs ? `?${qs}` : ""));
   },
+
+  // ---------- USER MANAGEMENT ----------
+  listUsers: () => request("GET", "/auth/users"),
+  createUser: (payload) => request("POST", "/auth/users", payload),
+  deleteUser: (id) =>
+    request("DELETE", `/auth/users/${encodeURIComponent(id)}`),
 };
 
 export default api;
