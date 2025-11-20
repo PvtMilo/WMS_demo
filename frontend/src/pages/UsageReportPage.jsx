@@ -195,7 +195,7 @@ export default function UsageReportPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Misal: Wedding / Jakarta"
-            style={{ ...ipt, width: '96%' }}
+            style={{ ...ipt, width: '100%', boxSizing: 'border-box'}}
           />
         </label>
       </div>

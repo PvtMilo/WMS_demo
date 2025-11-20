@@ -59,9 +59,9 @@ body {
 
 .layout-content {
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   /* Hide scrollbar for webkit browsers */
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: auto; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
 }
 

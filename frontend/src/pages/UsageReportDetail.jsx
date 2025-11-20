@@ -336,6 +336,7 @@ const ipt = {
   borderRadius: 8,
   border: '1px solid #d1d5db',
   fontSize: 14,
+  boxSizing: 'border-box',
 }
 
 const btnPrimary = {

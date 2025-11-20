@@ -129,7 +129,7 @@ export default function ContainersPage() {
     cursor: "pointer",
   };
   return (
-    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
+    <div style={{ padding: "0px 24px 24px 24px", fontFamily: "sans-serif" }}>
       <h2>Kontainer</h2>
       <div style={{ display: "grid", gap: 16 }}>
         {/* Create container form section above filters */}
@@ -277,11 +277,13 @@ export default function ContainersPage() {
             <div>
               <div
                 style={{
-                  overflow: "auto",
+                  overflowX: "auto",
+                  overflowY: "auto",
                   border: "1px solid #e5e5e5",
                   borderRadius: 12,
                   backgroundColor: "white",
                   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                  maxHeight: "calc(100vh - 320px)",
                 }}
               >
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>

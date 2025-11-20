@@ -16,6 +16,7 @@ export default function MaintenancePage() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [editingRow, setEditingRow] = useState(null); // { id_code, note }
 
   async function refresh() {
     setLoading(true);
@@ -86,6 +87,23 @@ export default function MaintenancePage() {
     }
   }
 
+  function startEdit(it) {
+    setEditingRow({ id_code: it.id_code, note: it.last_damage_note || "" });
+  }
+  function cancelEdit() {
+    setEditingRow(null);
+  }
+  async function saveEdit() {
+    if (!editingRow) return;
+    try {
+      await api.updateLastDamage(editingRow.id_code, editingRow.note);
+      setEditingRow(null);
+      refresh();
+    } catch (e) {
+      alert(e.message || "Gagal menyimpan perubahan");
+    }
+  }
+
   const th = { textAlign: "left", padding: 10, borderBottom: "1px solid #eee" };
   const td = {
     padding: 10,
@@ -102,7 +120,7 @@ export default function MaintenancePage() {
   const ipt = { padding: 8, border: "1px solid #ddd", borderRadius: 8 };
   const linkStyle = {
     color: "#1d4ed8",
-    textDecoration: "underline",
+    textDecoration: "none",
     fontWeight: 600,
   };
 
@@ -116,6 +134,7 @@ export default function MaintenancePage() {
     fontSize: 14,
     color: "#374151",
   };
+
   const tdModern = {
     padding: "12px",
     borderBottom: "1px solid #f1f5f9",
@@ -145,11 +164,33 @@ export default function MaintenancePage() {
   const hasSelection = selectedIds.length > 0;
   const disableDelete = !hasSelection || deleting;
   const pages = Math.max(1, Math.ceil((total || 0) / perPage));
+
   const actionBtn = (id_code) => {
     const st = actions[id_code] || { action: "", note: "" };
     const disabled = !st.action || !(st.note || "").trim();
+    const isEditing = editingRow && editingRow.id_code === id_code;
+
+    if (isEditing) {
+      return (
+        <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+          <button
+            onClick={saveEdit}
+            style={{ ...btn, borderColor: "#0a7", color: "#0a7" }}
+          >
+            Save
+          </button>
+          <button
+            onClick={cancelEdit}
+            style={{ ...btn, borderColor: "#666", color: "#666" }}
+          >
+            Cancel
+          </button>
+        </div>
+      );
+    }
+
     return (
-      <div>
+      <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
         <button
           onClick={() => applyRowAction(id_code)}
           style={{ ...btn, borderColor: "#0a7", color: "#0a7" }}
@@ -157,9 +198,16 @@ export default function MaintenancePage() {
         >
           Apply
         </button>
-        <button 
-        style={{ ...btn ,background: "blue", color: "rgba(255, 255, 255, 1)" }}
-        >Edit
+
+        <button
+          onClick={() => startEdit(list.find((it) => it.id_code === id_code))}
+          style={{
+            ...btn,
+            background: "blue",
+            color: "rgba(255, 255, 255, 1)",
+          }}
+        >
+          Edit
         </button>
       </div>
     );
@@ -490,7 +538,7 @@ export default function MaintenancePage() {
                 <th style={thModern}>Level</th>
                 <th style={thModern}>Kerusakan Terakhir</th>
                 <th style={thModern}>Penanggungjawab</th>
-                <th style={thModern}>Aksi</th>
+                <th style={{ ...thModern, textAlign: "center" }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -513,7 +561,22 @@ export default function MaintenancePage() {
                     <td style={tdModern}>{it.model}</td>
                     <td style={tdModern}>{it.rack}</td>
                     <td style={tdModern}>{it.defect_level}</td>
-                    <td style={tdModern}>{it.last_damage_note || "-"}</td>
+                    <td style={tdModern}>
+                      {editingRow && editingRow.id_code === it.id_code ? (
+                        <input
+                          value={editingRow.note}
+                          onChange={(e) =>
+                            setEditingRow({
+                              ...editingRow,
+                              note: e.target.value,
+                            })
+                          }
+                          style={{ ...ipt, width: "100%" }}
+                        />
+                      ) : (
+                        it.last_damage_note || "-"
+                      )}
+                    </td>
                     <td style={tdModern}>{responsibleLink(it)}</td>
                     <td style={tdModern}>
                       <div style={{ display: "grid", gap: 6 }}>

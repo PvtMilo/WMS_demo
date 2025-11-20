@@ -135,7 +135,7 @@ export default function Dashboard({ children }) {
         className={"layout-content"}
         style={{
           flex: 1,
-          padding: 24,
+          padding: "0 24px 24px 24px",
           height: "100%",
           boxSizing: "border-box",
           overflowY: "auto",

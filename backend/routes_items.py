@@ -682,11 +682,54 @@ def lost_context(id_code):
             "container_id": pick["container_id"],
             "pic": pick["pic"],
             "event_name": pick["event_name"],
-            "added_at": pick["added_at"],
-            "returned_at": pick["returned_at"],
-            "return_condition": pick["return_condition"],
-            "damage_note": pick["damage_note"],
         }
         return jsonify(data)
+    finally:
+        conn.close()
+
+
+@bp.post("/update_last_damage")
+@auth_required
+def update_last_damage():
+    """
+    Update catatan kerusakan terakhir (container_item.damage_note) untuk item tertentu.
+    Body: { id_code: string, note: string }
+    """
+    b = request.get_json(silent=True) or {}
+    id_code = (b.get("id_code") or "").strip()
+    note = (b.get("note") or "").strip()
+
+    if not id_code:
+        return jsonify({"error": True, "message": "id_code wajib"}), 400
+    # Note boleh kosong jika user ingin menghapus catatan
+
+    conn = get_conn()
+    try:
+        # Cari entry container_item terakhir yang relevan (ada damage_note atau status rusak)
+        # Kita cari yang paling baru returned_at-nya atau id-nya
+        row = conn.execute("""
+            SELECT id FROM container_item
+            WHERE id_code=? AND damage_note IS NOT NULL
+            ORDER BY returned_at DESC, id DESC
+            LIMIT 1
+        """, (id_code,)).fetchone()
+
+        if not row:
+             # Fallback: coba cari entry terakhir apapun, mungkin user ingin set note baru
+            row = conn.execute("""
+                SELECT id FROM container_item
+                WHERE id_code=?
+                ORDER BY returned_at DESC, id DESC
+                LIMIT 1
+            """, (id_code,)).fetchone()
+
+        if not row:
+            return jsonify({"error": True, "message": "Tidak ada riwayat pemakaian (container_item) untuk item ini"}), 404
+
+        cid = row["id"]
+        conn.execute("UPDATE container_item SET damage_note=? WHERE id=?", (note, cid))
+        conn.commit()
+
+        return jsonify({"ok": True})
     finally:
         conn.close()

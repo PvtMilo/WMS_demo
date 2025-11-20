@@ -22,7 +22,7 @@ export default function LoginPage() {
     }
   }
 
-  const ipt = {width:'100%', padding:10, border:'1px solid #ccc', borderRadius:8}
+  const ipt = {width:'100%', padding:10, border:'1px solid #ccc', borderRadius:8, boxSizing:'border-box'}
   return (
     <div style={{minHeight:'100vh', display:'grid', placeItems:'center', fontFamily:'sans-serif'}}>
       <form onSubmit={onSubmit} style={{width:320, padding:24, border:'1px solid #ddd', borderRadius:12}}>
