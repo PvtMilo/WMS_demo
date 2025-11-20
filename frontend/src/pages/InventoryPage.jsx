@@ -442,74 +442,140 @@ export default function InventoryPage() {
 
         <div style={{ display: "grid", gap: 16 }}>
           <div>
-            {!showBatchForm && !showUniversalForm ? (
+            <div
+              style={{
+                padding: 16,
+                border: "1px solid #eee",
+                borderRadius: 12,
+                background: "#fafafa",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, color: "#666" }}>
+                  Klik untuk membuka form pendaftaran barang (universal/batch)
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  style={{ ...btn, borderColor: "#111" }}
+                  onClick={() => {
+                    setShowUniversalForm(true);
+                    setShowBatchForm(false);
+                  }}
+                >
+                  Universal Item Registration
+                </button>
+                <button
+                  style={{ ...btn, borderColor: "#111" }}
+                  onClick={() => {
+                    setShowBatchForm(true);
+                    setShowUniversalForm(false);
+                  }}
+                >
+                  + Batch Item Registration
+                </button>
+              </div>
+            </div>
+
+            {/* Universal Form Modal */}
+            {showUniversalForm && (
               <div
                 style={{
-                  padding: 16,
-                  border: "1px solid #eee",
-                  borderRadius: 12,
-                  background: "#fafafa",
+                  position: "fixed",
+                  inset: 0,
+                  backgroundColor: "rgba(0,0,0,0.5)",
                   display: "flex",
-                  justifyContent: "space-between",
+                  justifyContent: "center",
                   alignItems: "center",
+                  zIndex: 1000,
                 }}
               >
-                <div>
-                  <div style={{ fontSize: 12, color: "#666" }}>
-                    Klik untuk membuka form pendaftaran barang (universal/batch)
+                <div
+                  style={{
+                    backgroundColor: "white",
+                    padding: 24,
+                    borderRadius: 12,
+                    width: "100%",
+                    maxWidth: 500,
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 16,
+                      alignItems: "center",
+                    }}
+                  >
+                    <h3 style={{ margin: 0 }}>Universal Item Registration</h3>
+                    <button
+                      onClick={() => setShowUniversalForm(false)}
+                      style={btn}
+                    >
+                      Tutup
+                    </button>
                   </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    style={{ ...btn, borderColor: "#111" }}
-                    onClick={() => {
-                      setShowUniversalForm(true);
-                      setShowBatchForm(false);
-                    }}
-                  >
-                    Universal Item Registration
-                  </button>
-                  <button
-                    style={{ ...btn, borderColor: "#111" }}
-                    onClick={() => {
-                      setShowBatchForm(true);
+                  <UniversalItemForm
+                    onCreated={async () => {
                       setShowUniversalForm(false);
+                      await refresh({ keepPage: true });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Batch Form Modal */}
+            {showBatchForm && (
+              <div
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1000,
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: "white",
+                    padding: 24,
+                    borderRadius: 12,
+                    width: "100%",
+                    maxWidth: 500,
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 16,
+                      alignItems: "center",
                     }}
                   >
-                    + Batch Item Registration
-                  </button>
+                    <h3 style={{ margin: 0 }}>Batch Item Registration</h3>
+                    <button onClick={() => setShowBatchForm(false)} style={btn}>
+                      Tutup
+                    </button>
+                  </div>
+                  <ItemForm
+                    onCreated={async () => {
+                      setShowBatchForm(false);
+                      await refresh({ keepPage: true });
+                    }}
+                  />
                 </div>
-              </div>
-            ) : showUniversalForm ? (
-              <div style={{ display: "grid", gap: 8 }}>
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    style={btn}
-                    onClick={() => setShowUniversalForm(false)}
-                  >
-                    Tutup
-                  </button>
-                </div>
-                <UniversalItemForm
-                  onCreated={async () => {
-                    setShowUniversalForm(false);
-                    await refresh({ keepPage: true });
-                  }}
-                />
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: 8 }}>
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button style={btn} onClick={() => setShowBatchForm(false)}>
-                    Tutup
-                  </button>
-                </div>
-                <ItemForm
-                  onCreated={async () => {
-                    setShowBatchForm(false);
-                    await refresh({ keepPage: true });
-                  }}
-                />
               </div>
             )}
           </div>

@@ -133,37 +133,63 @@ export default function ContainersPage() {
       <h2>Kontainer</h2>
       <div style={{ display: "grid", gap: 16 }}>
         {/* Create container form section above filters */}
-        <div>
-          {!showCreate ? (
+        {/* Create container button */}
+        <div
+          style={{
+            padding: 16,
+            border: "1px solid #eee",
+            borderRadius: 12,
+            background: "#fafafa",
+          }}
+        >
+          <button
+            style={{ ...btn, borderColor: "#111" }}
+            onClick={() => setShowCreate(true)}
+          >
+            + Buat Kontainer / Event
+          </button>
+          <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+            Klik untuk membuka form pembuatan kontainer
+          </div>
+        </div>
+
+        {/* Modal Form */}
+        {showCreate && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 1000,
+            }}
+          >
             <div
               style={{
-                padding: 16,
-                border: "1px solid #eee",
+                backgroundColor: "white",
+                padding: 24,
                 borderRadius: 12,
-                background: "#fafafa",
+                width: "100%",
+                maxWidth: 500,
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
               }}
             >
-              <button
-                style={{ ...btn, borderColor: "#111" }}
-                onClick={() => setShowCreate(true)}
-              >
-                + Buat Kontainer / Event
-              </button>
-              <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
-                Klik untuk membuka form pembuatan kontainer
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gap: 8 }}>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  marginBottom: 16,
                   alignItems: "center",
                 }}
               >
-                <h3 style={{ margin: 0 }}>Form Kontainer</h3>
-                <button style={btn} onClick={() => setShowCreate(false)}>
+                <button
+                  style={{ ...btn, borderColor: "#111", marginLeft: "auto " }}
+                  onClick={() => setShowCreate(false)}
+                >
                   Tutup
                 </button>
               </div>
@@ -174,8 +200,8 @@ export default function ContainersPage() {
                 }}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Filters + table section */}
         <div>
@@ -323,139 +349,153 @@ export default function ContainersPage() {
                   <tbody>
                     {items.length ? (
                       items.map((c, index) => {
-                        const usageStatus = String(c.usage_report_status || 'pending').toLowerCase()
-                        const usagePending = usageStatus !== 'done'
-                        const emoneyDone = (c.emoney_expenses || 0) > 0
+                        const usageStatus = String(
+                          c.usage_report_status || "pending"
+                        ).toLowerCase();
+                        const usagePending = usageStatus !== "done";
+                        const emoneyDone = (c.emoney_expenses || 0) > 0;
                         return (
                           <tr
-                          key={c.id}
-                          style={{
-                            backgroundColor:
-                              index % 2 === 0 ? "#fafbfc" : "white",
-                            transition: "background-color 0.2s ease",
-                          }}
+                            key={c.id}
+                            style={{
+                              backgroundColor:
+                                index % 2 === 0 ? "#fafbfc" : "white",
+                              transition: "background-color 0.2s ease",
+                            }}
                             className="table-row-hover"
-                        >
-                          {isAdmin && (
+                          >
+                            {isAdmin && (
+                              <td style={td}>
+                                <input
+                                  type="checkbox"
+                                  checked={!!selected[c.id]}
+                                  onChange={() => toggleOne(c.id)}
+                                  style={{
+                                    transform: "scale(1.1)",
+                                    accentColor: "#F2C14E",
+                                  }}
+                                />
+                              </td>
+                            )}
+                            <td style={tdMono}>{c.id}</td>
+                            <td style={td}>{c.event_name}</td>
+                            <td style={td}>{c.pic}</td>
+                            <td style={td}>{c.location || "-"}</td>
                             <td style={td}>
-                              <input
-                                type="checkbox"
-                                checked={!!selected[c.id]}
-                                onChange={() => toggleOne(c.id)}
-                                style={{
-                                  transform: "scale(1.1)",
-                                  accentColor: "#F2C14E",
-                                }}
-                              />
+                              {formatDateTime(c.start_date, {
+                                monthText: true,
+                              })}
                             </td>
-                          )}
-                          <td style={tdMono}>{c.id}</td>
-                          <td style={td}>{c.event_name}</td>
-                          <td style={td}>{c.pic}</td>
-                          <td style={td}>{c.location || "-"}</td>
-                          <td style={td}>
-                            {formatDateTime(c.start_date, { monthText: true })}
-                          </td>
-                          <td style={td}>
-                            {formatDateTime(c.end_date, { monthText: true })}
-                          </td>
-                          <td style={td}>
-                            {c.status}
-                            {c.status === "Closed" &&
-                            (c.emoney_expenses || 0) > 0
-                              ? " · Fully Closed"
-                              : ""}
-                          </td>
-                          <td style={td}>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                padding: "4px 10px",
-                                borderRadius: 999,
-                                background: usagePending ? "#fee2e2" : "#dcfce7",
-                                color: usagePending ? "#b91c1c" : "#15803d",
-                                fontWeight: 600,
-                                fontSize: 12,
-                              }}
-                            >
-                              {usagePending ? "Report Needed!" : "Done"}
-                            </span>
-                          </td>
-                          <td style={td}>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                padding: "4px 10px",
-                                borderRadius: 999,
-                                background: emoneyDone ? "#dcfce7" : "#fee2e2",
-                                color: emoneyDone ? "#15803d" : "#b91c1c",
-                                fontWeight: 600,
-                                fontSize: 12,
-                              }}
-                            >
-                              {emoneyDone ? "Recorded" : "Pending"}
-                            </span>
-                          </td>
-                          <td style={td}>
-                            <div
-                              style={{
-                                display: "grid",
-                                gap: 8,
-                                justifyItems: "start",
-                              }}
-                            >
-                              {c.status === "Open" && (
-                                <a
-                                  href={"/containers/" + c.id + "/checkout"}
-                                  style={btnPrimary}
-                                >
-                                  Checkout
-                                </a>
-                              )}
-                              {c.status === "Sedang Berjalan" && (
-                                <a
-                                  href={"/containers/" + c.id + "/checkin"}
-                                  style={btnPrimary}
-                                >
-                                  Check-In
-                                </a>
-                              )}
-                              <a
-                                href={"/reports/usage/" + c.id}
-                                style={btnSecondary}
+                            <td style={td}>
+                              {formatDateTime(c.end_date, { monthText: true })}
+                            </td>
+                            <td style={td}>
+                              {c.status}
+                              {c.status === "Closed" &&
+                              (c.emoney_expenses || 0) > 0
+                                ? " · Fully Closed"
+                                : ""}
+                            </td>
+                            <td style={td}>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: usagePending
+                                    ? "#fee2e2"
+                                    : "#dcfce7",
+                                  color: usagePending ? "#b91c1c" : "#15803d",
+                                  fontWeight: 600,
+                                  fontSize: 12,
+                                }}
                               >
-                                Report Pemakaian
-                              </a>
-                              {c.status === "Closed" && (
-                                <>
+                                {usagePending ? "Report Needed!" : "Done"}
+                              </span>
+                            </td>
+                            <td style={td}>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: emoneyDone
+                                    ? "#dcfce7"
+                                    : "#fee2e2",
+                                  color: emoneyDone ? "#15803d" : "#b91c1c",
+                                  fontWeight: 600,
+                                  fontSize: 12,
+                                }}
+                              >
+                                {emoneyDone ? "Recorded" : "Pending"}
+                              </span>
+                            </td>
+                            <td style={td}>
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gap: 8,
+                                  justifyItems: "start",
+                                }}
+                              >
+                                {c.status === "Open" && (
+                                  <a
+                                    href={"/containers/" + c.id + "/checkout"}
+                                    style={btnPrimary}
+                                  >
+                                    Checkout
+                                  </a>
+                                )}
+                                {c.status === "Sedang Berjalan" && (
                                   <a
                                     href={"/containers/" + c.id + "/checkin"}
-                                    style={btnSecondary}
+                                    style={btnPrimary}
                                   >
-                                    Lihat
+                                    Check-In
                                   </a>
-                                  <a
-                                    href={"/emoney/expense/" + c.id}
-                                    style={{
-                                      ...(emoneyDone ? btnSecondary : btnDanger),
-                                    }}
-                                    title={emoneyDone ? "Sudah ada pengeluaran" : ""}
-                                  >
-                                    Input E-Money
-                                  </a>
-                                  <a
-                                    href={"/emoney/history/" + c.id}
-                                    style={btnSecondary}
-                                  >
-                                    History E-Money
-                                  </a>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })
+                                )}
+                                <a
+                                  href={"/reports/usage/" + c.id}
+                                  style={btnSecondary}
+                                >
+                                  Report Pemakaian
+                                </a>
+                                {c.status === "Closed" && (
+                                  <>
+                                    <a
+                                      href={"/containers/" + c.id + "/checkin"}
+                                      style={btnSecondary}
+                                    >
+                                      Lihat
+                                    </a>
+                                    <a
+                                      href={"/emoney/expense/" + c.id}
+                                      style={{
+                                        ...(emoneyDone
+                                          ? btnSecondary
+                                          : btnDanger),
+                                      }}
+                                      title={
+                                        emoneyDone
+                                          ? "Sudah ada pengeluaran"
+                                          : ""
+                                      }
+                                    >
+                                      Input E-Money
+                                    </a>
+                                    <a
+                                      href={"/emoney/history/" + c.id}
+                                      style={btnSecondary}
+                                    >
+                                      History E-Money
+                                    </a>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td style={td} colSpan={isAdmin ? 11 : 10}>
