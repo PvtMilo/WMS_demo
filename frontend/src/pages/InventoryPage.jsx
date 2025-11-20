@@ -137,6 +137,15 @@ export default function InventoryPage() {
     setSelected({});
   }, [page, q]);
 
+  // Auto-search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      refresh({ keepPage: false });
+    }, 500); // 500ms debounce
+    return () => clearTimeout(timer);
+  }, [q]);
+
   // ===== selection utils =====
   const selectedIds = useMemo(() => Object.keys(selected), [selected]);
   const selectedCount = selectedIds.length;
@@ -594,14 +603,11 @@ export default function InventoryPage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                onKeyDown={onKeyDownSearch}
                 placeholder="Cari id/nama/kategori/model/rak/status..."
                 style={ipt}
                 disabled={delLoading}
               />
-              <button onClick={doSearch} style={btn} disabled={delLoading}>
-                Cari
-              </button>
+              {/* Auto-search implemented via useEffect, button removed */}
               <span style={{ fontSize: 12, color: "#777" }}>
                 Menampilkan <b>{startIdx}</b>–<b>{endIdx}</b> dari{" "}
                 <b>{total}</b> item

@@ -66,6 +66,15 @@ export default function ContainersPage() {
     setSelected({});
   }, [page, q]);
 
+  // Auto-search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      refresh(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [q]);
+
   function toggleOne(id) {
     setSelected((prev) => {
       const next = { ...prev };
@@ -248,15 +257,7 @@ export default function ContainersPage() {
               placeholder="Cari id/event/pic/lokasi..."
               style={{ ...ipt, flex: 1 }}
             />
-            <button
-              onClick={() => {
-                setPage(1);
-                refresh(1);
-              }}
-              style={{ ...btn }}
-            >
-              Cari
-            </button>
+            {/* Auto-search implemented via useEffect, button removed */}
           </div>
           {isAdmin && (
             <div

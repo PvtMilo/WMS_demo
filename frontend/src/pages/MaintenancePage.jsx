@@ -51,7 +51,16 @@ export default function MaintenancePage() {
   }, []);
   useEffect(() => {
     refresh();
-  }, [page]);
+  }, [page]); // q removed from here to avoid double trigger, handled by debounce
+
+  // Auto-search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      refresh();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [q]);
   useEffect(() => {
     setSelectedIds((prev) =>
       prev.filter((id) => list.some((it) => it.id_code === id))
@@ -463,9 +472,7 @@ export default function MaintenancePage() {
           placeholder="Cari id/nama/kategori/model/rak..."
           style={{ ...ipt, flex: 1 }}
         />
-        <button onClick={refresh} style={btn}>
-          Cari
-        </button>
+        {/* Auto-search implemented via useEffect, button removed */}
         <button
           onClick={handleDeleteSelected}
           style={{ ...btn, borderColor: "#b91c1c", color: "#b91c1c" }}

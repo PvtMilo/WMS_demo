@@ -75,11 +75,23 @@ export default function Dashboard({ children }) {
           borderRadius: "12px",
         }}
       >
-        <div className="logo" style={{ margin: "4px 0 10px", textAlign: "left", background: "white" }}>
+        <div
+          className="logo"
+          style={{
+            margin: "4px 0 10px",
+            textAlign: "left",
+            background: "white",
+          }}
+        >
           <img
             src="/logo_hitam.png"
             alt="Logo"
-            style={{ display: "block", height: "24px", maxWidth: "100%", objectFit: "contain" }}
+            style={{
+              display: "block",
+              height: "24px",
+              maxWidth: "100%",
+              objectFit: "contain",
+            }}
           />
         </div>
         <SideButton to="/dashboard" label="DASHBOARD" />
@@ -92,10 +104,15 @@ export default function Dashboard({ children }) {
         <SideButton to="/general-checkin" label="GENERAL CHECK-IN" />
         <SideButton to="/maintenance" label="MAINTENANCE" />
         <SideButton to="/emoney" label="EMONEY" />
+        <SideButton to="/admin" label="ADMIN" />
 
         {isAdmin(user) && (
           <div style={{ marginTop: 24, background: "white" }}>
-            <div style={{ fontWeight: 700, marginBottom: 8, background: "white" }}>ADMIN</div>
+            <div
+              style={{ fontWeight: 700, marginBottom: 8, background: "white" }}
+            >
+              ADMIN
+            </div>
             <div style={{ display: "grid", gap: 8, background: "white" }}>
               <div style={{ fontSize: 13, background: "white" }}>
                 •{" "}
@@ -169,21 +186,25 @@ function KpiBox({ title, value }) {
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <div style={{ 
-        fontWeight: 500, 
-        fontSize: 14, 
-        marginBottom: 8,
-        color: "#666",
-        textTransform: "uppercase",
-        letterSpacing: "0.5px",
-      }}>
+      <div
+        style={{
+          fontWeight: 500,
+          fontSize: 14,
+          marginBottom: 8,
+          color: "#666",
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+        }}
+      >
         {title}
       </div>
-      <div style={{ 
-        fontWeight: 700, 
-        fontSize: 28, 
-        color: gold,
-      }}>
+      <div
+        style={{
+          fontWeight: 700,
+          fontSize: 28,
+          color: gold,
+        }}
+      >
         {value}
       </div>
     </div>
@@ -193,7 +214,11 @@ function KpiBox({ title, value }) {
 function SideButton({ to, label }) {
   const black = "#000";
   return (
-    <Link to={to} className="side-btn-link" style={{ textDecoration: "none", background: "white" }}>
+    <Link
+      to={to}
+      className="side-btn-link"
+      style={{ textDecoration: "none", background: "white" }}
+    >
       <div
         className="side-btn"
         style={{
@@ -306,28 +331,33 @@ function DashboardHome({ user }) {
                 gridTemplateColumns: "2fr 1fr 1fr",
                 alignItems: "center",
                 gap: 16,
-                borderBottom: index < emoney.length - 1 ? "1px solid #f0f0f0" : "none",
+                borderBottom:
+                  index < emoney.length - 1 ? "1px solid #f0f0f0" : "none",
                 padding: "14px 20px",
               }}
             >
-              <div style={{ 
-                color: black,
-                fontWeight: 500,
-                fontSize: 14,
-              }}>
+              <div
+                style={{
+                  color: black,
+                  fontWeight: 500,
+                  fontSize: 14,
+                }}
+              >
                 {e.label}
               </div>
-              <div style={{
-                fontWeight: 600,
-                color: "#059669",
-                fontSize: 14,
-              }}>
+              <div
+                style={{
+                  fontWeight: 600,
+                  color: "#059669",
+                  fontSize: 14,
+                }}
+              >
                 {fmtIDR(e.balance)}
               </div>
               <div>
-                <Link 
-                  to={`/emoney/${e.id}`} 
-                  style={{ 
+                <Link
+                  to={`/emoney/${e.id}`}
+                  style={{
                     color: gold,
                     textDecoration: "none",
                     fontWeight: 500,
@@ -345,12 +375,14 @@ function DashboardHome({ user }) {
             </div>
           ))}
           {(!emoney || emoney.length === 0) && (
-            <div style={{ 
-              padding: "24px 20px", 
-              textAlign: "center",
-              color: "#666",
-              fontSize: 14,
-            }}>
+            <div
+              style={{
+                padding: "24px 20px",
+                textAlign: "center",
+                color: "#666",
+                fontSize: 14,
+              }}
+            >
               Belum ada akun E-Money
             </div>
           )}
