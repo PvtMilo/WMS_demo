@@ -250,7 +250,7 @@ def init_db():
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
-        email TEXT NOT NULL UNIQUE,
+        username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         name TEXT NOT NULL,
         role TEXT NOT NULL,
@@ -265,9 +265,9 @@ def init_db():
         now = now_iso()
         for u in config.USERS:
             cur.execute("""
-            INSERT INTO users (id, email, password, name, role, created_at)
+            INSERT INTO users (id, username, password, name, role, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-            """, (u["id"], u["email"], u["password"], u["name"], u["role"], now))
+            """, (u["id"], u["username"], u["password"], u["name"], u["role"], now))
         print(f"[INFO] Seeded {len(config.USERS)} default users.")
 
     conn.commit()

@@ -52,13 +52,13 @@ async function request(method, path, body) {
 // ===== Public API surface =====
 export const api = {
   // ---------- AUTH ----------
-  async login(email, password) {
+  async login(username, password) {
     let res;
     try {
       res = await fetch(API_BASE + "/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
     } catch {
       throw new Error("Tidak bisa terhubung ke server");

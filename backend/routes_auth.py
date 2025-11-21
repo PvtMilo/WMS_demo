@@ -42,19 +42,19 @@ def require_roles(*roles):
 def login():
     """Login plaintext → token UUID."""
     data = request.get_json(silent=True) or {}
-    email = (data.get("email") or "").strip()
+    username = (data.get("username") or "").strip()
     password = (data.get("password") or "").strip()
 
     conn = get_conn()
-    row = conn.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password)).fetchone()
+    row = conn.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
     conn.close()
 
     if not row:
-        return jsonify({"error": True, "message": "Email/password salah"}), 401
+        return jsonify({"error": True, "message": "Username/password salah"}), 401
 
     user = {
         "id": row["id"],
-        "email": row["email"],
+        "username": row["username"],
         "name": row["name"],
         "role": row["role"],
     }
@@ -80,7 +80,7 @@ def logout():
 @require_roles("admin")
 def list_users():
     conn = get_conn()
-    rows = conn.execute("SELECT id, email, name, role, created_at FROM users ORDER BY name").fetchall()
+    rows = conn.execute("SELECT id, username, name, role, created_at FROM users ORDER BY name").fetchall()
     conn.close()
     users = [dict(r) for r in rows]
     return jsonify({"users": users}), 200
@@ -90,26 +90,26 @@ def list_users():
 @require_roles("admin")
 def create_user():
     data = request.get_json(silent=True) or {}
-    email = (data.get("email") or "").strip()
+    username = (data.get("username") or "").strip()
     password = (data.get("password") or "").strip()
     name = (data.get("name") or "").strip()
     role = (data.get("role") or "operator").strip().lower()
 
-    if not email or not password or not name:
-        return jsonify({"error": True, "message": "Email, password, name wajib"}), 400
+    if not username or not password or not name:
+        return jsonify({"error": True, "message": "Username, password, name wajib"}), 400
 
     conn = get_conn()
     try:
-        # Check duplicate email
-        exist = conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone()
+        # Check duplicate username
+        exist = conn.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone()
         if exist:
-            return jsonify({"error": True, "message": "Email sudah digunakan"}), 400
+            return jsonify({"error": True, "message": "Username sudah digunakan"}), 400
         
         new_id = str(uuid.uuid4())
         conn.execute("""
-            INSERT INTO users (id, email, password, name, role, created_at)
+            INSERT INTO users (id, username, password, name, role, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (new_id, email, password, name, role, now_iso()))
+        """, (new_id, username, password, name, role, now_iso()))
         conn.commit()
         return jsonify({"ok": True, "id": new_id}), 201
     except Exception as e:

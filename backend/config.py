@@ -8,13 +8,13 @@ FRONTEND_ORIGIN = "http://localhost:5173"
 # Login plaintext users (HOME SERVER ONLY)
 # Roles: 'admin' | 'pic' | 'operator'
 USERS = [
-    {"email": "admin@wms.ci",   "password": "adminci", "id": "admin", "name": "Admin",         "role": "admin"},
-    {"email": "pic@wms.ci",     "password": "picci",   "id": "pic-001","name": "PIC Gudang",    "role": "pic"},
-    {"email": "op@wms.ci",      "password": "opci",    "id": "op-001", "name": "Operator",      "role": "operator"},
+    {"username": "admin",   "password": "adminci", "id": "admin", "name": "Admin",         "role": "admin"},
+    {"username": "pic",     "password": "picci",   "id": "pic-001","name": "PIC Gudang",    "role": "pic"},
+    {"username": "op",      "password": "opci",    "id": "op-001", "name": "Operator",      "role": "operator"},
 ]
 
 # Backward compatibility (if some code still references ADMIN_*)
-ADMIN_EMAIL = USERS[0]["email"]
+ADMIN_USERNAME = USERS[0]["username"]
 ADMIN_PASSWORD = USERS[0]["password"]
 ADMIN_ID = USERS[0]["id"]
 ADMIN_NAME = USERS[0]["name"]

@@ -9,7 +9,7 @@ export default function AdminUserManagement() {
 
   // Form state
   const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
+  const [newUsername, setNewUsername] = useState("");
   const [newPass, setNewPass] = useState("");
   const [newRole, setNewRole] = useState("operator");
   const [creating, setCreating] = useState(false);
@@ -38,13 +38,13 @@ export default function AdminUserManagement() {
     try {
       await api.createUser({
         name: newName,
-        email: newEmail,
+        username: newUsername,
         password: newPass,
         role: newRole,
       });
       setMsg("User berhasil dibuat");
       setNewName("");
-      setNewEmail("");
+      setNewUsername("");
       setNewPass("");
       setNewRole("operator");
       loadUsers();
@@ -123,7 +123,7 @@ export default function AdminUserManagement() {
                   }}
                 >
                   <th style={thStyle}>Name</th>
-                  <th style={thStyle}>Email</th>
+                  <th style={thStyle}>Username</th>
                   <th style={thStyle}>Role</th>
                   <th style={thStyle}>Action</th>
                 </tr>
@@ -137,7 +137,7 @@ export default function AdminUserManagement() {
                         Joined: {u.created_at?.slice(0, 10)}
                       </div>
                     </td>
-                    <td style={tdStyle}>{u.email}</td>
+                    <td style={tdStyle}>{u.username}</td>
                     <td style={tdStyle}>
                       <span
                         style={{
@@ -210,14 +210,14 @@ export default function AdminUserManagement() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Email</label>
+                <label style={labelStyle}>Username</label>
                 <input
                   required
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
                   style={inputStyle}
-                  placeholder="user@example.com"
+                  placeholder="username"
                 />
               </div>
               <div>
