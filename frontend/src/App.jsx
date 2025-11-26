@@ -25,16 +25,18 @@ import EmoneyHistoryPage from "./pages/EmoneyHistoryPage.jsx";
 import AdminDataLifecycle from "./pages/AdminDataLifecycle.jsx";
 import AdminArchive from "./pages/AdminArchive.jsx";
 import GeneralCheckIn from "./pages/GeneralCheckIn.jsx";
-
 import AdminPage from "./pages/AdminPage.jsx";
+import ActivityLogPage from "./pages/ActivityLogPage.jsx";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
+
       {/* Dashboard layout renders persistent sidebar; children render into content area */}
       <Route path="/dashboard" element={<Dashboard />} />
+
       <Route
         path="/inventory"
         element={
@@ -204,6 +206,8 @@ export default function App() {
           </Dashboard>
         }
       />
+
+      {/* Admin Routes */}
       <Route
         path="/admin"
         element={
@@ -228,6 +232,15 @@ export default function App() {
           </Dashboard>
         }
       />
+      <Route
+        path="/activity_log"
+        element={
+          <Dashboard>
+            <ActivityLogPage />
+          </Dashboard>
+        }
+      />
+
       <Route path="*" element={<div style={{ padding: 24 }}>Not Found</div>} />
     </Routes>
   );

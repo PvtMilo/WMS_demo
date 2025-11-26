@@ -1,43 +1,13 @@
-# backend/routes_containers.py
 from flask import Blueprint, request, jsonify
-from routes_auth import auth_required, require_roles
-from db import get_conn, now_iso, new_container_id
-from datetime import datetime
+import uuid
 import json
+from datetime import datetime
+from db import get_conn, now_iso
+from routes_auth import auth_required, require_roles
+from activity_logger import log_activity
 
 bp = Blueprint("containers", __name__, url_prefix="/containers")
 
-# ---------- Create container ----------
-@bp.post("")
-@auth_required
-def create_container():
-    b = request.get_json(silent=True) or {}
-    if not b.get("event_name") or not b.get("pic"):
-        return jsonify({"error": True, "message": "event_name & pic wajib"}), 400
-
-    cid = new_container_id()
-    conn = get_conn()
-    try:
-        conn.execute("""
-          INSERT INTO containers (id, event_name, pic, crew, location, start_date, end_date, order_title, status, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Open', ?)
-        """, (
-            cid,
-            (b.get("event_name") or "").strip(),
-            (b.get("pic") or "").strip(),
-            (b.get("crew") or "").strip(),
-            (b.get("location") or "").strip(),
-            (b.get("start_date") or "").strip(),
-            (b.get("end_date") or "").strip(),
-            ((b.get("order_title") or b.get("order") or "").strip() or None),
-            now_iso(),
-        ))
-        conn.commit()
-        return jsonify({"ok": True, "id": cid})
-    finally:
-        conn.close()
-
-# ---------- Simple metrics for dashboard ----------
 @bp.get("/metrics")
 @auth_required
 def containers_metrics():
@@ -109,6 +79,48 @@ def outstanding_items():
         return jsonify({"data": data, "total": len(data)})
     finally:
         conn.close()
+# ---------- Create container ----------
+@bp.post("")
+@auth_required
+def create_container():
+    b = request.get_json(silent=True) or {}
+    event_name = (b.get("event_name") or "").strip()
+    pic = (b.get("pic") or "").strip()
+    crew = (b.get("crew") or "").strip()
+    location = (b.get("location") or "").strip()
+    start_date = (b.get("start_date") or "").strip()
+    end_date = (b.get("end_date") or "").strip()
+    order_title = (b.get("order_title") or "").strip() or None
+
+    if not event_name or not pic or not crew or not location:
+        return jsonify({"error": True, "message": "Event, PIC, Crew, dan Lokasi wajib diisi"}), 400
+    if not start_date or not end_date:
+        return jsonify({"error": True, "message": "Tanggal mulai dan selesai wajib diisi"}), 400
+
+    try:
+        sd = datetime.fromisoformat(start_date)
+        ed = datetime.fromisoformat(end_date)
+    except ValueError:
+        return jsonify({"error": True, "message": "Format tanggal tidak valid (ISO 8601)"}), 400
+    
+    if sd > ed:
+        return jsonify({"error": True, "message": "Tanggal selesai harus setelah tanggal mulai"}), 400
+
+    new_id = str(uuid.uuid4())
+    conn = get_conn()
+    try:
+        conn.execute("""
+            INSERT INTO containers (id, event_name, pic, crew, location, start_date, end_date, order_title, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Open', ?)
+        """, (new_id, event_name, pic, crew, location, start_date, end_date, order_title, now_iso()))
+        conn.commit()
+        
+        log_activity(getattr(request, "user", None), "CREATE_CONTAINER", new_id, f"Event: {event_name}")
+        
+        return jsonify({"ok": True, "id": new_id}), 201
+    finally:
+        conn.close()
+
 # ---------- List containers ----------
 @bp.get("")
 @auth_required

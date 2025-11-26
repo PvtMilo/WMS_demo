@@ -1,65 +1,12 @@
-from flask import Blueprint, request, jsonify, Response
-from routes_auth import auth_required, require_roles
+from flask import Blueprint, request, jsonify
+import math
+import uuid
 from db import get_conn, now_iso
-import qrcode, io, re
+from routes_auth import auth_required, require_roles
+from activity_logger import log_activity
 
 bp = Blueprint("items", __name__, url_prefix="/items")
 
-def _sanitize_code(text: str) -> str:
-    t = (text or "").upper().strip()
-    t = re.sub(r"\s+", "-", t)
-    t = re.sub(r"[^A-Z0-9\-]", "", t)
-    return t
-
-def _next_number_for(prefix: str, model: str, conn) -> int:
-    base = f"{_sanitize_code(prefix)}-{_sanitize_code(model)}-"
-    cur = conn.cursor()
-    cur.execute("SELECT id_code FROM item_unit WHERE id_code LIKE ? || '%'", (base,))
-    max_n = 0
-    for row in cur.fetchall():
-        code = row["id_code"]
-        if "-" in code:
-            tail = code.rsplit("-", 1)[-1]
-            if tail.isdigit():
-                max_n = max(max_n, int(tail))
-    return max_n + 1
-
-@bp.post("/batch_create")
-@auth_required
-def batch_create():
-    body = request.get_json(silent=True) or {}
-    prefix = body.get("prefix") or ""
-    name = body.get("name") or ""
-    category = body.get("category") or ""
-    model = body.get("model") or ""
-    rack = body.get("rack") or ""
-    qty = int(body.get("qty") or 0)
-    is_universal = 1 if (body.get("is_universal") in (True, 1, "1", "true", "TRUE", "True")) else 0
-    if not all([prefix, name, category, model, rack]) or qty < 1 or qty > 500:
-        return jsonify({"error": True, "message": "Data tidak lengkap atau qty tidak valid (1-500)"}), 400
-
-    conn = get_conn()
-    try:
-        cur = conn.cursor()
-        start_n = _next_number_for(prefix, model, conn)
-        codes = []
-        for i in range(qty):
-            n = start_n + i
-            id_code = f"{_sanitize_code(prefix)}-{_sanitize_code(model)}-{n:03d}"
-            cur.execute("SELECT 1 FROM item_unit WHERE id_code=?", (id_code,))
-            if cur.fetchone():
-                return jsonify({"error": True, "message": f"Duplikat ID {id_code}, batalkan."}), 409
-            cur.execute("""
-              INSERT INTO item_unit (id_code, name, category, model, rack, status, defect_level, serial, created_at, is_universal)
-              VALUES (?, ?, ?, ?, ?, 'Good', 'none', NULL, ?, ?)
-            """, (id_code, name, category, _sanitize_code(model), rack, now_iso(), is_universal))
-            codes.append(id_code)
-        conn.commit()
-        return jsonify({"ok": True, "created": codes}), 201
-    finally:
-        conn.close()
-
-# contoh list items (ringkas)
 @bp.get("")
 @auth_required
 def list_items():

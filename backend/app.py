@@ -30,6 +30,10 @@ def create_app():
     app.register_blueprint(stock_bp)                 # NEW
     app.register_blueprint(usage_reports_bp)        # NEW
     app.register_blueprint(emoney_bp)               # NEW
+    
+    from routes_activity import bp as activity_bp
+    app.register_blueprint(activity_bp)
+
     try:
         from routes_admin_cleanup import bp as admin_cleanup_bp
         app.register_blueprint(admin_cleanup_bp)

@@ -48,7 +48,6 @@ async function request(method, path, body) {
   }
   return data;
 }
-
 // ===== Public API surface =====
 export const api = {
   // ---------- AUTH ----------
@@ -351,6 +350,12 @@ export const api = {
   createUser: (payload) => request("POST", "/auth/users", payload),
   deleteUser: (id) =>
     request("DELETE", `/auth/users/${encodeURIComponent(id)}`),
+
+  // ---------- ACTIVITY LOGS ----------
+  async fetchActivityLogs(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return request("GET", "/activity/logs" + (qs ? `?${qs}` : ""));
+  },
 };
 
 export default api;

@@ -3,6 +3,7 @@ from functools import wraps
 import uuid
 import config  # file config.py di folder backend
 from db import get_conn, now_iso
+from activity_logger import log_activity
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -111,6 +112,9 @@ def create_user():
             VALUES (?, ?, ?, ?, ?, ?)
         """, (new_id, username, password, name, role, now_iso()))
         conn.commit()
+        
+        log_activity(getattr(request, "user", None), "CREATE_USER", username, f"Role: {role}, Name: {name}")
+        
         return jsonify({"ok": True, "id": new_id}), 201
     except Exception as e:
         return jsonify({"error": True, "message": str(e)}), 500
@@ -130,6 +134,9 @@ def delete_user(user_id):
     try:
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
+        
+        log_activity(getattr(request, "user", None), "DELETE_USER", user_id, "Deleted user")
+        
         return jsonify({"ok": True}), 200
     except Exception as e:
         return jsonify({"error": True, "message": str(e)}), 500

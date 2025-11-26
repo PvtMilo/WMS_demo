@@ -107,7 +107,7 @@ export default function Dashboard({ children }) {
         <SideButton to="/emoney" label="EMONEY" />
 
         {isAdmin(user) && <SideButton to="/admin" label="ADMIN" />}
-
+        {isAdmin(user) && <SideButton to="/activity_log" label="ACTIVITY" />}
         <button
           onClick={doLogout}
           style={{

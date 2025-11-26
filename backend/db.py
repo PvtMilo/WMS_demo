@@ -257,6 +257,21 @@ def init_db():
         created_at TEXT NOT NULL
     );
     """)
+
+    # ==== Activity Logs (new) ====
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS activity_logs (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        username TEXT,
+        action TEXT NOT NULL,
+        target TEXT,
+        details TEXT,
+        timestamp TEXT NOT NULL
+    );
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_activity_logs_timestamp ON activity_logs(timestamp DESC);")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_activity_logs_username ON activity_logs(username);")
     
     # Seed default users if empty
     cur.execute("SELECT count(*) FROM users")
