@@ -97,7 +97,7 @@ export default function Dashboard({ children }) {
         </div>
         <SideButton to="/dashboard" label="DASHBOARD" />
         <SideButton to="/inventory" label="INVENTORY" />
-        <SideButton to="/stock" label="STOCK" />
+        <SideButton to="/goods" label="GOODS" />
         <SideButton to="/reports/usage" label="REPORT PEMAKAIAN" />
         <SideButton to="/containers" label="EVENT" />
         <SideButton to="/checkout" label="CHECK OUT" />

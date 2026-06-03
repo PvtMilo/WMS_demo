@@ -44,7 +44,7 @@ export default function App() {
         }
       />
       <Route
-        path="/stock"
+        path="/goods"
         element={
           <Dashboard>
             <Goods />

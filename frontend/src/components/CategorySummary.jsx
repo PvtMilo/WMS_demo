@@ -14,9 +14,6 @@ export default function CategorySummary({ data = [] }) {
 
   return (
     <div style={wrap}>
-      <div style={{ fontWeight: 700, marginBottom: 12 }}>
-        Ringkasan Kategori - Total: {totalUnits} pcs
-      </div>
       <div style={grid}>
         {data.map((item) => (
           <div key={item.label} style={card}>

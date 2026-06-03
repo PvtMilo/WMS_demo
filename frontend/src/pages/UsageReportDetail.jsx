@@ -26,6 +26,7 @@ export default function UsageReportDetail() {
   const [vehicle, setVehicle] = useState('')
   const [specialNote, setSpecialNote] = useState('')
   const [stockOptions, setStockOptions] = useState([])
+  const [initialUsageMap, setInitialUsageMap] = useState(new Map())
 
   useEffect(() => {
     async function load() {
@@ -37,6 +38,15 @@ export default function UsageReportDetail() {
         setVehicle(res.report?.vehicle || '')
         setSpecialNote(res.report?.special_note || '')
         setStockOptions(res.stock_options || [])
+        const initMap = new Map()
+        if (Array.isArray(res.items)) {
+          for (const it of res.items) {
+            const sid = String(it.stock_id)
+            const qty = Number(it.qty_used || 0)
+            initMap.set(sid, (initMap.get(sid) || 0) + qty)
+          }
+        }
+        setInitialUsageMap(initMap)
         if (Array.isArray(res.items) && res.items.length) {
           const mapped = res.items.map((it) => ({
             key: makeKey(),
@@ -72,6 +82,51 @@ export default function UsageReportDetail() {
     return map
   }, [stockOptions])
 
+  const getStockTotalLimit = (stockId) => {
+    const opt = stockMap.get(String(stockId))
+    const dbQty = opt ? Number(opt.qty || 0) : 0
+    const initialQty = initialUsageMap.get(String(stockId)) || 0
+    return dbQty + initialQty
+  }
+
+  function getRowRemainingStock(idx, rowStockId) {
+    if (!rowStockId) return 0
+    const limit = getStockTotalLimit(rowStockId)
+    
+    let sum = 0
+    for (let i = 0; i <= idx; i++) {
+      const item = items[i]
+      if (String(item.stockId) === String(rowStockId)) {
+        const q = Number(item.qty || 0)
+        if (Number.isFinite(q)) {
+          sum += q
+        }
+      }
+    }
+    return limit - sum
+  }
+
+  const validation = useMemo(() => {
+    const usageTotals = new Map()
+    for (const row of items) {
+      const sid = String(row.stockId)
+      if (!sid) continue
+      const q = Number(row.qty || 0)
+      if (Number.isFinite(q)) {
+        usageTotals.set(sid, (usageTotals.get(sid) || 0) + q)
+      }
+    }
+    
+    for (const [sid, totalUsed] of usageTotals.entries()) {
+      const limit = getStockTotalLimit(sid)
+      if (totalUsed > limit) {
+        const opt = stockMap.get(sid)
+        return { exceeded: true, name: opt?.name || sid, limit, totalUsed }
+      }
+    }
+    return { exceeded: false }
+  }, [items, initialUsageMap, stockMap])
+
   function updateItem(idx, patch) {
     setItems((prev) => {
       const next = [...prev]
@@ -99,6 +154,10 @@ export default function UsageReportDetail() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (saving) return
+    if (validation.exceeded) {
+      setError(`Jumlah pemakaian untuk "${validation.name}" melebihi stok yang tersedia (Maksimal: ${validation.limit}, Diinput: ${validation.totalUsed})`)
+      return
+    }
     const payloadItems = []
     for (const row of items) {
       const stockId = String(row.stockId || '').trim()
@@ -154,6 +213,12 @@ export default function UsageReportDetail() {
         <div style={infoBox}>{info}</div>
       )}
 
+      {validation.exceeded && (
+        <div style={{ ...errorBox, margin: 0 }}>
+          ⚠️ Perhatian: Jumlah pemakaian untuk <b>{validation.name}</b> melebihi stok yang tersedia (Maksimal: {validation.limit}, Diinput: {validation.totalUsed}). Pengiriman tidak diperbolehkan.
+        </div>
+      )}
+
       <section style={card}>
         <h3 style={{ marginTop: 0 }}>Detail Event</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
@@ -195,7 +260,7 @@ export default function UsageReportDetail() {
 
         <section style={card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ margin: 0 }}>Pemakaian Stok</h3>
+            <h3 style={{ margin: 0 }}>Pemakaian Item</h3>
             <button type="button" style={btnSecondary} onClick={addRow}>
               + Tambah baris
             </button>
@@ -213,10 +278,7 @@ export default function UsageReportDetail() {
               </thead>
               <tbody>
                 {items.map((row, idx) => {
-                  const opt = stockMap.get(String(row.stockId))
-                  const baseQty = row.baseQty || Number(opt?.qty || 0)
-                  const qtyNum = Number(row.qty || 0)
-                  const remaining = baseQty - (Number.isFinite(qtyNum) ? qtyNum : 0)
+                  const remaining = getRowRemainingStock(idx, row.stockId)
                   return (
                     <tr key={row.key}>
                       <td style={td}>
@@ -227,11 +289,14 @@ export default function UsageReportDetail() {
                           required
                         >
                           <option value="">-- pilih stok --</option>
-                          {stockOptions.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name} ({s.category}) - stok {s.qty}
-                            </option>
-                          ))}
+                          {stockOptions.map((s) => {
+                            const maxLimit = getStockTotalLimit(s.id)
+                            return (
+                              <option key={s.id} value={s.id}>
+                                {s.name} ({s.category}) - stok {maxLimit}
+                              </option>
+                            )
+                          })}
                         </select>
                       </td>
                       <td style={td}>
@@ -248,7 +313,7 @@ export default function UsageReportDetail() {
                       <td style={td}>
                         {row.stockId ? (
                           <span style={{ fontWeight: 600, color: remaining < 0 ? '#b91c1c' : '#0f766e' }}>
-                            Sisa {remaining >= 0 ? remaining : 0}
+                            {remaining < 0 ? `Sisa ${remaining} (Stok Kurang!)` : `Sisa ${remaining}`}
                           </span>
                         ) : (
                           '-'
@@ -280,7 +345,7 @@ export default function UsageReportDetail() {
           <button type="button" style={btnSecondary} onClick={() => navigate('/reports/usage')}>
             Batal
           </button>
-          <button type="submit" style={btnPrimary} disabled={saving}>
+          <button type="submit" style={btnPrimary} disabled={saving || validation.exceeded}>
             {saving ? 'Menyimpan...' : 'Simpan Report'}
           </button>
         </div>
