@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { api } from "../api.js";
+import { api } from '../api';
 
-export default function MaintenancePage() {
+export default function Maintenance() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

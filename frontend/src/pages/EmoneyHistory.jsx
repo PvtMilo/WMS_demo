@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api.js";
+import { api } from '../api';
 import "../styles/print.css";
 
-export default function EmoneyHistoryPage() {
+export default function EmoneyHistory() {
   const nav = useNavigate();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");

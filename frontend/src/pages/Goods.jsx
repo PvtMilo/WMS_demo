@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 import CategorySummary from '../components/CategorySummary.jsx'
 
 const initialForm = { name: '', category: '', qty: '' }
@@ -25,7 +25,7 @@ function buildItemSummary(list) {
     .sort((a, b) => a.label.localeCompare(b.label))
 }
 
-export default function StockPage() {
+export default function Goods() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

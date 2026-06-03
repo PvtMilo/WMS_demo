@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 
 export default function ContainerForm({ onCreated }) {
   const [event_name, setEventName] = useState('')

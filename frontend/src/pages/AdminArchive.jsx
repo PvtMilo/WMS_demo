@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, getToken } from "../api.js";
+import { api, getToken } from '../api';
 
 function isAdmin(user) {
   const r = user?.role;

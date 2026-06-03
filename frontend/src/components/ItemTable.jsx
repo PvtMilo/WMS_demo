@@ -1,16 +1,3 @@
-// wms/frontend/src/components/ItemTable.jsx
-import React from 'react'
-
-/**
- * Props:
- * - items: Array<{ id_code, name, category, model, rack, status, defect_level }>
- * - selected: { [id_code: string]: true }
- * - onToggleOne(id_code)
- * - onToggleAllOnPage()
- * - allSelectedOnPage: boolean
- * - onShowQr(id_code)
- * - onDeleteOne(id_code)
- */
 export default function ItemTable({
   items = [],
   selected = {},

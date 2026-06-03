@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, getToken } from "../api.js";
+import { api, getToken } from '../api';
 
 function isAdmin(user) {
   const r = user?.role;
@@ -130,117 +130,117 @@ export default function AdminDataLifecycle() {
 
   if (loading) return <div>Loading...</div>;
 
-  return (
-    <div>
-      <h3 style={{ marginTop: 0, marginBottom: 16 }}>Admin • Data Lifecycle</h3>
-      {/* <div style={{ display: "grid", gap: 12, maxWidth: 680 }}>
-        <div>
-          <label>Start</label>
-          <input
-            type="date"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-            style={{ marginLeft: 8 }}
-          />
-          <label style={{ marginLeft: 16 }}>End</label>
-          <input
-            type="date"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-            style={{ marginLeft: 8 }}
-          />
-        </div>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={includeContainers}
-              onChange={(e) => setIncludeContainers(e.target.checked)}
-            />{" "}
-            Containers (Fully Closed)
-          </label>
-        </div>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={includeEmoney}
-              onChange={(e) => setIncludeEmoney(e.target.checked)}
-            />{" "}
-            E‑Money History
-          </label>
-          <div style={{ marginLeft: 24, opacity: includeEmoney ? 1 : 0.5 }}>
-            <label style={{ marginRight: 16 }}>
-              <input
-                type="checkbox"
-                disabled={!includeEmoney}
-                checked={scopeLinked}
-                onChange={(e) => setScopeLinked(e.target.checked)}
-              />{" "}
-              Linked containers only
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                disabled={!includeEmoney}
-                checked={scopeAll}
-                onChange={(e) => setScopeAll(e.target.checked)}
-              />{" "}
-              General (all accounts)
-            </label>
-          </div>
-        </div>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={includeMaintenance}
-              onChange={(e) => setIncludeMaintenance(e.target.checked)}
-            />{" "}
-            Maintenance: Repair Logs
-          </label>
-        </div>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={includeLost}
-              onChange={(e) => setIncludeLost(e.target.checked)}
-            />{" "}
-            Lost Item History
-          </label>
-        </div>
-        <div>
-          <label>Note</label>
-          <input
-            placeholder="opsional"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            style={{ marginLeft: 8, width: "60%" }}
-          />
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={doPreview} disabled={pvLoading} style={btn()}>
-            {pvLoading ? "Preview..." : "Preview"}
-          </button>
-          <button onClick={doSnapshot} disabled={snapLoading} style={btn()}>
-            {snapLoading ? "Snapshot..." : "Create Snapshot"}
-          </button>
-          <button onClick={doRun} disabled={runLoading} style={btnPrimary()}>
-            {runLoading ? "Running..." : "Run Cleanup"}
-          </button>
-        </div>
-        {err && <div style={alertErr()}>{err}</div>}
-        {message && <div style={alertOk()}>{message}</div>}
-        {preview && (
-          <div style={box()}>
-            <h4 style={{ marginTop: 0 }}>Preview</h4>
-            <pre style={{ whiteSpace: "pre-wrap" }}>{safeJson(preview)}</pre>
-          </div>
-        )}
-      </div> */}
-    </div>
-  );
+  // return (
+  //   <div>
+  //     <h3 style={{ marginTop: 0, marginBottom: 16 }}>Admin • Data Lifecycle</h3>
+  //     <div style={{ display: "grid", gap: 12, maxWidth: 680 }}>
+  //       <div>
+  //         <label>Start</label>
+  //         <input
+  //           type="date"
+  //           value={start}
+  //           onChange={(e) => setStart(e.target.value)}
+  //           style={{ marginLeft: 8 }}
+  //         />
+  //         <label style={{ marginLeft: 16 }}>End</label>
+  //         <input
+  //           type="date"
+  //           value={end}
+  //           onChange={(e) => setEnd(e.target.value)}
+  //           style={{ marginLeft: 8 }}
+  //         />
+  //       </div>
+  //       <div>
+  //         <label>
+  //           <input
+  //             type="checkbox"
+  //             checked={includeContainers}
+  //             onChange={(e) => setIncludeContainers(e.target.checked)}
+  //           />{" "}
+  //           Containers (Fully Closed)
+  //         </label>
+  //       </div>
+  //       <div>
+  //         <label>
+  //           <input
+  //             type="checkbox"
+  //             checked={includeEmoney}
+  //             onChange={(e) => setIncludeEmoney(e.target.checked)}
+  //           />{" "}
+  //           E‑Money History
+  //         </label>
+  //         <div style={{ marginLeft: 24, opacity: includeEmoney ? 1 : 0.5 }}>
+  //           <label style={{ marginRight: 16 }}>
+  //             <input
+  //               type="checkbox"
+  //               disabled={!includeEmoney}
+  //               checked={scopeLinked}
+  //               onChange={(e) => setScopeLinked(e.target.checked)}
+  //             />{" "}
+  //             Linked containers only
+  //           </label>
+  //           <label>
+  //             <input
+  //               type="checkbox"
+  //               disabled={!includeEmoney}
+  //               checked={scopeAll}
+  //               onChange={(e) => setScopeAll(e.target.checked)}
+  //             />{" "}
+  //             General (all accounts)
+  //           </label>
+  //         </div>
+  //       </div>
+  //       <div>
+  //         <label>
+  //           <input
+  //             type="checkbox"
+  //             checked={includeMaintenance}
+  //             onChange={(e) => setIncludeMaintenance(e.target.checked)}
+  //           />{" "}
+  //           Maintenance: Repair Logs
+  //         </label>
+  //       </div>
+  //       <div>
+  //         <label>
+  //           <input
+  //             type="checkbox"
+  //             checked={includeLost}
+  //             onChange={(e) => setIncludeLost(e.target.checked)}
+  //           />{" "}
+  //           Lost Item History
+  //         </label>
+  //       </div>
+  //       <div>
+  //         <label>Note</label>
+  //         <input
+  //           placeholder="opsional"
+  //           value={note}
+  //           onChange={(e) => setNote(e.target.value)}
+  //           style={{ marginLeft: 8, width: "60%" }}
+  //         />
+  //       </div>
+  //       <div style={{ display: "flex", gap: 8 }}>
+  //         <button onClick={doPreview} disabled={pvLoading} style={btn()}>
+  //           {pvLoading ? "Preview..." : "Preview"}
+  //         </button>
+  //         <button onClick={doSnapshot} disabled={snapLoading} style={btn()}>
+  //           {snapLoading ? "Snapshot..." : "Create Snapshot"}
+  //         </button>
+  //         <button onClick={doRun} disabled={runLoading} style={btnPrimary()}>
+  //           {runLoading ? "Running..." : "Run Cleanup"}
+  //         </button>
+  //       </div>
+  //       {err && <div style={alertErr()}>{err}</div>}
+  //       {message && <div style={alertOk()}>{message}</div>}
+  //       {preview && (
+  //         <div style={box()}>
+  //           <h4 style={{ marginTop: 0 }}>Preview</h4>
+  //           <pre style={{ whiteSpace: "pre-wrap" }}>{safeJson(preview)}</pre>
+  //         </div>
+  //       )}
+  //     </div>
+  //   </div>
+  // );
 }
 
 function btn() {

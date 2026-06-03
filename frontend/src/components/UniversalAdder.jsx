@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 
 export default function UniversalAdder({ cid, onAdded }) {
   const [scanId, setScanId] = useState('')

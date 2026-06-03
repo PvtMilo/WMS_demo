@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 import { formatDateTime } from '../utils/date.js'
 
 export default function CheckInList(){

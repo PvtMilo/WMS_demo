@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import SuratJalan from '../components/SuratJalan.jsx'
-import { api } from '../api.js'
+import SuratJalanTemplate from '../components/SuratJalan.jsx'
+import { api } from '../api'
 import { formatDateTime } from '../utils/date.js'
 import '../styles/print.css'
 
-export default function SuratJalanPage() {
+export default function SuratJalan() {
   const { cid, ver } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -147,7 +147,7 @@ export default function SuratJalanPage() {
     <div style={{ fontFamily: 'sans-serif' }}>
       {toolbar}
       {mapped ? (
-        <SuratJalan dn={mapped.dn} items={mapped.items} logoUrl={"/logo.png"} />
+        <SuratJalanTemplate dn={mapped.dn} items={mapped.items} logoUrl={"/logo.png"} />
       ) : (
         <div style={{ padding: 24 }}>Tidak ada data DN</div>
       )}

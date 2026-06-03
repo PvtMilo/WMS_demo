@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { api, getToken } from "../api.js";
+import { api, getToken } from '../api';
 import ItemForm from "../components/ItemForm.jsx";
 import ItemTable from "../components/ItemTable.jsx";
 import UniversalItemForm from "../components/UniversalItemForm.jsx";

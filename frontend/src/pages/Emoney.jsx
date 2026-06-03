@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { api, getToken } from '../api.js'
+import { api, getToken } from '../api'
 
-export default function EmoneyPage(){
+export default function Emoney(){
   const [label, setLabel] = useState('')
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState([])

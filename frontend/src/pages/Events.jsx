@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { api, getToken } from "../api.js";
+import { api, getToken } from '../api';
 import ContainerForm from "../components/ContainerForm.jsx";
 import { formatDateTime } from "../utils/date.js";
 
-export default function ContainersPage() {
+export default function EventsPage() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState(""); // '', 'Open', 'Sedang Berjalan', 'Closed', 'FullyClosed'

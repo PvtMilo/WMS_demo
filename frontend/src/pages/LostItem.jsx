@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api } from '../api';
 
 const PER_PAGE = 100;
 
-export default function LostItemsPage() {
+export default function LostItem() {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);

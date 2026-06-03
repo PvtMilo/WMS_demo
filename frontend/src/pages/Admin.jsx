@@ -3,7 +3,7 @@ import AdminDataLifecycle from "./AdminDataLifecycle";
 import AdminArchive from "./AdminArchive";
 import AdminUserManagement from "./AdminUserManagement";
 
-export default function AdminPage() {
+export default function Admin() {
   return (
     <div
       className="admin-page-container"
@@ -21,15 +21,15 @@ export default function AdminPage() {
         <AdminUserManagement />
       </div>
 
-      {/* Section 2: Data Lifecycle */}
-      <div style={sectionStyle}>
+      {/* Section 2: Data Lifecycle  DISABLED FOR NOW*/}
+      {/* <div style={sectionStyle}>
         <AdminDataLifecycle />
-      </div>
+      </div> */}
 
       {/* Section 3: Archived Browser */}
-      <div style={sectionStyle}>
+      {/* <div style={sectionStyle}>
         <AdminArchive />
-      </div>
+      </div> */}
     </div>
   );
 }

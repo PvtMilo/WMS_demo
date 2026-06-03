@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api } from '../api'
 import { formatDateTime } from '../utils/date.js'
 
 const STATUS_PENDING = 'pending'
@@ -25,7 +25,7 @@ function usageBadge(status) {
   return <span style={style}>{pending ? 'Report Needed!' : 'Done'}</span>
 }
 
-export default function UsageReportPage() {
+export default function UsageReport() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

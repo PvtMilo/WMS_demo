@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api } from '../api'
 import UniversalAdder from '../components/UniversalAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'

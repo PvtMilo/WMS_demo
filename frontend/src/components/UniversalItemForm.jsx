@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 
 export default function UniversalItemForm({ onCreated }) {
   const [prefix, setPrefix]    = useState('UNI')

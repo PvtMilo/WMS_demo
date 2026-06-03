@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import uuid
 import json
 from datetime import datetime
-from db import get_conn, now_iso
+from db import get_conn, now_iso, new_container_id
 from routes_auth import auth_required, require_roles
 from activity_logger import log_activity
 
@@ -106,7 +106,7 @@ def create_container():
     if sd > ed:
         return jsonify({"error": True, "message": "Tanggal selesai harus setelah tanggal mulai"}), 400
 
-    new_id = str(uuid.uuid4())
+    new_id = new_container_id()
     conn = get_conn()
     try:
         conn.execute("""

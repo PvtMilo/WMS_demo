@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api } from '../api';
 
-export default function ActivityLogPage() {
+export default function ActivityLog() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");

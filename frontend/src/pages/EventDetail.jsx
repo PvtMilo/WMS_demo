@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { api, getToken } from '../api.js'
+import { api, getToken } from '../api'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
 
-export default function ContainerDetail(){
+export default function EventDetail(){
   const { cid } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)

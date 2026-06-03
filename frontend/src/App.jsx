@@ -1,38 +1,36 @@
-import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage.jsx";
+import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import InventoryPage from "./pages/InventoryPage.jsx";
-import StockPage from "./pages/StockPage.jsx";
-import InventorySummary from "./pages/InventorySummary.jsx";
-import UsageReportPage from "./pages/UsageReportPage.jsx";
+import InventoryPage from "./pages/Inventory.jsx";
+import Goods from "./pages/Goods.jsx";
+import InventorySummary from "./pages/StockSummary.jsx";
+import UsageReport from "./pages/UsageReport.jsx";
 import UsageReportDetail from "./pages/UsageReportDetail.jsx";
-import LostItemsPage from "./pages/LostItemsPage.jsx";
-// import PrintLabelsPage from './pages/PrintLabelsPage.jsx'
-import ContainersPage from "./pages/ContainersPage.jsx";
-import ContainerCheckout from "./pages/ContainerCheckout.jsx";
-import ContainerCheckIn from "./pages/ContainerCheckIn.jsx";
+import LostItem from "./pages/LostItem.jsx";
+import EventsPage from "./pages/Events.jsx";
+import EventCheckout from "./pages/EventCheckout.jsx";
+import EventCheckIn from "./pages/EventCheckIn.jsx";
 import CheckInList from "./pages/CheckInList.jsx";
 import CheckoutList from "./pages/CheckoutList.jsx";
-import SuratJalanPage from "./pages/SuratJalanPage.jsx";
+import SuratJalan from "./pages/SuratJalan.jsx";
 import SuratJalanHistory from "./pages/SuratJalanHistory.jsx";
-import MaintenancePage from "./pages/MaintenancePage.jsx";
-import EmoneyPage from "./pages/EmoneyPage.jsx";
+import Maintenance from "./pages/Maintenance.jsx";
+import Emoney from "./pages/Emoney.jsx";
 import EmoneyDetail from "./pages/EmoneyDetail.jsx";
 import EmoneyExpenseForm from "./pages/EmoneyExpenseForm.jsx";
 import EmoneyContainerHistory from "./pages/EmoneyContainerHistory.jsx";
-import EmoneyHistoryPage from "./pages/EmoneyHistoryPage.jsx";
+import EmoneyHistory from "./pages/EmoneyHistory.jsx";
 import AdminDataLifecycle from "./pages/AdminDataLifecycle.jsx";
 import AdminArchive from "./pages/AdminArchive.jsx";
 import GeneralCheckIn from "./pages/GeneralCheckIn.jsx";
-import AdminPage from "./pages/AdminPage.jsx";
-import ActivityLogPage from "./pages/ActivityLogPage.jsx";
+import Admin from "./pages/Admin.jsx";
+import ActivityLog from "./pages/ActivityLog.jsx";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<Login />} />
 
       {/* Dashboard layout renders persistent sidebar; children render into content area */}
       <Route path="/dashboard" element={<Dashboard />} />
@@ -49,7 +47,7 @@ export default function App() {
         path="/stock"
         element={
           <Dashboard>
-            <StockPage />
+            <Goods />
           </Dashboard>
         }
       />
@@ -57,7 +55,7 @@ export default function App() {
         path="/reports/usage"
         element={
           <Dashboard>
-            <UsageReportPage />
+            <UsageReport />
           </Dashboard>
         }
       />
@@ -81,16 +79,15 @@ export default function App() {
         path="/inventory/lost"
         element={
           <Dashboard>
-            <LostItemsPage />
+            <LostItem />
           </Dashboard>
         }
       />
-      {/* <Route path="/print-labels" element={<PrintLabelsPage />} /> */}
       <Route
         path="/containers"
         element={
           <Dashboard>
-            <ContainersPage />
+            <EventsPage />
           </Dashboard>
         }
       />
@@ -114,7 +111,7 @@ export default function App() {
         path="/containers/:cid/checkout"
         element={
           <Dashboard>
-            <ContainerCheckout />
+            <EventCheckout />
           </Dashboard>
         }
       />
@@ -122,7 +119,7 @@ export default function App() {
         path="/containers/:cid/checkin"
         element={
           <Dashboard>
-            <ContainerCheckIn />
+            <EventCheckIn />
           </Dashboard>
         }
       />
@@ -138,7 +135,7 @@ export default function App() {
         path="/containers/:cid/surat-jalan"
         element={
           <Dashboard>
-            <SuratJalanPage />
+            <SuratJalan />
           </Dashboard>
         }
       />
@@ -146,7 +143,7 @@ export default function App() {
         path="/containers/:cid/surat-jalan/v/:ver"
         element={
           <Dashboard>
-            <SuratJalanPage />
+            <SuratJalan />
           </Dashboard>
         }
       />
@@ -162,7 +159,7 @@ export default function App() {
         path="/maintenance"
         element={
           <Dashboard>
-            <MaintenancePage />
+            <Maintenance />
           </Dashboard>
         }
       />
@@ -170,7 +167,7 @@ export default function App() {
         path="/emoney"
         element={
           <Dashboard>
-            <EmoneyPage />
+            <Emoney />
           </Dashboard>
         }
       />
@@ -178,7 +175,7 @@ export default function App() {
         path="/emoney/history"
         element={
           <Dashboard>
-            <EmoneyHistoryPage />
+            <EmoneyHistory />
           </Dashboard>
         }
       />
@@ -206,13 +203,11 @@ export default function App() {
           </Dashboard>
         }
       />
-
-      {/* Admin Routes */}
       <Route
         path="/admin"
         element={
           <Dashboard>
-            <AdminPage />
+            <Admin />
           </Dashboard>
         }
       />
@@ -236,7 +231,7 @@ export default function App() {
         path="/activity_log"
         element={
           <Dashboard>
-            <ActivityLogPage />
+            <ActivityLog />
           </Dashboard>
         }
       />

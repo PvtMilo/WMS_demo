@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { api, getToken } from '../api.js'
+import { api, getToken } from '../api'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
 
-export default function ContainerCheckIn(){
+export default function EventCheckIn(){
   const { cid } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)

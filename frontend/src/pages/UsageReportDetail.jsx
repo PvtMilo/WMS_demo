@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api } from '../api'
 import { formatDateTime } from '../utils/date.js'
 
 function makeKey() {

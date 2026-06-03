@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api.js'
+import { api } from '../api'
 import CheckoutAdder from '../components/CheckoutAdder.jsx'
 import ContainerItemsTable from '../components/ContainerItemsTable.jsx'
 import { formatDateTime } from '../utils/date.js'
 
-export default function ContainerCheckout(){
+export default function EventCheckout(){
   const { cid } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [makingDN, setMakingDN] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [hasDN, setHasDN] = useState(false)
   const [isEditing, setIsEditing] = useState(false)

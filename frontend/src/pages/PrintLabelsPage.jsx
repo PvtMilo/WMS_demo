@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import QrLabelCard from '../components/QrLabelCard.jsx'
 import '../styles/print.css'
-import { api } from '../api.js'
+import { api } from '../api'
 
 export default function PrintLabelsPage() {
   const [query, setQuery] = useState('')

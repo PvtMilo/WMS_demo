@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 
 export default function GeneralCheckIn(){
   const [scanCode, setScanCode] = useState('')

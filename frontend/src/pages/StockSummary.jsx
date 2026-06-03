@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { api } from '../api.js'
+import { api } from '../api'
 import '../styles/print.css'
 
-export default function InventorySummary(){
+export default function StockSummary(){
   const [data, setData] = useState({ categories: [], grand_total: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

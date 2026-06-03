@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { api, getToken } from "../api.js";
+import { api, getToken } from '../api';
 import "../styles/layout.css";
 
 function isAdmin(user) {
@@ -99,12 +99,12 @@ export default function Dashboard({ children }) {
         <SideButton to="/inventory" label="INVENTORY" />
         <SideButton to="/stock" label="STOCK" />
         <SideButton to="/reports/usage" label="REPORT PEMAKAIAN" />
-        <SideButton to="/containers" label="CONTAINER" />
+        <SideButton to="/containers" label="EVENT" />
         <SideButton to="/checkout" label="CHECK OUT" />
         <SideButton to="/checkin" label="CHECK IN" />
         <SideButton to="/general-checkin" label="GENERAL CHECK-IN" />
         <SideButton to="/maintenance" label="MAINTENANCE" />
-        <SideButton to="/emoney" label="EMONEY" />
+        {/* <SideButton to="/emoney" label="EMONEY" /> */}
 
         {isAdmin(user) && <SideButton to="/admin" label="ADMIN" />}
         {isAdmin(user) && <SideButton to="/activity_log" label="ACTIVITY" />}

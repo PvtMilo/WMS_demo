@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { api } from '../api.js'   // pastikan file api.js ada di src/
+import { api } from '../api'   // pastikan file api.js ada di src/
 
 export default function ItemForm({ onCreated }) {
   const [prefix, setPrefix]    = useState('CAM')

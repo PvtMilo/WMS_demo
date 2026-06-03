@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { formatDateTime } from '../utils/date.js'
-import { api } from '../api.js'
+import { api } from '../api'
 
 export default function ContainerItemsTable({ cid, batches = {}, onVoid, onUpdated, role }) {
   const keys = Object.keys(batches).sort()
