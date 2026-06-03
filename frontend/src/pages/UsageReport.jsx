@@ -157,7 +157,7 @@ export default function UsageReport() {
         </button>
       </div>
       <p style={{ maxWidth: 720, color: '#4b5563', lineHeight: 1.5 }}>
-        Catat pemakaian stok untuk setiap event agar stok gudang tetap akurat. Kontainer dengan status
+        Catat pemakaian stok untuk setiap event agar stok gudang tetap akurat. Event dengan status
         <b> Report Needed!</b> wajib dilengkapi sebelum proses selesai.
       </p>
 

@@ -5,7 +5,7 @@ import { api } from '../api'
 export default function ContainerItemsTable({ cid, batches = {}, onVoid, onUpdated, role }) {
   const keys = Object.keys(batches).sort()
   const [editing, setEditing] = useState({})
-  if (!keys.length) return <div style={{padding:8, color:'#666'}}>Belum ada item di kontainer ini.</div>
+  if (!keys.length) return <div style={{padding:8, color:'#666'}}>Belum ada item di event ini.</div>
 
   const isAdmin = String(role || '').toLowerCase() === 'admin'
 

@@ -88,14 +88,14 @@ export default function EventDetail(){
     <div style={{padding:24, fontFamily:'sans-serif'}}>
       {/* Header actions */}
       <div className="noprint" style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
-        <h2>Kontainer: {c.id}</h2>
+        <h2>Event: {c.id}</h2>
         <div style={{display:'flex', gap:8}}>
           <button onClick={submitDN} style={{padding:'8px 12px', border:'1px solid #111', borderRadius:8}}>Submit DN</button>
           <button onClick={printDN} style={{padding:'8px 12px', border:'1px solid #111', background:'#111', color:'#fff', borderRadius:8}} disabled={!dn}>
             {dn ? `Print DN (V${dn._meta?.version})` : 'Print DN (buat DN dulu)'}
           </button>
           {String(user?.role||'').toLowerCase()==='admin' && (
-            <button onClick={async()=>{ if(confirm('Hapus kontainer ini?')){ try{ await api.deleteContainer(cid); alert('Kontainer dihapus'); window.history.back() }catch(e){ alert(e.message) } } }} style={{padding:'8px 12px', border:'1px solid #c00', color:'#c00', borderRadius:8, background:'#fff'}}>
+            <button onClick={async()=>{ if(confirm('Hapus event ini?')){ try{ await api.deleteContainer(cid); alert('Event dihapus'); window.history.back() }catch(e){ alert(e.message) } } }} style={{padding:'8px 12px', border:'1px solid #c00', color:'#c00', borderRadius:8, background:'#fff'}}>
               Delete Container
             </button>
           )}

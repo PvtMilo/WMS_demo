@@ -115,7 +115,7 @@ export default function ContainerForm({ onCreated }) {
         end_date: endIso,
       }
       const out = await api.createContainer(payload)
-      setMsg(`Berhasil buat kontainer: ${out.id}`)
+      setMsg(`Berhasil buat event: ${out.id}`)
       onCreated?.(out.id)
       setEventName(''); setPic(''); setCrew(''); setLocation(''); setOrder('')
       setStartDateStr(''); setStartTime(''); setEndDateStr(''); setEndTime('')
@@ -131,7 +131,7 @@ export default function ContainerForm({ onCreated }) {
 
   return (
     <form onSubmit={submit} style={{display:'grid', gap:8, padding:16, border:'1px solid #eee', borderRadius:12}}>
-      <h3>Buat Kontainer / Event</h3>
+      <h3>Buat Event</h3>
       <label>Event <input value={event_name} onChange={e=>setEventName(e.target.value)} style={ipt} required/></label>
       <label>PIC <input value={pic} onChange={e=>setPic(e.target.value)} style={ipt} required/></label>
       <label>Crew <input value={crew} onChange={e=>setCrew(e.target.value)} style={ipt} required/></label>

@@ -129,7 +129,7 @@ def init_db():
             if not _column_exists(cur, table, name):
                 cur.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl};")
 
-    # Unique index: 1 item aktif hanya sekali per kontainer (abaikan yang sudah void)
+    # Unique index: 1 item aktif hanya sekali per event (abaikan yang sudah void)
     cur.execute("""
     CREATE UNIQUE INDEX IF NOT EXISTS uq_container_item_active
     ON container_item(container_id, id_code)

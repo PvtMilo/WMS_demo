@@ -74,7 +74,7 @@ export default function CheckoutList(){
                 </tr>
               ))
             ) : (
-              <tr><td style={td} colSpan={8}>Tidak ada kontainer</td></tr>
+              <tr><td style={td} colSpan={8}>Tidak ada event</td></tr>
             )}
           </tbody>
         </table>

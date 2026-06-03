@@ -99,10 +99,10 @@ export default function EventsPage() {
     if (!isAdmin) return;
     const ids = selectedIds;
     if (ids.length === 0) {
-      alert("Tidak ada kontainer dipilih");
+      alert("Tidak ada event dipilih");
       return;
     }
-    const ok = window.confirm(`Hapus ${ids.length} kontainer terpilih?`);
+    const ok = window.confirm(`Hapus ${ids.length} event terpilih?`);
     if (!ok) return;
     setDelLoading(true);
     let okCount = 0,
@@ -118,10 +118,10 @@ export default function EventsPage() {
       }
       if (fail.length)
         alert(
-          `Gagal hapus ${fail.length} kontainer: ` +
+          `Gagal hapus ${fail.length} event: ` +
             fail.map((f) => `${f.id} (${f.msg})`).join(", ")
         );
-      if (okCount > 0) alert(`Berhasil hapus ${okCount} kontainer`);
+      if (okCount > 0) alert(`Berhasil hapus ${okCount} event`);
       setSelected({});
       await refresh(1);
     } finally {
@@ -139,7 +139,7 @@ export default function EventsPage() {
   };
   return (
     <div style={{ padding: "0px 24px 24px 24px", fontFamily: "sans-serif" }}>
-      <h2>Kontainer</h2>
+      <h2>Event</h2>
       <div style={{ display: "grid", gap: 16 }}>
         {/* Create container form section above filters */}
         {/* Create container button */}
@@ -155,10 +155,10 @@ export default function EventsPage() {
             style={{ ...btn, borderColor: "#111" }}
             onClick={() => setShowCreate(true)}
           >
-            + Buat Kontainer / Event
+            + Buat Event
           </button>
           <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
-            Klik untuk membuka form pembuatan kontainer
+            Klik untuk membuka form pembuatan event
           </div>
         </div>
 
@@ -500,7 +500,7 @@ export default function EventsPage() {
                     ) : (
                       <tr>
                         <td style={td} colSpan={isAdmin ? 11 : 10}>
-                          Belum ada kontainer
+                          Belum ada event
                         </td>
                       </tr>
                     )}

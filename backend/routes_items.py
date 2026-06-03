@@ -434,7 +434,7 @@ def delete_item(id_code):
         if (row["status"] or "").lower() == "hilang" and role != 'admin':
             return jsonify({"error": True, "message": "Item status Hilang hanya bisa dihapus oleh admin"}), 403
 
-        # TOLAK jika masih tercatat aktif di kontainer (belum void dan belum returned)
+        # TOLAK jika masih tercatat aktif di event (belum void dan belum returned)
         active = conn.execute(
             """
             SELECT 1 FROM container_item
@@ -448,7 +448,7 @@ def delete_item(id_code):
             if (row["status"] or "").lower() == "hilang" and role == 'admin':
                 pass
             else:
-                return jsonify({"error": True, "message": "Item tercatat aktif di kontainer — tidak bisa dihapus."}), 400
+                return jsonify({"error": True, "message": "Item tercatat aktif di event — tidak bisa dihapus."}), 400
 
         conn.execute("DELETE FROM item_unit WHERE id_code=?", (id_code,))
         conn.commit()
@@ -507,9 +507,9 @@ def bulk_update_condition():
                 skipped.append({"id_code": id_code, "reason": "Item tidak ditemukan"})
                 continue
 
-            # tidak boleh ubah dari Inventory kalau sedang Keluar (ada di kontainer)
+            # tidak boleh ubah dari Inventory kalau sedang Keluar (ada di event)
             if row["status"] == "Keluar":
-                skipped.append({"id_code": id_code, "reason": "Sedang Keluar (ada di kontainer)"})
+                skipped.append({"id_code": id_code, "reason": "Sedang Keluar (ada di event)"})
                 continue
 
             # PIC/Operator tidak boleh ubah status dari Hilang (admin boleh)
@@ -551,7 +551,7 @@ def mark_lost():
     Aturan:
       - Hanya untuk status saat ini 'Keluar'.
       - Role: admin/pic/operator boleh menandai Hilang.
-      - Tidak memodifikasi container_item; pengelolaan kontainer dilakukan terpisah.
+      - Tidak memodifikasi container_item; pengelolaan event dilakukan terpisah.
 
     Payload: { ids: [id_code, ...] }
     """
@@ -593,7 +593,7 @@ def mark_lost():
 def lost_context(id_code):
     """
     Kembalikan konteks kehilangan untuk item:
-    - Kontainer terakhir tempat item aktif/lost
+    - Event terakhir tempat item aktif/lost
     - PIC, event, waktu out, catatan alasan jika ada
     """
     id_code = (id_code or '').strip()
@@ -613,7 +613,7 @@ def lost_context(id_code):
             (id_code,),
         ).fetchall()
         if not rows:
-            return jsonify({"error": True, "message": "Tidak ada riwayat kontainer untuk item ini"}), 404
+            return jsonify({"error": True, "message": "Tidak ada riwayat event untuk item ini"}), 404
         # Prioritas: explicit lost -> active (returned_at IS NULL) -> latest
         pick = None
         for r in rows:

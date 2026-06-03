@@ -152,7 +152,7 @@ export default function SuratJalanHistory(){
           color: '#1e40af',
           fontSize: 14
         }}>
-          📄 Halaman ini menampilkan semua versi Surat Jalan yang pernah dibuat untuk kontainer ini
+          📄 Halaman ini menampilkan semua versi Surat Jalan yang pernah dibuat untuk event ini
         </div>
       </div>
 

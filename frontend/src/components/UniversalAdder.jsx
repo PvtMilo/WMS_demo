@@ -80,9 +80,9 @@ export default function UniversalAdder({ cid, onAdded }) {
       </div>
 
       <div style={{fontSize:13, color:'#374151', background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, padding:12}}>
-        - De-dupe per kontainer (QR yang sama tidak akan dobel).<br/>
+        - De-dupe per event (QR yang sama tidak akan dobel).<br/>
         - Tidak mengunci item (tidak ubah status global).<br/>
-        - Auto-return saat kontainer ditutup.
+        - Auto-return saat event ditutup.
       </div>
 
       <button 

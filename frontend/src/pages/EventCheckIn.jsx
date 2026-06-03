@@ -91,7 +91,7 @@ export default function EventCheckIn(){
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20}}>
           <div>
             <h2 style={{margin: '0 0 16px 0', color: '#1f2937', fontSize: 24, fontWeight: 700}}>
-              Kontainer: {c.id}
+              Event: {c.id}
             </h2>
             <div style={{display: 'grid', gap: 8, color: '#374151'}}>
               <div><span style={{fontWeight: 600, color: '#6b7280'}}>Event:</span> {c.event_name}</div>
@@ -148,7 +148,7 @@ export default function EventCheckIn(){
           {c.status !== 'Closed' && (
             <button
               onClick={async ()=>{
-                if (!confirm('Anda yakin ingin menutup kontainer ini?')) return
+                if (!confirm('Anda yakin ingin menutup event ini?')) return
                 setClosing(true)
                 try{ await api.setContainerStatus(cid, 'Closed'); await refresh() } catch(e){ alert(e.message) } finally { setClosing(false) }
               }}
@@ -164,7 +164,7 @@ export default function EventCheckIn(){
               }}
               disabled={closing}
             >
-              {closing ? '⏳ Menutup...' : '🔒 Tutup Kontainer'}
+              {closing ? '⏳ Menutup...' : '🔒 Tutup Event'}
             </button>
           )}
         </div>
@@ -275,7 +275,7 @@ export default function EventCheckIn(){
           borderBottom: '1px solid #e5e5e5'
         }}>
           <h3 style={{margin: 0, color: '#1f2937', fontSize: 18, fontWeight: 600}}>
-            📦 Items dalam Kontainer
+            📦 Items dalam Event
           </h3>
         </div>
         <div style={{padding: 0}}>

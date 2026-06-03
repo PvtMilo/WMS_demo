@@ -63,7 +63,7 @@ export default function ContainerUniversal(){
 
         <div style={{ background: 'white', borderRadius: 12, border: '1px solid #e5e5e5', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', borderBottom: '1px solid #e5e5e5' }}>
-            <h3 style={{margin: 0, color: '#1f2937', fontSize: 18, fontWeight: 600}}>Items dalam Kontainer</h3>
+            <h3 style={{margin: 0, color: '#1f2937', fontSize: 18, fontWeight: 600}}>Items dalam Event</h3>
           </div>
           <div style={{padding: 0}}>
             <ContainerItemsTable batches={data.batches} onUpdated={refresh} />

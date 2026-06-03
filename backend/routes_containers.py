@@ -237,7 +237,7 @@ def get_container(cid):
     try:
         c, batches, totals = _build_detail(conn, cid)
         if not c:
-            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+            return jsonify({"error": True, "message": "Event tidak ditemukan"}), 404
         # latest snapshot (if any) and count
         snap = conn.execute("SELECT version, created_at FROM dn_snapshots WHERE container_id=? ORDER BY version DESC LIMIT 1", (cid,)).fetchone()
         latest = dict(snap) if snap else None
@@ -264,9 +264,9 @@ def add_items(cid):
     try:
         c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
         if not c:
-            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+            return jsonify({"error": True, "message": "Event tidak ditemukan"}), 404
         if c["status"] not in ("Open", "Sedang Berjalan"):
-            return jsonify({"error": True, "message": "Kontainer tidak dalam status yang bisa ditambah (Open/Sedang Berjalan)"}), 400
+            return jsonify({"error": True, "message": "Event tidak dalam status yang bisa ditambah (Open/Sedang Berjalan)"}), 400
 
         # tentukan batch label
         if is_amend:
@@ -285,7 +285,7 @@ def add_items(cid):
                 SELECT 1 FROM container_item WHERE container_id=? AND id_code=? AND voided_at IS NULL
             """, (cid, id_code)).fetchone()
             if already:
-                skipped.append({"id_code": id_code, "reason": "Sudah ada di kontainer"})
+                skipped.append({"id_code": id_code, "reason": "Sudah ada di event"})
                 continue
 
             row = conn.execute("SELECT status, defect_level, is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
@@ -368,7 +368,7 @@ def void_item(cid):
             (cid, id_code),
         ).fetchone()
         if not row:
-            return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
+            return jsonify({"error": True, "message": "Item tidak aktif di event"}), 404
 
         # Check universal flag
         uni = conn.execute("SELECT is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
@@ -437,7 +437,7 @@ def checkin_item(cid):
             (cid, id_code),
         ).fetchone()
         if not row:
-            return jsonify({"error": True, "message": "Item tidak aktif di kontainer"}), 404
+            return jsonify({"error": True, "message": "Item tidak aktif di event"}), 404
 
         # Determine if this item is universal (doesn't change global status)
         uni = conn.execute("SELECT is_universal FROM item_unit WHERE id_code=?", (id_code,)).fetchone()
@@ -530,7 +530,7 @@ def submit_dn(cid):
     try:
         c, batches, totals = _build_detail(conn, cid)
         if not c:
-            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+            return jsonify({"error": True, "message": "Event tidak ditemukan"}), 404
         # version next
         last = conn.execute("SELECT MAX(version) v FROM dn_snapshots WHERE container_id=?", (cid,)).fetchone()
         nextv = int(last["v"] or 0) + 1
@@ -632,7 +632,7 @@ def update_container_meta(cid):
             (cid,),
         ).fetchone()
         if not row:
-            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+            return jsonify({"error": True, "message": "Event tidak ditemukan"}), 404
 
         def _clean_str(key, fallback=""):
             if key not in payload or payload.get(key) is None:
@@ -722,10 +722,10 @@ def set_status(cid):
     try:
         c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
         if not c:
-            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+            return jsonify({"error": True, "message": "Event tidak ditemukan"}), 404
         cur = c["status"]
         if cur == "Closed" and status != "Closed":
-            return jsonify({"error": True, "message": "Kontainer sudah Closed"}), 400
+            return jsonify({"error": True, "message": "Event sudah Closed"}), 400
 
         # If closing, ensure all returned
         if status == "Closed":
@@ -768,7 +768,7 @@ def delete_container(cid):
     try:
         c = conn.execute("SELECT status FROM containers WHERE id=?", (cid,)).fetchone()
         if not c:
-            return jsonify({"error": True, "message": "Kontainer tidak ditemukan"}), 404
+            return jsonify({"error": True, "message": "Event tidak ditemukan"}), 404
         # Delete children then parent; unlink emoney tx
         conn.execute("DELETE FROM container_item WHERE container_id=?", (cid,))
         conn.execute("DELETE FROM dn_snapshots   WHERE container_id=?", (cid,))

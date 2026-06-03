@@ -222,7 +222,7 @@ export default function CheckoutAdder({ cid, onAdded }) {
           marginTop: 8
         }}
       >
-        {loading ? '⏳ Menambahkan…' : '✅ Tambah ke Kontainer'}
+        {loading ? '⏳ Menambahkan…' : '✅ Tambah ke Event'}
       </button>
       
       {msg && (
